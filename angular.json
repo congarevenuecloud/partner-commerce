@@ -19,7 +19,7 @@
           "options": {
             "showCircularDependencies": false,
             "preserveSymlinks": true,
-            "outputPath": "../staticresources/PartnerCommerce",
+            "outputPath": "dist/PartnerCommerce",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
