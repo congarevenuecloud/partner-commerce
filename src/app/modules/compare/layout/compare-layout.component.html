@@ -1,8 +1,6 @@
 <apt-alert [record]="cart$ | async" [autoRun]="false"></apt-alert>
 <ng-container *ngIf="products; else spinner">
-  <apt-product-compare
-    [identifiers]="identifiers"
-  ></apt-product-compare>
+  <apt-product-compare [identifiers]="identifiers"></apt-product-compare>
 </ng-container>
 
 <ng-template #spinner>

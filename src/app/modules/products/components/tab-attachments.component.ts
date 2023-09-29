@@ -33,7 +33,7 @@ import {
       <tbody>
         <tr *ngFor="let attachment of productInformation$ | async">
           <td>
-            <a href="javascript:void(0);" (click)="donwloadAttachment(attachment)">{{ attachment.Name }}</a>
+            <a href="javascript:void(0);" (click)="downloadAttachment(attachment)">{{ attachment.Name }}</a>
           </td>
           <td>{{ attachment?.Description }}</td>
           <td>{{ attachment?.CreatedDate | date: 'short' }}</td>
@@ -57,21 +57,18 @@ export class TabAttachmentsComponent implements OnChanges {
 
   productInformation$: Observable<ProductInformation[]>;
 
-  constructor(private productInformationService: ProductInformationService) {}
+  constructor(private productInformationService: ProductInformationService) { }
 
   ngOnChanges() {
     this.productInformation$ =
       this.productInformationService.getProductInformation(this.product.Id);
   }
-  
-  getAttachmentUrl(attachmentId, productId) {
-    return this.productInformationService.getAttachmentUrl(
-      attachmentId,
-      productId
-    );
+
+  getAttachmentUrl(attachmentId) {
+    return this.productInformationService.getAttachmentUrl(attachmentId);
   }
 
- donwloadAttachment(attachment: ProductInformation) {
-     this.productInformationService.donwloadProductAttachment(attachment);
+  downloadAttachment(attachmentUrl: string) {
+    this.productInformationService.downloadProductAttachment(attachmentUrl);
   }
 }

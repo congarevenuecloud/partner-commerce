@@ -1,14 +1,14 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { Observable, of } from 'rxjs';
-import { map, mergeMap, take } from 'rxjs/operators';
+import { map, mergeMap, take, tap } from 'rxjs/operators';
 import { ClassType } from 'class-transformer/ClassTransformer';
-import { first } from 'lodash';
+import { find, first, get, isNil } from 'lodash';
 import { AObject, FilterOperator } from '@congarevenuecloud/core';
-import { CartService, Cart, Price, PriceService, CartResult, FieldFilter } from '@congarevenuecloud/ecommerce';
-import { TableOptions, TableAction } from '@congarevenuecloud/elements';
+import { CartService, Cart, PriceService, CartResult, FieldFilter, SummaryGroup, LocalCurrencyPipe, DateFormatPipe } from '@congarevenuecloud/ecommerce';
+import { TableOptions, TableAction, ExceptionService } from '@congarevenuecloud/elements';
 
 @Component({
   selector: 'app-cart-list',
@@ -25,15 +25,16 @@ export class CartListComponent implements OnInit {
   view$: Observable<CartListView>;
   cartAggregate$: Observable<any>;
 
-  constructor(private cartService: CartService, public priceService: PriceService,
-    private modalService: BsModalService, private translateService: TranslateService) { }
+  @ViewChild('effectiveDateTemplate') effectiveDateTemplate: TemplateRef<any>;
+
+  constructor(private cartService: CartService, public priceService: PriceService, private dateFormatPipe: DateFormatPipe, private currencyPipe: LocalCurrencyPipe,
+    private modalService: BsModalService, private translateService: TranslateService, private exceptionService: ExceptionService) { }
 
   ngOnInit() {
     this.loadView();
   }
 
   loadView() {
-    this.getCartAggregate();
     let tableOptions = {} as CartListView;
     this.view$ = this.cartService.getMyCart()
       .pipe(
@@ -42,19 +43,15 @@ export class CartListComponent implements OnInit {
             tableOptions: {
               columns: [
                 {
-                  prop: 'Name'
+                  prop: 'Name',
+                  showPopover: true
                 },
                 {
-                  prop: 'CreatedDate'
+                  prop: 'CreatedDate',
+                  value: (record: Cart) => this.getDateFormat(record)
                 },
                 {
                   prop: 'NumberOfItems'
-                },
-                {
-                  prop: 'IsActive',
-                  label: 'CUSTOM_LABELS.IS_ACTIVE',
-                  sortable: false,
-                  value: (record: Cart) => CartService.getCurrentCartId() === record.Id ? of('Yes') : of('No')
                 },
                 {
                   prop: 'TotalAmount',
@@ -75,7 +72,20 @@ export class CartListComponent implements OnInit {
                   label: 'Set Active',
                   theme: 'primary',
                   validate: (record: Cart) => this.canActivate(record),
-                  action: (recordList: Array<Cart>) => this.cartService.setCartActive(first(recordList), true),
+                  action: (recordList: Array<Cart>) => this.cartService.setCartActive(first(recordList), true).pipe(map(res => {
+                    this.exceptionService.showSuccess('SUCCESS.CART.ACTIVATED');
+                    this.loadView();
+                  })),
+                  disableReload: true
+                } as TableAction,
+                {
+                  enabled: true,
+                  icon: 'fa-calendar',
+                  massAction: false,
+                  label: 'Set Effective Date',
+                  theme: 'primary',
+                  validate: (record: Cart) => this.canPerformAction(record),
+                  action: (recordList: Array<Cart>) => this.showEffectiveDateModal(first(recordList), this.effectiveDateTemplate),
                   disableReload: true
                 } as TableAction,
                 {
@@ -84,13 +94,18 @@ export class CartListComponent implements OnInit {
                   massAction: true,
                   label: 'Delete',
                   theme: 'danger',
-                  validate: (record: Cart) => this.canDelete(record),
-                  action: (recordList: Array<Cart>) => this.cartService.deleteCart(recordList).pipe(map(res => this.getCartAggregate())),
+                  validate: (record: Cart) => this.canPerformAction(record),
+                  action: (recordList: Array<Cart>) => this.cartService.deleteCart(recordList).pipe(map(res => {
+                    this.exceptionService.showSuccess('SUCCESS.CART.DELETED');
+                    this.getCartAggregate();
+                    this.loadView();
+                  })),
                   disableReload: true
                 } as TableAction
               ],
-              highlightRow: (record: Cart) => of(CartService.getCurrentCartId() === record.Id),
-              filters: this.getFilters()
+              highlightRow: (record: Cart) => of(CartService.getCurrentCartId() === record.Id && !isNil(record.ActivationDate)),
+              filters: this.getFilters(),
+              routingLabel: 'carts'
             },
             type: Cart
           }
@@ -101,7 +116,32 @@ export class CartListComponent implements OnInit {
   }
 
   private getCartAggregate(): Observable<CartResult> {
-    return this.cartAggregate$ = this.cartService.getCartList(this.getFilters()).pipe(map(res => res));
+    return this.cartAggregate$ = this.cartService.getCartList(this.getFilters()).pipe(take(1), map(res => res));
+  }
+
+  getDateFormat(record: Cart) {
+    return this.dateFormatPipe.transform(get(record, 'CreatedDate'));
+  }
+
+  showEffectiveDateModal(cart: Cart, template: TemplateRef<any>) {
+    this.cart = cart;
+    this.modalRef = this.modalService.show(template);
+    return of(null);
+  }
+
+  setEffectiveDate() {
+    this.loading = true;
+    this.cartService.setEffectiveDate(this.cart).pipe(take(1)).subscribe(res => {
+      this.loading = false;
+      this.modalRef.hide();
+      this.exceptionService.showSuccess('SUCCESS.CART.EFFECTIVE_DATE');
+    },
+      err => {
+        this.loading = false;
+        this.translateService.stream('MY_ACCOUNT.CART_LIST.EFFECTIVE_DATE_NOT_UPDATED').subscribe((val: string) => {
+          this.message = val;
+        });
+      })
   }
 
   newCart(template: TemplateRef<any>) {
@@ -116,6 +156,7 @@ export class CartListComponent implements OnInit {
       res => {
         this.loading = false;
         this.modalRef.hide();
+        this.exceptionService.showSuccess('SUCCESS.CART.NEW_CART_CREATED');
         this.loadView();
       },
       err => {
@@ -127,12 +168,12 @@ export class CartListComponent implements OnInit {
     );
   }
 
-  getCartTotal(currentCart: Cart) {
-    return this.priceService.getCartPrice(currentCart).pipe(mergeMap((price: Price) => price.netPrice$));
+  getCartTotal(currentCart: Cart): Observable<SummaryGroup> {
+    return this.currencyPipe.transform(get(find(get(currentCart, 'SummaryGroups', []), r => r.LineType === 'Grand Total'), 'NetPrice'));
   }
 
-  canDelete(cartToDelete: Cart) {
-    return (cartToDelete.Status !== 'Finalized');
+  canPerformAction(cart: Cart) {
+    return (cart.Status !== 'Finalized');
   }
 
   canActivate(cartToActivate: Cart) {
@@ -146,8 +187,8 @@ export class CartListComponent implements OnInit {
       filterOperator: FilterOperator.EQUAL
     },
     {
-      field: 'Status',
-      value: 'Saved',
+      field: 'UseType',
+      value: 'Shadow',
       filterOperator: FilterOperator.NOT_EQUAL
     }] as Array<FieldFilter>;
   }

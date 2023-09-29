@@ -1,118 +1,174 @@
 <ng-container *ngIf="view$ | async as view; else loadingTemplate">
-    <apt-breadcrumb [sobject]="view?.cart?.Proposald" [label]="'COMMON.EDIT_LINE_ITEMS' | translate"
-        *ngIf="view?.cart?.Proposald?.Id; else cartBreadcrumb">
-        <app-action-bar></app-action-bar>
+  <apt-breadcrumb [sobject]="view?.cart" [route]="'carts'" *ngIf="readonly; else cartBreadcrumb">
+    <app-action-bar></app-action-bar>
+  </apt-breadcrumb>
+
+  <ng-template #cartBreadcrumb>
+    <apt-breadcrumb [label]="'COMMON.MANAGE_CART' | translate">
+      <app-action-bar></app-action-bar>
     </apt-breadcrumb>
-    <ng-template #cartBreadcrumb>
-        <apt-breadcrumb [label]="'COMMON.MANAGE_CART' | translate">
-            <app-action-bar></app-action-bar>
-        </apt-breadcrumb>
-        <apt-constraint-rule-alert></apt-constraint-rule-alert>
-    </ng-template>
 
+    <apt-constraint-rule-alert></apt-constraint-rule-alert>
+  </ng-template>
 
-    <apt-alert message="ERROR.CART.VALIDATE" [record]="view?.cart"></apt-alert>
-    <div class="container-fluid" [ngClass]="(view?.orderOrQuote) ? 'py-2' : 'py-4'">
-        <div class="px-4">
-            <div *ngIf="view?.orderOrQuote" class="d-flex justify-content-end my-3">
-                <button class="btn btn-outline-primary" [routerLink]="['/products']">{{'COMMON.ADD_PRODUCTS' |
-                    translate}}</button>
-                <button class="btn btn-sm btn-outline-primary dropdown-toggle-split" id="dropdownMenuButton"
-                    data-toggle="dropdown" data-reference="parent" aria-haspopup="true" aria-expanded="false">
-                    <small class="downArrow"><i class="fa fa-caret-down"></i></small>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right p-0" aria-labelledby="dropdownMenuButton">
-                    <button class="btn btn-secondary dropdown-item" [routerLink]="['/assets']">
-                        {{'COMMON.ADD_INSTALLED_PRODUCTS' | translate}}
-                    </button>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12 col-md-8 mb-4">
-                    <div class="d-block border-bottom card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title mb-0">
-                                <span *ngIf="view?.orderOrQuote?.Id else manageCart">{{view?.orderOrQuote.Name}} /
-                                    {{'COMMON.EDIT_LINE_ITEMS' | translate }}</span>
-                                <ng-template #manageCart>
-                                    <span>{{'MANAGE_CART.CART_TABLE.ITEMS_IN_YOURCART' | translate }}</span>
-                                </ng-template>
-                            </h4>
-                            <span class="d-flex text-primary pt-1 align-items-center">
-                                <apt-select-all [items]="primaryLI"></apt-select-all>
-                            </span>
-                        </div>
-                        <div class="table">
-                            <table class="table" *ngIf="view?.lineItems?.length > 0; else empty">
-                                <tbody>
-                                    <apt-line-item-table-row
-                                        *ngFor="let item of view?.lineItems; let i = index; trackBy: trackById"
-                                        [index]="i" [cart]="view?.cart" [parent]="item.MainLine"
-                                        [children]="item.SecondaryLines" [editableFields]="false">
-                                    </apt-line-item-table-row>
-                                </tbody>
-                            </table>
-                        </div>
+  <apt-alert message="ERROR.CART.VALIDATE" [record]="view?.cart" [autoRun]="false"></apt-alert>
+  <div class="container-fluid" [ngClass]="'py-2'">
+    <div class="px-4">
+      <div class="detail-header pb-2">
+        <div class="d-flex justify-content-between">
+          <span class="m-0 d-flex cart-title">
+            <apt-output-field [record]="cart" field="Name" [valueOnly]="true" layout="inline"
+              (onChange)="refreshCart($event.Name, cart, 'Name')">
+            </apt-output-field>
 
-                        <ng-template #empty>
-                            <div class="d-flex justify-content-center align-items-center h-100 flex-column m-5 p-5">
-                                <i class="fa fa-shopping-cart fa-5x text-primary xl text-faded"></i>
-                                <h3 class="mt-4">{{'MANAGE_CART.CART_TABLE.CART_EMPTY' | translate}}</h3>
-                                <div class="mt-3">
-                                    <a href="javascript:void(0)" [routerLink]="['/products']"
-                                        class="mr-2">{{'MANAGE_CART.CART_TABLE.ALL_PRODUCTS' | translate}}</a>
-                                    <button class="btn btn-primary btn-raised">{{'MANAGE_CART.CART_TABLE.HOMEPAGE' |
-                                        translate}}</button>
-                                </div>
-                            </div>
-                        </ng-template>
-                    </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <apt-price-summary [record]="view?.cart" [page]="'carts'"
-                        (onFinalizeQuote)="convertCartToQuote(view?.cart?.Proposald)"></apt-price-summary>
-                    <apt-promotion class="mt-3" [cart]="view?.cart"></apt-promotion>
-                </div>
-            </div>
-            <div class="row mt-4" *ngIf="view?.productList?.length > 0">
-                <div class="col-12">
-                    <h4 class="mb-3 text-muted"> {{ 'COMMON.YOU_MAY_ALSO_LIKE' | translate }} </h4>
-                    <apt-product-carousel [productList]="view?.productList"></apt-product-carousel>
-                </div>
-            </div>
+            <span class="badge badge-primary ml-2 align-self-center" *ngIf="cart?.Status">{{ cart?.Status }}</span>
+          </span>
+
+          <button *ngIf="!readonly" class="btn btn-outline-primary align-self-center" [routerLink]="['/products']">
+            {{ "COMMON.ADD_PRODUCTS" | translate }}
+          </button>
         </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12 col-md-8">
+          <div class="d-flex flex-column">
+            <div class="card">
+              <div class="card-header">
+                <h5>
+                  {{ "DETAILS.CART_SUMMARY" | translate }}
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="row header-section d-flex-justify-content-between">
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [record]="view?.cart" field="CreatedDate" [editable]="false">
+                    </apt-output-field>
+                  </div>
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [record]="view?.cart.CreatedBy" field="Name"
+                      [label]="'COMMON.CREATED_BY' | translate" [editable]="false"></apt-output-field>
+                  </div>
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [record]="view?.cart" field="ModifiedDate" [editable]="false">
+                    </apt-output-field>
+                  </div>
+                </div>
+                <div class="row header-section d-flex-justify-content-between">
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [record]="view?.cart.ModifiedBy" field="Name"
+                      [label]="'COMMON.MODIFIED_BY' | translate" [editable]="false"></apt-output-field>
+                  </div>
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [record]="view?.cart.Account" field="Owner" [editable]="false">
+                    </apt-output-field>
+                  </div>
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [record]="view?.cart" field="PriceList" [showQuickView]="true" [editable]="false">
+                    </apt-output-field>
+                  </div>
+                </div>
+                <div class="row header-section d-flex-justify-content-between">
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [labelClass]="'w-50'" [valueClass]="'w-50'" [record]="view?.cart" *ngIf="
+                    view?.cart.Status === 'Finalized' &&
+                        view?.cart.BusinessObjectType === 'Order'
+                      " [label]="'MY_ACCOUNT.CART_DETAIL.ASSOCIATED_TO' | translate"
+                      [routerLink]="['/orders/', cart.Order.Id]" field="BusinessObjectId" [showQuickView]="true"
+                      [editable]="false">
+                    </apt-output-field>
+                  </div>
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [labelClass]="'w-50'" [valueClass]="'w-50'" [record]="view?.cart" *ngIf="
+                        view?.cart.Status === 'Finalized' &&
+                        view?.cart.BusinessObjectType === 'Proposal'
+                      " [label]="'MY_ACCOUNT.CART_DETAIL.ASSOCIATED_TO' | translate"
+                      [routerLink]="['/proposals/', cart.BusinessObjectId]" field="BusinessObjectId"
+                      [showQuickView]="true" [editable]="false">
+                    </apt-output-field>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="d-block border-bottom card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h4 class="card-title mb-0">
+                    <span *ngIf="view?.orderOrQuote?.Id; else manageCart">{{
+                      "DETAILS.LINE_ITEMS" | translate
+                      }}</span>
+
+                    <ng-template #manageCart>
+                      <span>{{
+                        "MANAGE_CART.CART_TABLE.ITEMS_IN_YOURCART" | translate
+                        }}</span>
+                    </ng-template>
+                  </h4>
+
+                  <span class="d-flex text-primary pt-1 align-items-center">
+                    <apt-select-all [items]="primaryLI"></apt-select-all>
+                  </span>
+                </div>
+
+                <div class="table">
+                  <table class="table" *ngIf="view?.lineItems?.length > 0; else empty">
+                    <tbody>
+                      <apt-line-item-table-row *ngFor="
+                          let item of view?.lineItems;
+                          let i = index;
+                          trackBy: trackById
+                        " [index]="i" [cart]="view?.cart" [parent]="item.MainLine" [children]="item.SecondaryLines"
+                        [readonly]="readonly" [editableFields]="false">
+                      </apt-line-item-table-row>
+                    </tbody>
+                  </table>
+                </div>
+
+                <ng-template #empty>
+                  <div class="d-flex justify-content-center align-items-center h-100 flex-column m-5 p-5">
+                    <i class="fa fa-shopping-cart fa-5x text-primary xl text-faded"></i>
+
+                    <h3 class="mt-4">
+                      {{ "MANAGE_CART.CART_TABLE.CART_EMPTY" | translate }}
+                    </h3>
+
+                    <div class="mt-3">
+                      <a href="javascript:void(0)" [routerLink]="['/products']" class="mr-2">{{
+                        "MANAGE_CART.CART_TABLE.ALL_PRODUCTS" | translate }}</a>
+
+                      <button class="btn btn-primary btn-raised" [routerLink]="['/overview']">
+                        {{ "MANAGE_CART.CART_TABLE.HOMEPAGE" | translate }}
+                      </button>
+                    </div>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <apt-price-summary [record]="view?.cart" [page]="'carts'" [readonly]="readonly" [disabled]="disabled"
+            (onFinalizeQuote)="convertCartToQuote(view?.cart?.Proposald)"></apt-price-summary>
+
+          <apt-promotion class="mt-3" [cart]="view?.cart"></apt-promotion>
+        </div>
+      </div>
+
+      <div class="row mt-4" *ngIf="view?.productList?.length > 0">
+        <div class="col-12">
+          <h4 class="mb-3 text-muted">
+            {{ "COMMON.YOU_MAY_ALSO_LIKE" | translate }}
+          </h4>
+
+          <apt-product-carousel [productList]="view?.productList"></apt-product-carousel>
+        </div>
+      </div>
     </div>
+  </div>
 </ng-container>
 
-<ng-template #confirmationTemplate>
-    <div class="modal-header">
-        <h5 class="modal-title pull-left"> {{'QUOTE_CONFIRMATION_MODAL.QUOTE_REQUEST' | translate}} </h5>
-        <button type="button" class="close pull-right" aria-label="Close" (click)="confirmationModal.hide()"
-            [routerLink]="['/proposal', quoteConfirmation.Id]">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body d-flex flex-column justify-content-center py-4">
-        <p class="text-center">
-            <strong>{{ 'MODAL.THANK_YOU' | translate }}
-                {{quoteConfirmation?.CreatedBy?.FirstName}}!</strong>
-        </p>
-        <small class="text-center" *ngIf="!cart?.Proposald?.Id"
-            [translate]="'QUOTE_CONFIRMATION_MODAL.QUOTE_CONFIRMATION_MSG'"
-            [translateParams]="{Sellername: quoteConfirmation?.CreatedBy?.Name, RFP_value: quoteConfirmation.RFPResponseDueDate}"></small>
-        <small class="text-center" *ngIf="cart?.Proposald?.Id"
-            [translate]="'QUOTE_CONFIRMATION_MODAL.QUOTE_CONFIRMATION_Update_MSG'"
-            [translateParams]="{Sellername: quoteConfirmation?.CreatedBy?.Name, RFP_value: quoteConfirmation.RFPResponseDueDate}"></small>
-        <h5 class="text-center my-3">{{ 'QUOTE_CONFIRMATION_MODAL.QUOTE_CONFIRMATION_NO' | translate }}
-            {{quoteConfirmation.Name}}</h5>
-        <button class="btn btn-outline-primary w-35 mx-auto" (click)="confirmationModal.hide()"
-            [routerLink]="['/proposal', quoteConfirmation.Id]">{{ 'QUOTE_CONFIRMATION_MODAL.REVIEW_YOUR_QUOTE' |
-            translate }}</button>
-    </div>
-</ng-template>
-
 <ng-template #loadingTemplate>
-    <div class="d-flex justify-content-center pt-5 mt-5">
-        <apt-dots></apt-dots>
-    </div>
+  <div class="d-flex justify-content-center pt-5 mt-5">
+    <apt-dots></apt-dots>
+  </div>
 </ng-template>

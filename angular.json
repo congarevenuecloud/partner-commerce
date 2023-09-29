@@ -17,9 +17,8 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "showCircularDependencies": false,
             "preserveSymlinks": true,
-            "outputPath": "dist/PartnerCommerce",
+            "outputPath": "../core/force-app/main/default/staticresources/PartnerCommerce",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -52,7 +51,10 @@
               "xml-js",
               "raven-js",
               "crypto-js",
-              "safe-buffer"
+              "safe-buffer",
+              "bezier-easing",
+              "lodash",
+              "moment"
             ]
           },
           "configurations": {
@@ -66,6 +68,7 @@
               "optimization": true,
               "outputHashing": "none",
               "sourceMap": false,
+              "extractCss": true,
               "namedChunks": false,
               "aot": true,
               "extractLicenses": true,
@@ -81,8 +84,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "30kb"
+                  "maximumWarning": "2mb",
+                  "maximumError": "2mb"
                 }
               ],
               "ngswConfigPath": "src/ngsw-config.json"
@@ -163,7 +166,6 @@
       }
     }
   },
-  "defaultProject": "partner-commerce",
   "cli": {
     "analytics": false
   }

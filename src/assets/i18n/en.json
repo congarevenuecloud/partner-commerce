@@ -1,5 +1,10 @@
 {
     "ERROR": {
+        "UPDATE_ORDER_FAILED":"{{value}} is created but some fields may need to be reviewed. To review you can visit order details page",
+        "UPDATE_QUOTE_FAILED":"{{value}} is created but some fields may need to be reviewed. To review you can visit quote details page",
+        "UPDATE_ORDER_FAILED_ON_DETAILS_PAGE":"{{value}} is created but some fields may need to be reviewed.",
+        "UPDATE_QUOTE_FAILED_ON_DETAILS_PAGE":"{{value}} is created but some fields may need to be reviewed.",
+        "RECORD_ERROR": "There are errors in your cart",
         "OPTION_GROUP": {
             "ERROR": "Option Group Errors",
             "MIN_OPTIONS": "You must select at least {{value}} options.",
@@ -15,7 +20,11 @@
             "PRICE_CHANGE": "The price of your cart has been updated",
             "PRICE_CHANGE_TOASTR_TITLE": "Price Update",
             "VALIDATE": "There are errors in your cart.",
-            "CONSTRAINT_RULES": "An item in your cart violated 1 or more constraint rules."
+            "CONSTRAINT_RULES": "An item in your cart violated 1 or more constraint rules.",
+            "FAILED_TO_ADD": "Failed to add item(s)",
+            "FAILED_TO_UPDATE": "Failed to update item(s)",
+            "FAILED_TO_DELETE": "Failed to delete item(s)",
+            "FAILED_TO_CLONE": "Failed to clone selected line item(s)"
         },
         "CART_ITEM": {
             "VALIDATE": "The are errors with this cart item."
@@ -34,14 +43,28 @@
         },
         "APPLICATION_ERROR_TOASTR_TITLE": "Application Error",
         "INVALID_REQUEST_ERROR_TOASTR_TITLE": "Invalid Request",
-        "INVALID_QUANTITY": "Cannot add a quantity less than 1"
+        "INVALID_QUANTITY": "Cannot add a quantity less than 1",
+        "NEGATIVE_VALUE": "Cannot have values less than 0",
+        "REQUIRED_FIELD": "Required field",
+        "INVALID_CODE": "Invalid product code",
+        "FAVORITE": {
+            "ADD_FAVORITE_TO_CART_FAILED": "Adding items to favorite failed.",
+            "CREATION_FAILED_TITLE": "Favorite creation failed",
+            "TRY_AGAIN_MSG":"Your favorite {{name}} could not be created. Please try again."
+        }
     },
     "SUCCESS": {
         "TITLE": "Success",
         "CART": {
             "ITEM_ADDED_TOASTR_MESSAGE": "{{productName}} was added to the cart.",
             "ITEM_ADDED_TOASTR_TITLE": "Item Added",
-            "CONFIGURATION_UPDATED": "{{productName}} configuration has been updated."
+            "BULK_MESSAGE": "{{productName}} were added to the cart.",
+            "CONFIGURATION_UPDATED": "{{productName}} configuration has been updated.",
+            "DELETED": "Successfully deleted",
+            "NEW_CART_CREATED": "New cart created successfully",
+            "ACTIVATED": "Cart activated successfully",
+            "EFFECTIVE_DATE": "Effective date updated successfully",
+            "LINE_ITEM_CLONE": "Cloning of selected line item(s) is successful"
         },
         "PROMOTION": {
             "VALID_PROMOTION_TITLE": "Promotion Applied",
@@ -59,12 +82,23 @@
             "TITLE": "Favorite items added!",
             "ADD_FAVORITE": "Added new {{name}} Favorite.",
             "UPDATE_FAVORITE": "Updated existing {{name}} Favorite",
-            "ADD_FAVORITE_TO_CART": "Items from {{name}} were added to the cart."
+            "ADD_FAVORITE_TO_CART": "Items from {{name}} were added to the cart.",
+            "DELETED": "Successfully deleted"
         }
     },
     "INFO": {
         "TITLE": "Info",
-        "GENERATE_INFO": "Your order document is being generated. You will get notified when its ready."
+        "CART": {
+            "CART_ACTION_TIMEOUT": "Cart action timed out"
+        },
+        "GENERATE_INFO": "Your order document is being generated. You will get notified when its ready.",
+        "DISCOVERY": {
+            "ADD_BEFORE_CONFIGURE_MESSAGE": "To configure this product add it to the cart."
+        },
+        "FAVORITE": {
+            "TITLE": "Creating your favorite",
+            "CREATING_FAVORITE_MSG": "Your favorite {{name}} is being created"
+        }
     },
     "ASSETS": {
         "TERMINATE_SUCCESS": "The asset termination has been added to your cart.",
@@ -73,6 +107,10 @@
         "CHANGECONFIGURATION_SUCCESS": "The asset has been added to your cart.",
         "CHANGECONFIGURATION_START_DATE": "Configuration Start Date",
         "CHANGECONFIGURATION_END_DATE": "Configuration End Date"
+    },
+    "COMPARE": {
+      "NO_COMPARABLE_FEATURE": "{{products }} does not have comparable features to the selected products",
+      "OTHER_FEATURES": "Other Features"
     },
     "MY_ACCOUNT": {
         "LAST_LOGIN_DATE": "Last Login:",
@@ -89,7 +127,7 @@
             "EMAIL": "Email",
             "RECENT_ORDERS": "Recent Orders",
             "RECENT_QUOTES": "Recent Quotes",
-            "SHOW_MORE":"Show more",
+            "SHOW_MORE": "Show more",
             "ORDER_NAME": "Order Name"
         },
         "ORDER_LIST": {
@@ -120,7 +158,8 @@
             "NUMBER_OF_ITEMS": "Number of Items",
             "IS_ACTIVE": "Is Active",
             "SET_ACTIVE": "Set Active",
-            "CART_CREATION_FAILED": "Could not create cart. Please contact your administrator."
+            "CART_CREATION_FAILED": "Could not create cart. Please contact your administrator.",
+            "EFFECTIVE_DATE_NOT_UPDATED": "Failed to update effective date on the cart."
         },
         "FAVORITE_DETAIL": {
             "FAVORITE_SUMMARY": "Favorite Summary",
@@ -148,6 +187,10 @@
             "CONTRACT_PRICE": "Contract Price",
             "PRODUCT_CREATION_FAILED": "Could not create product. Please contact your administrator"
         },
+        "CART_DETAIL": {
+            "ASSOCIATED_TO": "Associated to",
+            "CART_TITLE": "Cart Name"
+        },
         "QUOTE_DETAIL": {
             "PRIMARY_CONTACT": "Primary Contact",
             "PAYMENT_TERM": "Payment Term",
@@ -156,16 +199,7 @@
             "QUOTES_BY_STATUS": "Quotes By Status",
             "QUOTES_BY_DUE_DATE": "Quotes By Due Date",
             "TOTAL_QUOTES": "Total Quotes",
-            "FINALIZE": "Finalize",
-            "ATTACHMENTS": {
-                "TITLE": "Attach new file(s)",
-                "INPUT_LABEL": "Drop files to Attach or",
-                "BROWSE": "browse",
-                "FILE_SIZE_EXCEEDED_ERROR": "Size exceeds 25MB",
-                "NO_ATTACHMENTS": "No attachments have been added yet",
-                "REMOVE_ATTACHMENT": "Remove Attachment",
-                "BY": "by"
-            }
+            "FINALIZE": "Finalize"
         },
         "QUOTE_LIST": {
             "QUOTES": "Quotes",
@@ -191,6 +225,7 @@
         "SUBMIT": "Submit"
     },
     "BUTTON": {
+        "RETRY":"retry",
         "Buy More": "Buy More",
         "Buy_More": "Buy More",
         "Change Configuration": "Change Configuration",
@@ -222,7 +257,8 @@
         "SHOW": "Show",
         "SORT_BY": "Sort By",
         "SORT_BY_RELEVANCE": "Relevance",
-        "NO_RESULT_FOUND": "Your search  <strong><em> \t &#8212; \t {{value}} - \t </em></strong>  did not match any products",
+        "YOUR_SEARCH": "Your search \t",
+        "NO_MATCH":"did not match any products",
         "NO_RESULT": "There are no products to display",
         "SUGGESTIONS": "Suggestions",
         "SUGGESTIONS_1": "Make sure that all words are spelled correctly",
@@ -247,9 +283,23 @@
         "LAST": "Last"
     },
     "COMMON": {
+        "HERE":"here",
+        "PENDING_OPERATIONS":"Operations are pending on your cart",
+        "REVALIDATING_CART":"Cart is being revalidated",
+        "PRICING_CART":"Cart is being priced",
+        "ACTIVATE_CART":"Activate Cart",
         "ADD": "Add",
         "REMOVE": "Remove",
-        "INCLUDED":"INCLUDED",
+        "INCLUDED": "Included",
+        "QUICK_ADD": "Quick Add",
+        "PICKVALUE": "Select value from dropdown",
+        "QUICK_ORDER": "Quick Order",
+        "QUICK_QUOTE": "Quick Quote",
+        "TOTAL": "Total",
+        "VIEW_DETAILS": "View Details",
+        "CART_TOTALS": "Cart Totals",
+        "ADD_PRODUCT": "Add Product",
+        "NO_PRODUCT": "No product found",
         "FIELD": "Field",
         "OPERATOR": "Operator",
         "VALUE": "Value",
@@ -267,7 +317,7 @@
         "DELETE": "Delete",
         "EDIT": "Edit",
         "CANCEL": "Cancel",
-        "LAST_WEEK":"Last week",
+        "LAST_WEEK": "Last week",
         "UPDATE": "Update",
         "SAVE": "Save",
         "USERNAME": "Username",
@@ -282,8 +332,10 @@
         "QUOTE_TOTAL": "Total quoted amount",
         "APPROVAL_STAGE": "Approval Stage",
         "ADD_TO_CART": "Add to Cart",
+        "PLACE_QUOTE": "Place Quote",
         "CONFIGURE": "Configure",
         "ADDED_TO_CART": "Added to Cart",
+        "NO_ITEMS_FOUND":"No lineitems to display",
         "REORDER": "Reorder",
         "PRODUCT": "Product",
         "SELLING_FREQUENCY": "Selling Frequency",
@@ -309,6 +361,7 @@
         "NET_PRICE": "Net Price",
         "SEARCH_CONFIGURATION": "Search Configuration",
         "QTY": "Qty",
+        "QUANTITY_NOT_MODIFIABLE": "Quantity is not modifiable",
         "YES": "Yes",
         "NO": "No",
         "EMPTY": "- Empty -",
@@ -345,13 +398,13 @@
         "ADD_COMMENT": "Add Comment",
         "CREATE_QUOTE": "Create Quote",
         "DEFALUT_COMMENT": "There has not been any comments yet",
-        "PLACE_ORDER": "Create Order",
+        "PLACE_ORDER": "Place Order",
         "PLACE_ORDER_PAY": "Create Order & Pay",
         "ON": "on",
         "CONFIRM_CHANGES": "Confirm Changes",
         "ADD_PRODUCTS": "Add Products",
         "ADD_INSTALLED_PRODUCTS": "Add Installed Products",
-        "NO_DATA": "n/a",
+        "NO_DATA": "--",
         "MY_ORDERS": "My Orders",
         "MY_QUOTES": "My Quotes",
         "MY_CARTS": "My Carts",
@@ -388,28 +441,46 @@
         "SHIPPING_ADDRESS": "Shipping Address",
         "ORDER_TITLE": "Order Title",
         "CREATED_BY": "Created By",
+        "MODIFIED_BY": "Modified By",
         "ADJUSTMENT_TYPE": "Adjustment Type",
         "ADJUSTMENT_AMOUNT": "Adjustment Amount",
-        "SHOW_ALL":"Show All"
+        "SHOW_ALL": "Show All",
+        "QUICK_ADD_TOOLTIP": "Quickly add products to the cart",
+        "WELCOME_MESSAGE": "Hello, {{userName}}!",
+        "PAGES":"Pages",
+        "ATTACHMENT_DETAILS": {
+            "TITLE": "Attach new file(s)",
+            "INPUT_LABEL": "Drop files to Attach or",
+            "BROWSE": "browse",
+            "FILE_SIZE_EXCEEDED_ERROR": "Size exceeds 28MB",
+            "NO_ATTACHMENTS": "No attachments have been added yet",
+            "REMOVE_ATTACHMENT": "Remove Attachment",
+            "BY": "by",
+            "MAKE_VISIBILITY_PRIVATE": "Make visibility private",
+            "INVALID_FILE":"Invalid file extension"
+        },
+        "ALT_TEXT_IMAGE":"Generic placeholder image"
     },
     "REVALIDATE_CART": {
         "REVALIDATION_REQUIRED": "Revalidation required",
         "REVALIDATION_REQUIRED_MSG": "The configuration of the following items in your cart has changed and need to be revalidated",
-        "WHATTODO": "If you are not sure of what to do, you can",
+        "WHAT_TO_DO": "If you are not sure of what to do, you can",
         "DEACTIVATE_CART": "deactivate this cart",
         "FORNOW": "for now",
         "REVALIDATE": "Revalidate",
-        "TOBE_REVALIDATE": "To be revalidated",
+        "TO_BE_REVALIDATE": "To be revalidated",
         "OPTIONAL": "optional",
         "REQUIRED": "required",
         "REVALIDATION_ERROR": "Revalidation has failed! You can try again below",
         "PRODUCTNAME": "Product Name",
         "REVALIDATION_WARNING": "Some items in your cart need to be validated",
         "VALIDATE_CART": "Validate Cart",
-        "SUCCESSFULLY_REVALIDATED": "Successfully revalidated"
+        "SUCCESSFULLY_REVALIDATED": "Successfully revalidated",
+        "REVALIDATION_INFO": "If you select an optional product, the entire bundle including other optional products too will be revalidated to maintain sanctity of the bundle product",
+        "REVALIDATE_YOUR_CART": "Revalidate your cart"
     },
     "CREATE_QUOTE": {
-        "QUOTE_SUMMARY": "QUOTE SUMMARY",
+        "QUOTE_SUMMARY": "Quote Summary",
         "QUOTE_TITLE": "Quote Title",
         "EXPECTED_RESPONSE_DATE": "Expected Response Date",
         "PRIMARY_CONTACT": "Primary Contact",
@@ -425,7 +496,7 @@
         "QUOTE_CONFIRMATION_MSG_WITH_RFP": " The Expected Response Date {{RFP_value}}.",
         "QUOTE_CONFIRMATION_Update_MSG_WITHOUT_RFP": "Your updated quote has been send for review and assigned to the seller {{Sellername}}.",
         "QUOTE_CONFIRMATION_NO": "Your Quote is :",
-        "REVIEW_YOUR_QUOTE": "REVIEW YOUR QUOTE"
+        "REVIEW_YOUR_QUOTE": "Review Your Quote"
     },
     "BUYMORE": {
         "ASSET_NET_UNIT_PRICE": "Asset Net Unit Price",
@@ -583,12 +654,13 @@
         "ADDRESS_LINE1": "Address",
         "PLACEHOLDER_FOR_ADDRESS_LINE1": "1234 Main St",
         "CITY": "City",
-        "COUNTRY": "Mailing Country Code",
-        "STATE": "Mailing State/Province Code",
+        "COUNTRY": "Country Code",
+        "STATE": "State/Province Code",
         "ZIP": "Zip",
-        "INVALID_SHIPPING": "Please enter your shipping address.",
-        "INVALID_CITY": "Please enter your city.",
-        "INVALID_ZIP": "Zip code required."
+        "INVALID_SHIPPING": "Please enter your shipping address",
+        "INVALID_CITY": "Please enter your city",
+        "INVALID_STATE": "Please enter your state",
+        "INVALID_ZIP": "Zip code required"
     },
     "MANAGE_CART": {
         "CART_SUMMARY": {
@@ -655,6 +727,8 @@
         "PRODUCT_SERACH": "Product Search",
         "SUBMIT": "Submit",
         "ENTER_YOUR_SEARCH_TERM": "Enter your search term (min 3 chars)...",
+        "SEARCH_BY_CODE": "Search by product code",
+        "ENTER_PRODUCT_TO_QUICK_ADD": "Enter the product",
         "GUEST_USER": "Guest User",
         "LAST_LOGIN": "Last Login Date",
         "HOME": "Home",
@@ -665,7 +739,8 @@
         "LOG_IN": "Log In",
         "BACK": "Back",
         "SHOW_ALL": "Show All",
-        "MIN_VALIDATION_SEARCH_ERROR": "Search term should be at least 3 characters in length"
+        "MIN_VALIDATION_SEARCH_ERROR": "Search term should be at least 3 characters in length",
+        "CHANGE_ACCOUNT_MESSAGE": "The active account has been changed"
     },
     "PROMOTION": {
         "TITLE": "Promotion",
@@ -701,6 +776,7 @@
         "INCORRECT_CREDENTIALS_TOASTR_TITLE": "Login Fail"
     },
     "PRODUCT_DETAILS": {
+        "IS_OPTIONAL":"Is Optional",
         "PRODUCT_DETAIL": "Product Details",
         "PRODUCT_CODE": "Product ID: {{value}}",
         "STANDARD_PRICE": "Standard Price",
@@ -714,8 +790,10 @@
         "DESCRIPTION": "Description",
         "INFORMATION_TYPE": "Information Type",
         "FEATURE": "Feature",
+        "SELECT_ONE_OPTION": "Select one option",
         "VALUE": "Value",
-        "PRICE_IN_PROGRESS": "Pricing is in progress."
+        "PRICE_IN_PROGRESS": "Pricing is in progress",
+        "UPDATE_QUANTITY": "Update Quantity"
     },
     "INSTALLED_PRODUCTS": {
         "PRODUCT_FAMILY": "Product Family",
@@ -743,7 +821,8 @@
         "CART_TOTAL": "Cart Total",
         "VIEW_CART": "View Cart",
         "YOUR_CART_IS_EMPTY": "Your cart is empty",
-        "PRICE_NOT_UPDATED_TXT": "* Prices are yet to be updated."
+        "PRICE_NOT_UPDATED_TXT": "* Prices are yet to be updated.",
+        "INACTIVE_CART_MESSAGE": "You do not have a cart yet. Add products to get started"
     },
     "MINI_PROFILE": {
         "LOGIN": "Login",
@@ -784,23 +863,24 @@
         "PRODUCT_ID": "Product ID: {{productCode}}"
     },
     "DETAILS": {
-        "QUOTE_SUMMARY": "QUOTE SUMMARY",
-        "ORDER_SUMMARY": "ORDER SUMMARY",
-        "FAVORITE_SUMMARY": "FAVORITE SUMMARY",
-        "LINE_ITEMS": "LINE ITEMS",
-        "COMMENTS": "COMMENTS",
-        "ATTACHMENTS": "ATTACHMENTS",
+        "QUOTE_SUMMARY": "Quote Summary",
+        "ORDER_SUMMARY": "Order Summary",
+        "CART_SUMMARY": "Cart Summary",
+        "FAVORITE_SUMMARY": "Favorite Summary",
+        "LINE_ITEMS": "Line Items",
+        "COMMENTS": "Comments",
+        "ATTACHMENTS": "Attachments",
         "PRICE_SUMMARY": "Price Summary",
-        "SUMMARY": "SUMMARY",
+        "SUMMARY": "Summary",
         "SUCCESSFUL_QUOTE_ACCEPTANCE_MESSAGE": "You have successfully accepted the quote ({{quoteName}}) and the order has been generated for the same.",
         "GENERATED_ORDER_NUMBER": "Your Order Is: {{orderName}}",
-        "VIEW_YOUR_ORDER": "VIEW YOUR ORDER",
+        "VIEW_YOUR_ORDER": "View Your Order",
         "GENERATE_ORDER": "Generate Order",
         "GENERATE_QUOTE": "Generate Quote",
         "GENERATE": "Generate",
         "TEMPLATE": "Template",
         "FILE_FORMAT": "File Format",
-        "PRESENT": "PRESENT",
+        "PRESENT": "Present",
         "PRESENT_ORDER": "Present Order",
         "SEND_TO": "Send Order To",
         "MISSING_REQ_FIELDS": "Some mandatory informations are missing in the order details. Please fill to proceed."
@@ -868,7 +948,6 @@
         "ORDER_CONFIRMATION_TOASTR_TITLE": "Order Confirmation",
         "ORDER_CONFIRMATION_TOASTR_MESSAGE": "Order has been confirmed.",
         "CHANGE_ACCOUNT_TITLE": "Account Changed",
-        "CHANGE_ACCOUNT_MESSAGE": "The active account has been changed.",
         "CHANGE_PRICE_LIST_TITLE": "Price List Changed",
         "CHANGE_PRICE_LIST_MESSAGE": "The active price list has been changed.",
         "ORDER_CONFIRMATION_FAILURE": "Order could not be confirmed. Please try again.",
@@ -915,6 +994,6 @@
         "ACCOUNT": "Account",
         "ORDER_NAME": "Order Name",
         "PROPOSAL_NAME": "Proposal Name",
-        "CREATED_DATE":"Created Date"
+        "CREATED_DATE": "Created Date"
     }
 }

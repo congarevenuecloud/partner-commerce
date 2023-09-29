@@ -1,0 +1,37 @@
+app-favorite-detail {
+  app-detail {
+    app-detail-section {
+      apt-output-field {
+        span {
+          margin-bottom: 0.5rem;
+          dt {
+            flex-basis: 30%;
+          }
+          dd {
+            flex-basis: 70%;
+          }
+        }
+        &:last-child {
+          span {
+            margin-bottom: 0;
+          }
+        }
+      }
+      .custom-field {
+        span {
+          flex-basis: 30%;
+          font-weight: 600;
+          font-size: 0.75rem;
+          line-height: 1.125rem;
+          color: #4c5f6f;
+        }
+        label {
+          line-height: unset;
+        }
+      }
+    }
+    .headerContainer {
+      height: 12rem !important;
+    }
+  }
+}

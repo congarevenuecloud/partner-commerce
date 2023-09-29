@@ -11,6 +11,7 @@ import {
   MiniProfileModule,
   BreadcrumbModule,
   PriceSummaryModule,
+  AlertModule,
   InputFieldModule
 } from '@congarevenuecloud/elements';
 import { TabsModule } from 'ngx-bootstrap/tabs';
@@ -22,6 +23,7 @@ import { CongaModule } from '@congarevenuecloud/core';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { LaddaModule } from 'angular2-ladda';
 import { ComponentModule } from '../../components/component.module';
+import { PricingModule } from '@congarevenuecloud/ecommerce';
 
 @NgModule({
   imports: [
@@ -31,6 +33,7 @@ import { ComponentModule } from '../../components/component.module';
     ComponentModule,
     ConfigurationSummaryModule,
     PriceModule,
+    PricingModule,
     IconModule,
     TabsModule.forRoot(),
     ModalModule.forRoot(),
@@ -45,6 +48,7 @@ import { ComponentModule } from '../../components/component.module';
     BreadcrumbModule,
     PriceSummaryModule,
     InputFieldModule,
+    AlertModule,
     LaddaModule
   ],
   declarations: [CheckoutComponent, SummaryComponent]

@@ -1,14 +1,15 @@
 .pagination {
   .select-all {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 0.3125rem;
+    right: 0.3125rem;
   }
 }
 
 @media (max-width: 768px) {
   .pagination {
     flex-direction: column;
+
     .select-all {
       position: relative;
       margin-bottom: 1rem;

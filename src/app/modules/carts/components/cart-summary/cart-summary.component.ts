@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild, TemplateRef, Input, OnChanges } from '@angular/core';
-import { Cart, StorefrontService, Storefront, ConstraintRuleService } from '@congarevenuecloud/ecommerce';
+import { Cart, StorefrontService, Storefront, ConstraintRuleService, SummaryGroup } from '@congarevenuecloud/ecommerce';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { Observable, of } from 'rxjs';
-import * as _ from 'lodash';
+import { find, get, sum } from 'lodash';
 
 @Component({
   selector: 'app-cart-summary',
@@ -28,6 +28,8 @@ export class CartSummaryComponent implements OnInit, OnChanges {
   showTaxPopUp: boolean = false;
   totalEstimatedTax: number = 0;
   taxPopHoverModal: BsModalRef;
+  cartTotal:SummaryGroup;
+  cartSubTotal: SummaryGroup;
 
   constructor(private modalService: BsModalService, private crService: ConstraintRuleService,
     private storefrontService: StorefrontService) {
@@ -40,7 +42,9 @@ export class CartSummaryComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
-    this.totalPromotions = ((this.cart && _.get(this.cart, 'LineItems.length') > 0)) ? _.sum(this.cart.LineItems.map(res => res.IncentiveAdjustmentAmount)) : 0;
+    this.totalPromotions = ((this.cart && get(this.cart, 'LineItems.length') > 0)) ? sum(this.cart.LineItems.map(res => res.IncentiveAdjustmentAmount)) : 0;
+    this.cartTotal = find(this.cart.SummaryGroups, grp => grp.LineType === 'Grand Total'); 
+    this.cartSubTotal = find(this.cart.SummaryGroups, grp => grp.LineType === 'Subtotal');
   }
 
   openDiscardChageModals() {
