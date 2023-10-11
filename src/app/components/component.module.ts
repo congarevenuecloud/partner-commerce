@@ -8,7 +8,8 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import {
   MiniProfileModule, MiniCartModule, OutputFieldModule, ButtonModule,
-  DirectivesModule, ConstraintRuleModule, ProductSearchModule
+  DirectivesModule, ConstraintRuleModule, ProductSearchModule,
+  QuickAddModule, InputFieldModule, IconModule
 } from '@congarevenuecloud/elements';
 import { HeaderComponent } from './header/header.component';
 import { ActionBarComponent } from './action-bar/action-bar.component';
@@ -23,6 +24,7 @@ import { ProgressComponent } from './progress/progress.component';
     MiniProfileModule,
     MiniCartModule,
     ConstraintRuleModule,
+    QuickAddModule,
     LaddaModule,
     RouterModule,
     NgScrollbarModule,
@@ -32,7 +34,9 @@ import { ProgressComponent } from './progress/progress.component';
     ButtonModule,
     DirectivesModule,
     ProductSearchModule,
-    CongaModule
+    CongaModule,
+    InputFieldModule,
+    IconModule
   ],
   exports: [
     HeaderComponent,

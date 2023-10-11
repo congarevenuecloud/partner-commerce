@@ -23,9 +23,8 @@
 
             </div>
         </div>
-        <div class="col-12 col-lg-9">
+        <div class="col-12 col-lg-9"> 
             <div *ngIf="!hasSearchError else showSearchError">
-
                 <div *ngIf="data$ | async as data; else loading">
                     <div *ngIf="data?.TotalCount > 0; else noResult">
                         <nav class="navbar navbar-light bg-white p-0 mb-3">
@@ -91,8 +90,9 @@
 <ng-template #noResult>
     <div *ngIf="searchString; else noResult">
         <div class="d-flex justify-content-center mt-5">
-            <div class="w-50"><span
-                    [innerHTML]="('PRODUCT_LIST.NO_RESULT_FOUND' | translate : {value: searchString})"></span>
+            <div class="w-50"><span>{{'PRODUCT_LIST.YOUR_SEARCH' | translate}}</span>
+                <span><strong><em> &#8212; {{searchString | safeHtml}}</em></strong></span>
+                <span>{{'PRODUCT_LIST.NO_MATCH' | translate}}</span>
                 <br>
                 <br>
                 <span>{{'PRODUCT_LIST.SUGGESTIONS' | translate}}</span>
@@ -117,7 +117,7 @@
 </ng-template>
 
 <ng-template #showSearchError>
-    <div class="d-flex justify-content-center font-weight-bold mt-5 pt-5">
+    <div class="d-flex justify-content-center font-weight-bold m-5">
         {{'HEADER.MIN_VALIDATION_SEARCH_ERROR' | translate}}
     </div>
 </ng-template>

@@ -1,53 +1,120 @@
 <div class="fixed-top navbar navbar-light bg-light border-bottom">
-  <div>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+  <div class="d-flex align-items-center">
+    <button class="navbar-toggler px-2" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
       (click)="menuModal.show()">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <ng-container *ngIf="storefront$ | async as storefront">
-      <button class="navbar-brand btn btn-link d-none d-md-inline-block p-0" [routerLink]="['/']"
-        *ngIf="storefront?.Logo; else text">
-        <img [src]="storefront?.Logo | image" />
+      <button class="navbar-brand btn btn-link d-none d-md-inline-block p-0 mr-2" [routerLink]="['/']"
+        *ngIf="storefront?.Logo">
+        <img class="pl-2" [src]="storefront?.Logo | image" />
       </button>
-      <ng-template #text>
-        <button class="navbar-brand btn btn-link" [routerLink]="['/']">{{storefront?.Name}}</button>
-      </ng-template>
+      <span class="mr-1 mt-1">
+        <img
+          src="./assets/images/conga.png"
+          alt="" srcset="">
+      </span>
+      <span class="sf-label mb-0">{{storefront?.Name}}</span>
     </ng-container>
   </div>
 
   <div class="actions d-flex align-items-center">
     <apt-product-search [typeAheadLimit]="7"></apt-product-search>
     <apt-mini-cart></apt-mini-cart>
+    <ng-container *ngIf="user$ | async as user">
+      <div class="d-flex user-action flex-column text-primary align-items-flex-start exclude-border">
+        <strong>
+          <font size="1">{{ 'COMMON.WELCOME_MESSAGE' | translate: {userName: user?.FirstName} }}</font>
+        </strong>
+        <div dropdown>
+          <button class="btn btn-link dropdown-toggle font-weight-bold p-0 m-0"
+            (click)="toggleMyAccountDropdown($event)" data-toggle="dropdown" #btnDropdown> {{'COMMON.ACCOUNT' |
+            translate}} <i class="fa fa-caret-down fa-lg ml-1"></i>
+          </button>
+          <div class="dropdown-menu dropdown-menu-right m-0" aria-labelledby="dropdownMenuButton" id="accountMenu"
+            [ngClass]="showAccountHome ? 'show' : ''">
+            <div class="m-2">
+              <div dropdown-item class="media m-2 pb-2">
+                <h4
+                  class="d-flex justify-content-center align-items-center bg-secondary rounded-circle user-avatar text-white p-2">
+                  {{userInitials}}</h4>
+                <div class="media-body ml-3 text-truncate">
+                  <h5 class="my-0">{{user?.FirstName}}</h5>
+                  <h5 class="my-0">{{user?.LastName}}</h5>
+                  <div>{{user?.Title}}</div>
+                </div>
+              </div>
+              <div class="text-nowrap px-3 d-flex" *ngIf="cartView$ | async as cartView">
+                <div class="cursor-pointer"><b>{{ 'COMMON.ACCOUNT' | translate }}:</b>
+                  <span class="account-section text-primary pl-1"
+                    (click)="loadAccountDetails()"><u>{{cart?.Account?.Name}}</u>
+                    <i class="fa fa-pencil edit-icon d-inline-block ml-2"></i>
+                  </span>
+                </div>
+              </div>
+              <div dropdown-item class="nav flex-column nav-pills pl-3" id="v-pills-tab" role="tablist"
+                aria-orientation="vertical">
+                <a class="pt-3" href="javascript:void(0)" [routerLink]="['/orders']" [routerLinkActive]="'active'">
+                  {{'COMMON.MY_ORDERS' | translate}}
+                </a>
+                <a class="pt-3" href="javascript:void(0)" [routerLink]="['/proposals']" [routerLinkActive]="'active'">
+                  {{'COMMON.MY_QUOTES' | translate}}
+                </a>
+                <a class="pt-3" href="javascript:void(0)" [routerLink]="['/carts']" [routerLinkActive]="'active'">
+                  {{'COMMON.MY_CARTS' | translate}}
+                </a>
+                <a class="pt-3" href="javascript:void(0)" *ngIf="showFavorites$ | async"  [routerLink]="['/favorites']" [routerLinkActive]="'active'">
+                  {{'COMMON.MY_FAVORITES' | translate}}
+                </a>
+                <a class="pt-3" href="javascript:void(0)" (click)="doLogout()">
+                  {{'HEADER.LOG_OUT' | translate}}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dropdown">
+          <div class="dropdown-menu account-info p-3" [ngClass]="showAccountInfo ? 'show' : ''">
+            <a *ngIf="!loading" class="position-absolute back-icon" href="javascript:void(0)"
+              (click)="navigateToAccountHome()"><i class="fa fa-chevron-left mr-1"></i>{{ 'HEADER.BACK' | translate |
+              uppercase }}</a>
+            <ng-container *ngIf="cartView$ | async as cartView">
+              <div class="d-flex dropdown-body align-items-end mt-2 pt-4">
+                <apt-input-field [showLabel]="false" [valueClass]="'mb-0'" [entity]="cartView" [field]="'Account'"
+                  [(ngModel)]="cartView.Account" [allowClearableLookups]="false" [spinnerSize]="'small'"
+                  (ngModelChange)="updateAccountInfo($event)">
+                </apt-input-field>
+                <button *ngIf="!loading" class="btn btn-primary btn-raised ladda-button btn-sm ml-3 mb-3 update-account"
+                  (click)="saveAccountDetails(cartView.Account)"
+                  [disabled]="cartView?.Account?.Id === cart?.Account?.Id">
+                  {{'COMMON.UPDATE' | translate}}
+                </button>
+              </div>
+              <div class="scrollable" *ngIf="myAccount$ | async as soldTo; else showLoader">
+                <apt-output-field [record]="cartView" field="Account" layout="inline" [showQuickView]="true"
+                  [showQuickViewFormat]="'normal'" [valueOnly]="true">
+                </apt-output-field>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </ng-container>
     <apt-cr-constraint-icon></apt-cr-constraint-icon>
   </div>
 </div>
 
 <div bsModal #menuModal="bs-modal" class="modal" tabindex="-1" role="dialog" aria-labelledby="dialog-sizes-name1">
   <div class="modal-dialog modal-lg menu">
-    <div class="modal-content py-3">
+    <div class="modal-content modal-content-background pt-3" *ngIf="user$ | async as user">
       <div class="modal-header d-block p-0 border-bottom">
-        <div class="d-flex justify-content-between align-items-start p-2">
-          <div class="media p-2" *ngIf="user$ | async as user">
-            <div class="d-flex justify-content-center align-items-center bg-secondary rounded-circle user-avatar">
-              <h4 class="text-white">{{userInitials}}</h4>
-            </div>
-            <div class="ml-3">
-              <ng-container *ngIf="user?.Alias !== 'guest'; else guest">
-                <h5 class="my-0">{{user?.FirstName}} {{user?.LastName}}</h5>
-              </ng-container>
-              <ng-template #guest>
-                <h5 class="my-0">{{'HEADER.GUEST_USER' | translate}}</h5>
-              </ng-template>
-            </div>
-          </div>
-        </div>
         <div class="list-group list-group-flush">
-          <a href="javascript:void(0)" [routerLink]="['/']" (click)="menuModal.hide()"
+          <a href="javascript:void(0)" [routerLink]="['/overview']" (click)="menuModal.hide()"
             class="list-group-item list-group-item-action">
             <i class="fas fa-home mr-4"></i>{{'HEADER.HOME' | translate}}
           </a>
-          <a href="javascript:void(0)" [routerLink]="['/overview']" (click)="menuModal.hide()"
+          <a href="javascript:void(0)" [routerLink]="['/user']" (click)="menuModal.hide()"
             class="list-group-item list-group-item-action">
             <i class="fas fa-cog mr-4"></i>{{'HEADER.MY_ACCOUNT' | translate}}
           </a>
@@ -55,17 +122,25 @@
             class="list-group-item list-group-item-action">
             <i class="fas fa-th mr-4"></i>{{'HEADER.PRODUCT_CATALOG' | translate}}
           </a>
-          <a href="javascript:void(0)" class="list-group-item list-group-item-action"
-            (click)="doLogout(); menuModal.hide();">
-            <i class="fas fa-sign-out-alt mr-4"></i>{{'HEADER.LOG_OUT' | translate}}
-          </a>
         </div>
       </div>
-      <ng-scrollbar>
-        <div class="modal-body d-flex align-items-stretch">
+      <ng-scrollbar class="category-list">
+        <div class="modal-body d-flex align-items-stretch p-0">
           <app-category-carousel [modalRef]="menuModal"></app-category-carousel>
         </div>
       </ng-scrollbar>
+      <div class="list-group p-0 logout-section">
+        <a href="javascript:void(0)" (click)="doLogout()"
+          class="list-group-item list-group-item-action border-bottom-0">
+          <i class="fas fa-sign-out-alt mr-3"></i>{{'HEADER.LOG_OUT' | translate}}
+        </a>
+      </div>
     </div>
   </div>
 </div>
+
+<ng-template #showLoader>
+  <div class="d-flex py-3 justify-content-center">
+    <apt-dots></apt-dots>
+  </div>
+</ng-template>

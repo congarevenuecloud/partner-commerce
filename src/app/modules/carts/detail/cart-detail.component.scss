@@ -1,32 +1,38 @@
 @import "variables.scss";
 
-dt, dd{
-    display: block;
-    width: 100%;
+dt,
+dd {
+  display: block;
+  width: 100%;
 }
-dl, dd, dt{
-    margin-bottom: 0;
+dl,
+dd,
+dt {
+  margin-bottom: 0;
 }
-dt{
-    margin-top: $btn-block-spacing-y;
+dt {
+  margin-top: $btn-block-spacing-y;
 }
-table{
-
-    height: 100px;
-    tr:first-child td{
-        border-top: none;
-    }
+table {
+  height: 100px;
+  tr:first-child td {
+    border-top: none;
+  }
 }
 .cart-total {
-    width: 100px; 
-    overflow: hidden; 
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  width: 100px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.fixed-height{
-    height: 30px;
+.fixed-height {
+  height: 30px;
 }
-p.description{
-    max-height: 55px;
-    overflow-y: hidden;
+p.description {
+  max-height: 55px;
+  overflow-y: hidden;
+}
+.cart-title {
+  font-size: 1rem;
+  font-weight: $font-weight-normal;
 }

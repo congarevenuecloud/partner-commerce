@@ -5,10 +5,10 @@ import { LaddaModule } from 'angular2-ladda';
 import { TranslateModule } from '@ngx-translate/core';
 import { DatepickerModule, BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { NgScrollbarModule } from 'ngx-scrollbar';
+import { CongaModule } from '@congarevenuecloud/core';
 import { PricingModule } from '@congarevenuecloud/ecommerce';
 import {
   PriceModule,
-  InputSelectModule,
   BreadcrumbModule,
   InputFieldModule,
   AddressModule,
@@ -19,7 +19,8 @@ import {
   ChartModule,
   ButtonModule,
   DataFilterModule,
-  OutputFieldModule
+  OutputFieldModule,
+  AlertModule
 } from '@congarevenuecloud/elements';
 import { DetailsModule } from '../details/details.module';
 import { QuotesRoutingModule } from './quotes-routing.module';
@@ -38,7 +39,6 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
     PricingModule,
     DatepickerModule.forRoot(),
     BsDatepickerModule.forRoot(),
-    InputSelectModule,
     BreadcrumbModule,
     InputFieldModule,
     ButtonModule,
@@ -56,7 +56,9 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
     ChartModule,
     DataFilterModule,
     ComponentModule,
-    ButtonModule
+    ButtonModule,
+    CongaModule,
+    AlertModule
   ],
   declarations: [QuoteListComponent, QuoteDetailComponent,CreateQuoteComponent,  RequestQuoteFormComponent]
 })

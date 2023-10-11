@@ -1,7 +1,7 @@
 <app-detail [title]="viewState?.product?.Name" [subtitle]="viewState?.product?.ProductCode"
     [context]="viewState?.product" *ngIf="viewState$ | async as viewState; else loading">
     <div class="constraintAlerts">
-        <apt-alert [record]="cart" [autoRun]="false"></apt-alert>
+        <apt-alert [record]="activeCart" [autoRun]="false"></apt-alert>
         <apt-constraint-rule-alert></apt-constraint-rule-alert>
     </div>
 
@@ -10,17 +10,15 @@
             <div class="form-group my-0 mr-5">
                 <small class="mb-2 d-block"> {{'PRODUCT_DETAILS.STANDARD_PRICE' | translate}} </small>
                 <h5>
-                    <apt-price [record]="viewState?.product" type="list" [bundle]="true"></apt-price>
+                    <apt-price [record]="viewState?.product" type="list" ></apt-price>
                 </h5>
             </div>
             <div class="form-group my-0 mr-3">
                 <small class="mb-2 d-block"> {{'COMMON.NET_PRICE' | translate}} </small>
                 <h5>
-                    <apt-price [record]="product?._metadata?.item" *ngIf="cartItemList?.length > 0; else productPrice"
-                        [quantity]="viewState?.quantity" [bundle]="true" [type]="'net'"></apt-price>
+                    <span *ngIf="cartItemList?.length > 0 || viewState?.relatedTo; else productPrice">{{primaryLineItem?.NetPrice | localCurrency | async}}</span>
                     <ng-template #productPrice>
-                        <apt-price [record]="viewState?.product" [quantity]="viewState?.quantity" [bundle]="true"
-                            type="net">
+                        <apt-price [record]="viewState?.product"  type="list">
                         </apt-price>
                     </ng-template>
                 </h5>
@@ -34,14 +32,15 @@
             *ngIf="!viewState?.product?.HasAttributes && !viewState?.product?.HasOptions; else complex">
             <div class="form-group mx-3 my-0 d-flex align-items-center">
                 <span class="mr-3"> {{'COMMON.QUANTITY' | translate}} </span>
-                <input type="number" min="1" class="w-75 form-control" [(ngModel)]="viewState.quantity"
+                <input type="number" min="1" class="form-control quantity" [(ngModel)]="viewState.quantity"
                     name="quantity" />
             </div>
             <div class="d-flex align-items-center">
                 <apt-add-to-cart [showQuantityControls]="false" (onAddToCart)="onAddToCart($event)"
                     [configurationEnabled]="false" [quantity]="viewState.quantity" [aboEnabled]="false"
                     [cartItems]="(cartItemList?.length > 0) ? cartItemList : null"
-                    [product]="product ? product: viewState?.product" [btnClass]="'btn-primary btn-raised px-3 py-2'">
+                    [product]="product ? product: viewState?.product" [btnClass]="'btn-primary btn-raised px-3 py-2'"
+                    [disabled]="configurationPending">
                 </apt-add-to-cart>
             </div>
         </form>
@@ -52,37 +51,39 @@
                 <ng-container *ngIf="viewState?.relatedTo; else newProduct">
                     <div class="form-group mx-3 my-0 d-flex align-items-center">
                         <span class="mr-3"> {{'COMMON.QUANTITY' | translate}} </span>
-                        <input type="number" min="1" class="w-75 form-control" [(ngModel)]="viewState.quantity"
-                            (ngModelChange)="changeProductQuantity(viewState.quantity)" name="quantity" />
+                        <input type="number" min="1" class="form-control quantity" [(ngModel)]="viewState.quantity"
+                            (change)="changeProductQuantity(viewState.quantity)" name="quantity" />
                     </div>
-                    <apt-add-to-cart [showQuantityControls]="false" [configurationEnabled]="false"
-                        [quantity]="viewState.quantity" [cartItems]="cartItemList"
-                        [product]="product ? product: viewState?.product"
-                        [btnClass]="'btn-primary btn-raised px-3 py-2'" (onAddToCart)="onAddToCart($event)"
-                        [label]="'PRODUCT_DETAILS.UPDATE_CONFIGURATION' | translate" [aboEnabled]="false">
-                    </apt-add-to-cart>
+                    <div class="form-group mx-3 my-0 d-flex align-items-center">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input"
+                              [(ngModel)]="viewState.relatedTo.IsOptional" [id]="viewState?.relatedTo?.Id" [checked]="viewState?.relatedTo?.IsOptional"
+                                (ngModelChange)="changeProductToOptional($event)">
+                            <label class="custom-control-label pl-1 pt-1" [for]="viewState?.relatedTo?.Id">{{'PRODUCT_DETAILS.IS_OPTIONAL' | translate}}</label>
+                        </div>
+                    </div>
                 </ng-container>
 
                 <ng-template #newProduct>
                     <div class="d-flex justify-content-end">
                         <div class="form-group mx-3 my-0 d-flex align-items-center">
                             <span class="mr-3"> {{'COMMON.QUANTITY' | translate}} </span>
-                            <input type="number" min="1" class="w-75 form-control" [(ngModel)]="viewState.quantity"
-                                (ngModelChange)="changeProductQuantity(viewState.quantity)" name="quantity" />
+                            <input type="number" min="1" class="form-control quantity" [(ngModel)]="viewState.quantity"
+                                (change)="changeProductQuantity(viewState.quantity)" name="quantity" />
                         </div>
                         <div class="d-flex align-items-center">
                             <apt-add-to-cart [showQuantityControls]="false" [configurationEnabled]="false"
                                 [quantity]="viewState.quantity" (onAddToCart)="onAddToCart($event)"
                                 [cartItems]="cartItemList" [product]="product ? product: viewState?.product"
-                                [aboEnabled]="false" [label]="'COMMON.CONFIGURE' | translate"
-                                [btnClass]="'btn-primary btn-raised px-3'">
+                                [aboEnabled]="false" [cart]="!viewState?.relatedTo ? cart : null"
+                                [btnClass]="'btn-primary btn-raised px-3'" [disabled]="configurationPending">
                             </apt-add-to-cart>
                         </div>
                     </div>
                 </ng-template>
 
                 <button class="btn btn-outline-primary ml-2"
-                    *ngIf="(viewState?.product?.HasAttributes || viewState?.product?.HasOptions) && viewState?.relatedTo"
+                    *ngIf="(viewState?.product?.HasAttributes || viewState?.product?.HasOptions)"
                     (click)="showSummary();">{{'DETAILS.PRICE_SUMMARY' | translate}}</button>
             </div>
         </ng-template>
@@ -110,13 +111,12 @@
 
 
     <app-detail-section [title]="'PRODUCT_DETAILS.CONFIGURATIONS' | translate"
-        *ngIf="(viewState?.product?.HasAttributes || viewState?.product?.HasOptions) && viewState?.relatedTo">
+        *ngIf="(viewState?.product?.HasAttributes || viewState?.product?.HasOptions)">
         <div class="row mt-4">
             <h4 class="text-muted col-12"> {{'PRODUCT_DETAILS.CONFIGURATIONS' | translate}} </h4>
             <div class="col-12">
-                <apt-constraint-rule-alert [showProductConfig]="true"></apt-constraint-rule-alert>
-                <apt-product-configuration [product]="viewState?.product?.Id" [relatedTo]="viewState?.relatedTo"
-                    [accordion]="true" (click)="configurationChanged = true">
+                <apt-product-configuration [product]="viewState?.product" [relatedTo]="viewState?.relatedTo"
+                   [discovery]="discovery" [accordion]="true" (click)="configurationChanged = true">
                 </apt-product-configuration>
             </div>
         </div>
@@ -137,6 +137,17 @@
         </div>
     </app-detail-section>
 
+    <ng-container *ngIf="recommendedProducts$ | async as recommendedProducts">
+        <app-detail-section *ngIf="recommendedProducts?.length"
+            [title]="'PRODUCT_DETAILS.RECOMMENDED_PRODUCTS' | translate">
+            <div class="row mt-4">
+                <h4 class="text-muted col-12"> {{'PRODUCT_DETAILS.RECOMMENDED_PRODUCTS' | translate}} </h4>
+                <div class="col-12">
+                    <apt-product-carousel [productList]="recommendedProducts" slides="5"></apt-product-carousel>
+                </div>
+            </div>
+        </app-detail-section>
+    </ng-container>
 
     <apt-product-configuration-summary *ngIf='viewState?.product?.HasOptions || viewState?.product?.HasAttributes'
         [product]="product" [relatedTo]="viewState?.relatedTo" [changes]="cartItemList" [preload]="true"
