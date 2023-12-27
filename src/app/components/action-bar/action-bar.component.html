@@ -1,22 +1,26 @@
-<div *ngIf="cart$ | async as cart" class="d-flex justify-content-between w-100 align-items-center ActionBar">
+<div *ngIf="cart$ | async as cart" class="d-flex justify-content-between w-100 align-items-center pr-2">
   <div class="d-flex align-self-stretch">
-    <div class="border-left px-3 d-flex align-items-center">
-      <apt-output-field [record]="cart" field="Account" label="{{'COMMON.ACCOUNT' | translate}}" layout="inline" [showQuickView]="true"  (onChange)="changeAccount($event)" #accountField>
-      </apt-output-field>
+    <div class="px-1 d-flex align-items-center">
+      <!-- quick add button with business object as quote which performs add to cart + quote placement-->
+      <app-quick-add [layout]="'modal'" [fields]="fields" [productFieldType]="'lookup'"
+        [businessObjectFields]="businessObjectFields" [btnClass]="'btn-custom-secondary border-0'"></app-quick-add>
     </div>
 
     <div *ngIf="cart?.Order?.Id" class="border-left px-3 d-flex align-items-center">
-      <apt-output-field [record]="cart" field="OrderId" label="{{'COMMON.ORDER_ID' | translate}}" layout="inline" [showQuickView]="true" [editable]="false"></apt-output-field>
-      <span class="badge badge-info ml-1">{{cart?.Order?.Status}}</span>
+      <apt-output-field [record]="cart" field="Order" label="{{'COMMON.ORDER_ID' | translate}}" layout="inline"
+        [showQuickView]="true" [editable]="false"></apt-output-field>
+      <span class="badge badge-primary ml-1">{{cart?.Order?.Status}}</span>
     </div>
 
     <div *ngIf="cart?.Proposald?.Name" class="border-left px-3 d-flex align-items-center">
-      <apt-output-field [record]="cart" field="ProposaldId" label="{{'COMMON.QUOTE_ID' | translate}}" layout="inline" [showQuickView]="true" [editable]="false"></apt-output-field>
-      <span class="badge badge-info ml-1">{{cart?.Proposald?.Approval_Stage}}</span>
+      <apt-output-field [record]="cart" field="Proposald.Id" label="{{'COMMON.QUOTE_ID' | translate}}" layout="inline"
+        [showQuickView]="true" [editable]="false"></apt-output-field>
+      <span class="badge badge-primary ml-1">{{cart?.Proposald?.Approval_Stage}}</span>
     </div>
 
-    <div *ngIf="cart?.OrderId || cart?.ProposaldId" class="d-flex">
-      <button class="btn btn-primary btn-raised align-self-stretch" (click)="createNewCart()" [ladda]="loading">{{ 'MY_ACCOUNT.CART_LIST.CREATE_NEW' | translate }}</button>
+    <div *ngIf="cart?.Order || cart?.Proposald" class="d-flex">
+      <button class="btn btn-primary btn-raised align-self-stretch" (click)="createNewCart()" [ladda]="loading">{{
+        'MY_ACCOUNT.CART_LIST.CREATE_NEW' | translate }}</button>
     </div>
   </div>
 </div>

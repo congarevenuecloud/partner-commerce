@@ -4,7 +4,7 @@ import { take } from 'rxjs/operators';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { TranslateService } from '@ngx-translate/core';
-import { get, set, find, defaultTo, isEmpty } from 'lodash';
+import { get, set, find, defaultTo, isEmpty, cloneDeep } from 'lodash';
 import { Quote, QuoteService, StorefrontService, Storefront, Cart, CartService } from '@congarevenuecloud/ecommerce';
 
 @Component({
@@ -42,12 +42,26 @@ export class CreateQuoteComponent implements OnInit {
     if (this.quoteRequestObj.PrimaryContact) {
       this.loading = true;
       this.quoteService.convertCartToQuote(this.quoteRequestObj).pipe(take(1)).subscribe(res => {
+        this.loading = false;
         this.quoteConfirmation = res;
+        this.updateQuote();
         this.confirmationModal = this.modalService.show(this.confirmationTemplate, { class: 'modal-lg' });
       },
         err => {
           this.loading = false;
         });
     }
+  }
+
+  updateQuote() {
+    const quotePayload = this.quoteRequestObj.strip(['GrandTotal.Value','Owner','PriceList']);
+    this.quoteService.updateQuote(get(this.quoteConfirmation,"Id"),quotePayload).pipe(take(1)).
+    subscribe(data => {
+    },err => {
+      this.quoteConfirmation.set("retryUpdate",true);
+      this.quoteConfirmation.set("updatePayload",quotePayload);
+        this.quoteConfirmation = cloneDeep(this.quoteConfirmation)
+        this.quoteService.publish(this.quoteConfirmation);
+    })
   }
 }

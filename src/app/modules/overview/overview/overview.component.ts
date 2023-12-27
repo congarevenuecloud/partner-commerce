@@ -3,7 +3,7 @@ import { Observable, of, Subscription } from 'rxjs';
 import { take, map } from 'rxjs/operators';
 import { sumBy, get, defaultTo } from 'lodash';
 import { ApiService, FilterOperator } from '@congarevenuecloud/core';
-import { OrderService, Order, UserService, User, FieldFilter, AccountService, LocalCurrencyPipe, QuoteService, Quote } from '@congarevenuecloud/ecommerce';
+import { OrderService, Order, UserService, User, FieldFilter, AccountService, LocalCurrencyPipe, QuoteService, Quote, OrderResult, QuoteResult } from '@congarevenuecloud/ecommerce';
 import { TableOptions } from '@congarevenuecloud/elements';
 
 import moment from 'moment';
@@ -16,7 +16,7 @@ import moment from 'moment';
 export class OverViewComponent implements OnInit {
 
   orderType = Order;
-  quoteType= Quote;
+  quoteType = Quote;
 
   user$: Observable<User>;
   subscription: Subscription;
@@ -37,10 +37,10 @@ export class OverViewComponent implements OnInit {
   loadView() {
     this.view$ = this.accountService.getCurrentAccount().pipe(
       map(() => {
-        this.totalOrderRecords$ = this.orderService.getMyOrders(null, null, this.getOrderFilters()).pipe(map(orders => defaultTo(get(orders, 'length'), 0)))
-        this.totalOrderAmount$ = this.orderService.getMyOrders(null, null, this.getFilterForAmount(), null, null, null).pipe(map((totalData: Array<Order>) => get(totalData, 'OrderAmount.DisplayValue', sumBy(totalData, 'OrderAmount.DisplayValue'))));
-        this.totalQuoteRecords$ = this.quoteService.getMyQuotes(null, this.getQuoteFilters(), null, null, null, null, null, false).pipe(map(quotes => defaultTo(get(quotes, 'length'), 0)))
-        this.totalQuoteAmount$ = this.quoteService.getMyQuotes(null, this.getQuoteFilterForAmount(), null, null, null, null, null, false).pipe(map((totalData: Array<Quote>) => sumBy(totalData, (quote) => get(quote, 'GrandTotal.Value'))))
+        this.totalOrderRecords$ = this.orderService.getMyOrders(null, null, this.getOrderFilters()).pipe(map(orderResult => defaultTo(get(orderResult, 'TotalCount'), 0)))
+        this.totalOrderAmount$ = this.orderService.getMyOrders(null, null, this.getFilterForAmount(), null, null, null, null, null, false).pipe(map((orderResult: OrderResult) => sumBy(get(orderResult, 'Orders'), (order) => get(order, 'OrderAmount.DisplayValue'))));
+        this.totalQuoteRecords$ = this.quoteService.getMyQuotes(null, this.getQuoteFilters(), null, null, null, null, null, false).pipe(map(quoteResult => defaultTo(get(quoteResult, 'TotalCount'), 0)))
+        this.totalQuoteAmount$ = this.quoteService.getMyQuotes(null, this.getQuoteFilterForAmount(), null, null, null, null, null, false).pipe(map((quoteResult: QuoteResult) => sumBy(get(quoteResult, 'Quotes'), (quote) => get(quote, 'Amount.DisplayValue'))))
         this.quoteView$ = of({
           tableOptions: {
             columns: [
@@ -52,7 +52,7 @@ export class OverViewComponent implements OnInit {
                 prop: 'GrandTotal',
                 label: 'CUSTOM_LABELS.TOTAL_AMOUNT',
                 value: (record) => {
-                  return this.currencyPipe.transform(get(get(record, 'GrandTotal'), 'DisplayValue'));
+                  return this.currencyPipe.transform(get(get(record, 'Amount'), 'DisplayValue'));
                 }
               },
               {
@@ -64,7 +64,7 @@ export class OverViewComponent implements OnInit {
             limit: 5,
             routingLabel: 'proposals'
           },
-        }as unknown as TableOptions);
+        } as unknown as TableOptions);
         return {
           tableOptions: {
             columns: [
@@ -91,15 +91,15 @@ export class OverViewComponent implements OnInit {
     this.user$ = this.userService.getCurrentUser();
   }
 
-  getOrderFilters(): Array<FieldFilter> {
+  getOrderFilters(): Array<FieldFilter> {//Added timestamp in order to fetch order list data within 7 days
     return [{
       field: 'CreatedDate',
-      value: moment().format("YYYY-MM-DD"),
+      value: moment().format("YYYY-MM-DDT23:59:59"),
       filterOperator: FilterOperator.LESS_EQUAL
     },
     {
       field: 'CreatedDate',
-      value: moment().subtract(6, 'days').format("YYYY-MM-DD"),
+      value: moment().subtract(6, 'days').format("YYYY-MM-DDT00:00:00"),
       filterOperator: FilterOperator.GREATER_EQUAL
     },
     {
@@ -109,15 +109,15 @@ export class OverViewComponent implements OnInit {
     }] as Array<FieldFilter>;
   }
 
-  getQuoteFilters(): Array<FieldFilter> {
+  getQuoteFilters(): Array<FieldFilter> {//Added timestamp in order to fetch quote list data within 7 days
     return [{
       field: 'CreatedDate',
-      value: moment().format("YYYY-MM-DD"),
+      value: moment().format("YYYY-MM-DDT23:59:59"),
       filterOperator: FilterOperator.LESS_EQUAL
     },
     {
       field: 'CreatedDate',
-      value: moment().subtract(6, 'days').format("YYYY-MM-DD"),
+      value: moment().subtract(6, 'days').format("YYYY-MM-DDT00:00:00"),
       filterOperator: FilterOperator.GREATER_EQUAL
     },
     {

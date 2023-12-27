@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, SecurityContext } from '@angular/core';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { get, isNil, isEmpty, toString, toNumber, set } from 'lodash';
 import { Observable, of, BehaviorSubject, Subscription, combineLatest, empty } from 'rxjs';
@@ -6,6 +6,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { mergeMap } from 'rxjs/operators';
 import { FilterOperator } from '@congarevenuecloud/core';
 import { Category, ProductService, ProductResult, PreviousState, Cart, CartService, FieldFilter, AccountService, CategoryService, Product, FacetFilter, FacetFilterPayload } from '@congarevenuecloud/ecommerce';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-product-list',
@@ -42,7 +43,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     last: ''
   };
 
-  constructor(private activatedRoute: ActivatedRoute,
+  constructor(private activatedRoute: ActivatedRoute, private sanitizer: DomSanitizer,
     private cartService: CartService, private router: Router, private categoryService: CategoryService,
     public productService: ProductService, private translateService: TranslateService, private accountService: AccountService) { }
 
@@ -83,6 +84,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
         this.data$.next(null);
         this.hasSearchError = false;
         this.searchString = get(params, 'query');
+        this.searchString= this.sanitizer.sanitize(
+          SecurityContext.HTML,
+          this.searchString
+        );
         let categories = null;
         const sortBy = this.sortField === 'Name' ? this.sortField : null;
         if (!isNil(get(params, 'categoryId')) && isEmpty(this.subCategories)) {
@@ -97,7 +102,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
           this.hasSearchError = true;
           return of(null);
         } else
-          return combineLatest([this.productService.getProducts(categories, this.pageSize, this.page, sortBy, 'ASC', this.searchString, null, null, null, this.productFamilyFilter, this.facetFilterPayload), this.categoryService.getCategories()]);
+          return combineLatest([this.productService.getProducts(categories, this.pageSize, this.page, sortBy, 'ASC', this.searchString, null, null, this.productFamilyFilter, this.facetFilterPayload), this.categoryService.getCategories()]);
       }),
     ).subscribe(([r, categories]) => {
       if (!isEmpty(this.facetFilterPayload)) set(r, 'Facets', this.facetFilterPayload);

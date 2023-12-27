@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between">
       <span> {{'MANAGE_CART.CART_SUMMARY.TOTAL_PRICE' | translate }} </span>
       <span class="font-weight-bold">
-        <apt-price [record]="cart"></apt-price>
+        <span>{{cartTotal?.NetPrice | localCurrency | async}}</span>
       </span>
     </div>
     <div *ngIf="(storefront$ | async)?.EnablePromotions && (storefront$ | async) !== null ? true : false" class="d-flex mt-2 justify-content-between">
@@ -18,7 +18,7 @@
     <div class="d-flex justify-content-between">
       <span> {{'MANAGE_CART.CART_SUMMARY.SUB_TOTAL' | translate }} </span>
       <span class="font-weight-bold">
-        <apt-price [record]="cart"></apt-price>
+        <span>{{cartSubTotal?.NetPrice | localCurrency | async}}</span>
       </span>
     </div>
     <hr class="mt-2 mb-3" />

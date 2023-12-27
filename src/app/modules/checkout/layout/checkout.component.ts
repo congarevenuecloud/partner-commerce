@@ -1,16 +1,16 @@
 import { Component, OnInit, ViewChild, ElementRef, TemplateRef, OnDestroy, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, Subscription } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { Observable, Subscription, of } from 'rxjs';
+import { switchMap, take } from 'rxjs/operators';
 import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { TranslateService } from '@ngx-translate/core';
-import { get, uniqueId, find, defaultTo, set } from 'lodash';
+import { get, uniqueId, set, cloneDeep } from 'lodash';
 import { ConfigurationService } from '@congarevenuecloud/core';
 import {
   Account, Cart, CartService, Order, OrderService, Contact, ContactService,
-  UserService, AccountService, AccountInfo
+  UserService, AccountService, AccountInfo, EmailService, EmailTemplate
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, PriceSummaryComponent, LookupOptions } from '@congarevenuecloud/elements';
 @Component({
@@ -66,7 +66,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     private accountService: AccountService,
     private router: Router,
     private ngZone: NgZone,
-    private exceptionService: ExceptionService) {
+    private exceptionService: ExceptionService,
+    private emailService: EmailService) {
     this.uniqueId = uniqueId();
   }
 
@@ -117,16 +118,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   submitOrder() {
-    this.loading = true;
-    if (this.isLoggedIn) {
-      const selectedAcc: AccountInfo = {
-        BillToAccountId: this.order.BillToAccount.Id,
-        ShipToAccountId: this.order.ShipToAccount.Id,
-        SoldToAccountId: this.order.SoldToAccount.Id
-      };
-
-      this.convertCartToOrder(get(this, 'order'), get(this, 'order.PrimaryContact'), this.cart, selectedAcc, false);
-    }
+    this.convertCartToOrder(get(this, 'order'), get(this, 'order.PrimaryContact'));
   }
 
   onBillToChange() {
@@ -150,17 +142,33 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   convertCartToOrder(order: Order, primaryContact: Contact, cart?: Cart, selectedAccount?: AccountInfo, acceptOrder?: boolean) {
     this.loading = true;
-    this.orderService.convertCartToOrder(order, primaryContact, cart, selectedAccount, acceptOrder).pipe(
+    this.orderService.convertCartToOrder(order, primaryContact).pipe(
       take(1)
     ).subscribe(orderResponse => {
       this.loading = false;
       this.orderConfirmation = orderResponse;
+      this.updateOrder();
       this.onOrderConfirmed();
     },
       err => {
         this.exceptionService.showError(err);
         this.loading = false;
       });
+  }
+
+  updateOrder()
+  {
+      const orderPayload = get(this,'order').strip(['Name','BillToAccount','ShipToAccount','SoldToAccount','PrimaryContact','Location','Owner','PriceList']);
+      this.orderService.updateOrder(get(this.orderConfirmation,"Id"),orderPayload).pipe(
+        take(1)
+      ).subscribe(res => {
+      },
+      err => {
+        this.orderConfirmation.set("retryUpdate",true)
+        this.orderConfirmation.set("updatePayload",orderPayload);
+        this.orderConfirmation = cloneDeep(this.orderConfirmation)
+        this.orderService.publish(this.orderConfirmation);
+      })
   }
 
   redirectOrderPage() {
@@ -176,6 +184,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       class: 'modal-lg'
     };
     this.confirmationModal = this.modalService.show(this.confirmationTemplate, ngbModalOptions);
+    if (get(this.orderConfirmation, 'Id')) {
+      this.emailService.getEmailTemplateByName('DC Order Notification Template').pipe(
+        take(1),
+        switchMap((templateInfo: EmailTemplate) => templateInfo ? this.emailService.sendEmailNotificationWithTemplate(get(templateInfo, 'Id'), this.orderConfirmation, get(this.orderConfirmation.PrimaryContact, 'Id')) : of(null))
+      ).subscribe();
+    }
   }
 
   closeModal() {

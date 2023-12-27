@@ -2,14 +2,17 @@
   <app-action-bar></app-action-bar>
 </apt-breadcrumb>
 <ng-container *ngIf="cart">
+
+  <apt-alert [record]="orderConfirmation"
+  message="ERROR.UPDATE_ORDER_FAILED" [showOnlyMessage]="false">
+  </apt-alert>
+
   <div class="container-fluid px-5 py-4" id="checkout-form">
     <h4 class="mb-3 text-muted">{{'CART.CREATE_ORDER' | translate}}</h4>
     <div *ngIf="!isPayForOrderEnabled; else paymentForm" class="row">
       <div class="col-md-4 order-md-2 mb-4">
         <apt-price-summary [paymentState]="paymentState" [record]="cart" [form]="form" [page]="pricingSummaryType"
           [loading]="loading" (onSubmitOrder)="submitOrder()" #priceSummary>
-          <button type="button" class="btn btn-link cancel-button w-100" [routerLink]="['/carts/active']"
-            data-style="zoom-in">{{'COMMON.CANCEL' | translate}}</button>
         </apt-price-summary>
         <cart-summary [cart]="cart"></cart-summary>
       </div>
@@ -19,10 +22,9 @@
             <div class="pt-3 px-3">
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <apt-input-field name="description" [labelClass]="'font-weight-normal'" [entity]="order"
-                    [required]="true" [errorMsg]="errMessages.requiredOrderTitle" [field]="'Name'"
-                    [(ngModel)]="order.Name" [label]="'COMMON.ORDER_TITLE' | translate">
-                  </apt-input-field>
+                  <apt-output-field [record]="order" field="SoldToAccount" displayValue="SoldToAccount"
+                    [labelClass]="'font-weight-normal'" [editable]="false" [showQuickView]="true">
+                  </apt-output-field>
                 </div>
                 <div class="col-md-6 mb-3">
                   <apt-output-field [record]="order" field="PriceList" [labelClass]="'font-weight-normal'"
@@ -32,9 +34,10 @@
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <apt-output-field [record]="order" field="SoldToAccount" displayValue="SoldToAccount"
-                    [labelClass]="'font-weight-normal'" [editable]="false" [showQuickView]="true">
-                  </apt-output-field>
+                  <apt-input-field name="description" [labelClass]="'font-weight-normal'" [entity]="order"
+                    [required]="true" [errorMsg]="!order.Name ? errMessages.requiredOrderTitle : '' " [field]="'Name'"
+                    [(ngModel)]="order.Name" [label]="'COMMON.ORDER_TITLE' | translate">
+                  </apt-input-field>
                 </div>
                 <div class="col-md-6 mb-3">
                   <apt-input-field name="primaryContact" [labelClass]="'font-weight-normal'" [entity]="order"
@@ -74,15 +77,15 @@
   </div>
 
   <ng-template #confirmationTemplate>
-    <div class="modal-header align-items-center p-0 mx-4 mt-3 border-bottom border-secondary">
-      <h6 class="modal-title pull-left font-weight-bold">
-        {{'MANAGE_CART.CART_SUMMARY.CHECKOUT' | translate}}
-      </h6>
-      <button type="button" class="close pull-right" aria-label="Close" (click)="confirmationModal.hide()">
+    <div class="modal-header align-items-center d-flex flex-row-reverse p-0 pb-2 mt-3 border-bottom border-secondary">
+      <button type="button" class="close close-button pull-right pr-0" aria-label="Close" (click)="confirmationModal.hide()">
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
-    <div class="modal-body d-flex flex-column justify-content-center py-4">
+    <div class="modal-body bg-white d-flex flex-column justify-content-center py-4">
+      <h6 class="modal-title pull-left font-weight-bold pb-2">
+        {{'MANAGE_CART.CART_SUMMARY.CHECKOUT' | translate}}
+      </h6>
       <p class="text-center"><strong>{{ 'MODAL.THANK_YOU' | translate }}
           {{order?.PrimaryContact?.FirstName}}!</strong></p>
       <small class="text-center" *ngIf="order?.PrimaryContact?.Email; else noEmail"

@@ -1,10 +1,13 @@
 @use "sass:math";
 @import "variables";
-.navbar-brand img {
-  max-height: math.div($navbar-brand-height, 2);
+.navbar-brand {
+  width: 3rem;
+  img {
+    max-height: 2rem;
+  }
 }
+
 .navbar {
-  height: $navbar-brand-height;
   transition: margin 300ms;
   transition: height 300ms;
   z-index: 1031;
@@ -22,12 +25,13 @@
   }
 }
 .actions > * {
-  border-radius: 0px;
-  & + *:not([hidden]) {
-    border-left: 1px solid black;
-  }
   margin: 0;
 }
+
+.actions > *:nth-child(2) {
+  margin-right: 0.5rem;
+}
+
 .navbar-brand > img {
   transition: 0.45s;
   &.scale {
@@ -42,6 +46,7 @@
   transition: left 300ms;
   margin: -1px 0 0 0;
   left: -20rem;
+  top: 0rem;
   width: 20rem;
   .modal-content {
     height: 100vh;
@@ -59,5 +64,64 @@ app-category-carousel {
 
 .user-avatar {
   height: 3rem;
-  flex-basis: 4rem;
+  flex-basis: 3rem;
+}
+
+.edit-icon {
+  cursor: pointer;
+  opacity: 0.5;
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.account-info.show {
+  min-width: 20rem;
+  left: inherit;
+}
+
+.scrollable {
+  max-height: 22rem;
+  overflow: auto;
+  height: auto;
+}
+
+.dropdown-menu {
+  .dropdown-body {
+    apt-input-field {
+      width: 100%;
+    }
+  }
+}
+
+.dropdown-toggle::after {
+  display: none;
+}
+
+div.fixed-top {
+  padding-bottom: 0.5rem;
+}
+
+.navbar-toggler {
+  border: none;
+}
+
+span {
+  img {
+    height: 1.5rem;
+  }
+}
+
+.category-list {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+.logout-section {
+  display: flex;
+  border-radius: 0 !important;
+}
+
+.modal-content-background {
+  background-color: white !important;
 }

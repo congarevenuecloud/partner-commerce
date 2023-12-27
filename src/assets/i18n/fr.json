@@ -1,5 +1,10 @@
 {
     "ERROR": {
+        "UPDATE_ORDER_FAILED":"fr_FR {{value}} is created but some fields may need to be reviewed. To review you can visit order details page",
+        "UPDATE_QUOTE_FAILED":"fr_FR {{value}} is created but some fields may need to be reviewed. To review you can visit quote details page",
+        "UPDATE_ORDER_FAILED_ON_DETAILS_PAGE":"fr_FR {{value}} is created but some fields may need to be reviewed.",
+        "UPDATE_QUOTE_FAILED_ON_DETAILS_PAGE":"fr_FR {{value}} is created but some fields may need to be reviewed.",
+        "RECORD_ERROR": "fr_FR There are errors in your cart",
         "OPTION_GROUP": {
             "ERROR": "fr_FR Option Group Errors",
             "MIN_OPTIONS": "fr_FR You must select at least {{value}} options.",
@@ -15,7 +20,11 @@
             "PRICE_CHANGE": "fr_FR The price of your cart has been updated",
             "PRICE_CHANGE_TOASTR_TITLE": "fr_FR Price Update",
             "VALIDATE": "fr_FR There are errors in your cart.",
-            "CONSTRAINT_RULES": "fr_FR An item in your cart violated 1 or more constraint rules."
+            "CONSTRAINT_RULES": "fr_FR An item in your cart violated 1 or more constraint rules.",
+            "FAILED_TO_ADD": "fr_FR Failed to add item(s)",
+            "FAILED_TO_UPDATE": "fr_FR Failed to update item(s)",
+            "FAILED_TO_DELETE": "fr_FR Failed to delete item(s)",
+            "FAILED_TO_CLONE": "fr_FR Failed to clone selected line item(s)"
         },
         "CART_ITEM": {
             "VALIDATE": "fr_FR The are errors with this cart item."
@@ -34,13 +43,27 @@
         },
         "APPLICATION_ERROR_TOASTR_TITLE": "fr_FR Application Error",
         "INVALID_REQUEST_ERROR_TOASTR_TITLE": "fr_FR Invalid Request",
-        "INVALID_QUANTITY": "fr_FR Cannot add a quantity less than 1"
+        "INVALID_QUANTITY": "fr_FR Cannot add a quantity less than 1",
+        "NEGATIVE_VALUE": "fr_FR Cannot have values less than 0",
+        "INVALID_CODE": "fr_FR Invalid product code",
+        "REQUIRED_FIELD": "fr_FR Required field",
+        "FAVORITE": {
+            "ADD_FAVORITE_TO_CART_FAILED": "fr_FR Adding items to favorite failed.",
+            "CREATION_FAILED_TITLE": "fr_FR Favorite creation failed",
+            "TRY_AGAIN_MSG":"fr_FR Your favorite {{name}} could not be created. Please try again."
+        }
     },
     "SUCCESS": {
         "TITLE": "fr_FR Success",
         "CART": {
             "ITEM_ADDED_TOASTR_MESSAGE": "fr_FR {{productName}} was added to the cart.",
-            "ITEM_ADDED_TOASTR_TITLE": "fr_FR Item Added"
+            "BULK_MESSAGE": "fr_FR {{productName}} were added to the cart.",
+            "ITEM_ADDED_TOASTR_TITLE": "fr_FR Item Added",
+            "DELETED": "fr_FR Successfully deleted",
+            "NEW_CART_CREATED": "fr_FR New cart created successfully",
+            "ACTIVATED": "fr_FR Cart activated successfully",
+            "EFFECTIVE_DATE": "fr_FR Effective date updated successfully",
+            "LINE_ITEM_CLONE": "fr_FR Cloning of selected line item(s) is successful"
         },
         "PROMOTION": {
             "VALID_PROMOTION_TITLE": "fr_FR Promotion Applied",
@@ -59,7 +82,21 @@
             "TITLE": "fr_FR Favorite items added!",
             "ADD_FAVORITE": "fr_FR Added new {{name}} Favorite.",
             "UPDATE_FAVORITE": "fr_FR Updated existing {{name}} Favorite",
-            "ADD_FAVORITE_TO_CART": "fr_FR Items from {{name}} were added to the cart."
+            "ADD_FAVORITE_TO_CART": "fr_FR Items from {{name}} were added to the cart.",
+            "DELETED": "fr_FR Successfully deleted"
+        }
+    },
+    "INFO": {
+        "TITLE": "fr_FR Info",
+        "CART": {
+            "CART_ACTION_TIMEOUT": "fr_FR Cart action timed out"
+        },
+        "DISCOVERY": {
+            "ADD_BEFORE_CONFIGURE_MESSAGE": "fr_FR To configure this product add it to the cart."
+        },
+        "FAVORITE": {
+            "TITLE": "fr_FR Creating your favorite",
+            "CREATING_FAVORITE_MSG": "fr_FR Your favorite {{name}} is being created"
         }
     },
     "ASSETS": {
@@ -67,6 +104,10 @@
         "RENEW_SUCCESS": "fr_FR The asset renewal has been added to your cart.",
         "BUYMORE_SUCCESS": "fr_FR The asset has been added to your cart.",
         "CHANGECONFIGURATION_SUCCESS": "fr_FR The asset has been added to your cart."
+    },
+    "COMPARE": {
+      "NO_COMPARABLE_FEATURE": "fr_FR {{products }} does not have comparable features to the selected products",
+      "OTHER_FEATURES": "fr_FR Other Features"
     },
     "MY_ACCOUNT": {
         "LAST_LOGIN_DATE": "fr_FR Last Login Date",
@@ -83,7 +124,7 @@
             "EMAIL": "fr_FR Email",
             "RECENT_ORDERS": "fr_FR Recent Orders",
             "RECENT_QUOTES": "fr_FR Recent Quotes",
-            "SHOW_MORE":"fr_FR Show more",
+            "SHOW_MORE": "fr_FR Show more",
             "ORDER_NAME": "fr_FR Order Name"
         },
         "ORDER_LIST": {
@@ -114,7 +155,8 @@
             "NUMBER_OF_ITEMS": "fr_FR Number of Items",
             "IS_ACTIVE": "fr_FR Is Active",
             "SET_ACTIVE": "fr_FR Set Active",
-            "CART_CREATION_FAILED": "fr_FR Could not create cart. Please contact your administrator."
+            "CART_CREATION_FAILED": "fr_FR Could not create cart. Please contact your administrator.",
+            "EFFECTIVE_DATE_NOT_UPDATED": "fr_FR Failed to update effective date on the cart."
         },
         "FAVORITE_DETAIL": {
             "FAVORITE_SUMMARY": "fr_FR Favorite Summary",
@@ -150,16 +192,7 @@
             "QUOTES_BY_STATUS": "fr_FR Quotes By Status",
             "QUOTES_BY_DUE_DATE": "fr_FR Quotes By Due Date",
             "TOTAL_QUOTES": "fr_FR Total Quotes",
-            "FINALIZE": "fr_FR Finalize",
-            "ATTACHMENTS": {
-                "TITLE": "fr_FR Attach new file(s)",
-                "INPUT_LABEL": "fr_FR Drop files to Attach or",
-                "BROWSE": "fr_FR browse",
-                "FILE_SIZE_EXCEEDED_ERROR": "fr_FR Size exceeds 25MB",
-                "NO_ATTACHMENTS": "fr_FR No attachments have been added yet",
-                "REMOVE_ATTACHMENT": "fr_FR Remove Attachment",
-                "BY": "fr_FR by"
-            }
+            "FINALIZE": "fr_FR Finalize"
         },
         "QUOTE_LIST": {
             "QUOTES": "fr_FR Quotes",
@@ -185,6 +218,7 @@
         "SUBMIT": "fr_FR Submit"
     },
     "BUTTON": {
+        "RETRY":"fr_FR retry",
         "Buy More": "fr_FR Buy More",
         "Renew": "fr_FR Renew",
         "Change Configuration": "fr_FR Change Configuration",
@@ -215,7 +249,8 @@
         "SHOW": "fr_FR Show",
         "SORT_BY": "fr_FR Sort By",
         "SORT_BY_RELEVANCE": "fr_FR Relevance",
-        "NO_RESULT_FOUND": "fr_FR Your search  <strong><em> \t &#8212; \t {{value}} - \t </em></strong>  did not match any products",
+        "YOUR_SEARCH": "fr_FR Your search \t",
+        "NO_MATCH":"fr_FR did not match any products",
         "NO_RESULT": "fr_FR There are no products to display",
         "SUGGESTIONS": "fr_FR Suggestions",
         "SUGGESTIONS_1": "fr_FR Make sure that all words are spelled correctly",
@@ -240,10 +275,23 @@
         "LAST": "fr_FR Last"
     },
     "COMMON": {
+        "HERE":"fr_FR here",
+        "PENDING_OPERATIONS":"fr_FR Operations are pending on your cart",
+        "REVALIDATING_CART":"fr_FR Cart is being revalidated",
+        "PRICING_CART":"fr_FR Cart is being priced",
+        "ACTIVATE_CART":"fr_FR Activate Cart",
         "ADD": "fr_FR Add",
         "REMOVE": "fr_FR Remove",
-        "INCLUDED":"fr_FR INCLUDED",
+        "INCLUDED": "fr_FR Included",
+        "QUICK_ADD": "fr_FR Quick-Add",
+        "ADD_PRODUCT": "fr_FR Add Product",
+        "NO_PRODUCT": "fr_FR No product found",
         "FIELD": "fr_FR Field",
+        "PICKVALUE": "fr_FR Select value from dropdown",
+        "QUICK_ORDER": "fr_FR Quick-Order",
+        "QUICK_QUOTE": "fr_FR Quick-Quote",
+        "VIEW_DETAILS": "fr_FR View Details",
+        "CART_TOTALS": "fr_FR Cart Totals",
         "OPERATOR": "fr_FR Operator",
         "OVERVIEW": "fr_FR Overview",
         "VALUE": "fr_FR Value",
@@ -263,7 +311,7 @@
         "UPDATE": "fr_FR Update",
         "SAVE": "fr_FR Save",
         "USERNAME": "fr_FR Username",
-        "LAST_WEEK":"fr_FR Last week",
+        "LAST_WEEK": "fr_FR Last week",
         "ORDER_TOTAL": "fr_FR Total ordered amount",
         "QUOTE_TOTAL": "fr_FR Total quoted amount",
         "PRODUCT_CATALOG": "fr_FR Product Catalog",
@@ -272,13 +320,16 @@
         "ITEMS": "fr_FR Items",
         "YOUR_PRICE": "fr_FR Your Price",
         "QUANTITY": "fr_FR Quantity",
+        "QUANTITY_NOT_MODIFIABLE":"fr_FR Quantity is not modifiable",
         "QUOTE": "fr_FR Quote",
         "TOTAL": "fr_FR Total",
         "APPROVAL_STAGE": "fr_FR Approval Stage",
         "ADD_TO_CART": "fr_FR Add to Cart",
+        "PLACE_QUOTE": "fr_FR Place Quote",
         "CONFIGURE": "fr_FR Configure",
         "REORDER": "fr_FR Reorder",
         "PRODUCT": "fr_FR Product",
+        "NO_ITEMS_FOUND":"fr_FR No lineitems to display",
         "SELLING_FREQUENCY": "fr_FR Selling Frequency",
         "UNIT_PRICE": "fr_FR Unit Price",
         "START_DATE": "fr_FR Start Date",
@@ -329,12 +380,12 @@
         "EDIT_LINE_ITEMS": "fr_FR Edit Line Items",
         "UPLOAD": "fr_FR Upload",
         "ADD_COMMENT": "fr_FR Add Comment",
-        "PLACE_ORDER": "fr_FR Create Order",
+        "PLACE_ORDER": "fr_FR Place Order",
         "ON": "fr_FR on",
         "CONFIRM_CHANGES": "fr_FR Confirm Changes",
         "ADD_PRODUCTS": "fr_FR Add Products",
         "ADD_INSTALLED_PRODUCTS": "fr_FR Add Installed Products",
-        "NO_DATA": "fr_FR n/a",
+        "NO_DATA": "fr_FR --",
         "MY_ORDERS": "fr_FR My Orders",
         "MY_QUOTES": "fr_FR My Quotes",
         "MY_CARTS": "fr_FR My Carts",
@@ -374,26 +425,41 @@
         "CREATED_BY": "fr_FR Created By",
         "ADJUSTMENT_TYPE": "fr_FR Adjustment Type",
         "ADJUSTMENT_AMOUNT": "fr_FR Adjustment Amount",
-        "SHOW_ALL":"fr_FR Show All"
+        "SHOW_ALL": "fr_FR Show All",
+        "WELCOME_MESSAGE": "fr_FR Hello, {{userName}}!",
+        "PAGES":"fr_FR Pages",
+        "ATTACHMENT_DETAILS": {
+            "TITLE": "fr_FR Attach new file(s)",
+            "INPUT_LABEL": "fr_FR Drop files to Attach or",
+            "BROWSE": "fr_FR browse",
+            "FILE_SIZE_EXCEEDED_ERROR": "fr_FR Size exceeds 28MB",
+            "NO_ATTACHMENTS": "fr_FR No attachments have been added yet",
+            "REMOVE_ATTACHMENT": "fr_FR Remove Attachment",
+            "BY": "fr_FR by",
+            "MAKE_VISIBILITY_PRIVATE": "fr_FR Make visibility private"
+        },
+        "ALT_TEXT_IMAGE":"fr_FR Generic placeholder image"
     },
     "REVALIDATE_CART": {
         "REVALIDATION_REQUIRED": "fr_FR Revalidation required",
         "REVALIDATION_REQUIRED_MSG": "fr_FR The configuration of the following items in your cart has changed and need to be revalidated",
-        "WHATTODO": "fr_FR If you are not sure of what to do, you can",
+        "WHAT_TO_DO": "fr_FR If you are not sure of what to do, you can",
         "DEACTIVATE_CART": "fr_FR deactivate this cart",
         "FORNOW": "fr_FR for now",
         "REVALIDATE": "fr_FR Revalidate",
-        "TOBE_REVALIDATE": "fr_FR To be revalidated",
+        "TO_BE_REVALIDATE": "fr_FR To be revalidated",
         "OPTIONAL": "fr_FR optional",
         "REQUIRED": "fr_FR required",
         "REVALIDATION_ERROR": "fr_FR Revalidation has failed! You can try again below",
         "PRODUCTNAME": "fr_FR Product Name",
         "REVALIDATION_WARNING": "fr_FR Some items in your cart need to be validated",
         "VALIDATE_CART": "fr_FR Validate Cart",
-        "SUCCESSFULLY_REVALIDATED": "fr_FR Successfully revalidated"
+        "SUCCESSFULLY_REVALIDATED": "fr_FR Successfully revalidated",
+        "REVALIDATION_INFO": "fr_FR If you select an optional product, the entire bundle including other optional products too will be revalidated to maintain sanctity of the bundle product",
+        "REVALIDATE_YOUR_CART":"fr_FR Revalidate your cart"
     },
     "CREATE_QUOTE": {
-        "QUOTE_SUMMARY": "fr_FR QUOTE SUMMARY",
+        "QUOTE_SUMMARY": "fr_FR Quote Summary",
         "QUOTE_TITLE": "fr_FR Quote Title",
         "EXPECTED_RESPONSE_DATE": "fr_FR Expected Response Date",
         "PRIMARY_CONTACT": "fr_FR Primary Contact",
@@ -409,7 +475,7 @@
         "QUOTE_CONFIRMATION_NO": "fr_FR Your Quote is :",
         "QUOTE_CONFIRMATION_MSG_WITH_RFP": "fr_FR The Expected Response Date is {{RFP_value}}.",
         "QUOTE_CONFIRMATION_Update_MSG_WITHOUT_RFP": "fr_FR Your updated quote has been send for review and assigned to the seller {{Sellername}}.",
-        "REVIEW_YOUR_QUOTE": "fr_FR REVIEW YOUR QUOTE"
+        "REVIEW_YOUR_QUOTE": "fr_FR Review Your Quote"
     },
     "BUYMORE": {
         "TERM": "fr_FR Term",
@@ -565,12 +631,13 @@
         "ADDRESS_LINE1": "fr_FR Address",
         "PLACEHOLDER_FOR_ADDRESS_LINE1": "fr_FR 1234 Main St",
         "CITY": "fr_FR City",
-        "COUNTRY": "fr_FR Mailing Country Code",
-        "STATE": "fr_FR Mailing State/Province Code",
+        "COUNTRY": "fr_FR Country Code",
+        "STATE": "fr_FR State/Province Code",
         "ZIP": "fr_FR Zip",
-        "INVALID_SHIPPING": "fr_FR Please enter your shipping address.",
-        "INVALID_CITY": "fr_FR Please enter your city.",
-        "INVALID_ZIP": "fr_FR Zip code required."
+        "INVALID_SHIPPING": "fr_FR Please enter your shipping address",
+        "INVALID_CITY": "fr_FR Please enter your city",
+        "INVALID_STATE": "fr_FR Please enter your state",
+        "INVALID_ZIP": "fr_FR Zip code required"
     },
     "MANAGE_CART": {
         "CART_SUMMARY": {
@@ -632,8 +699,10 @@
     },
     "HEADER": {
         "PRODUCT_SERACH": "fr_FR Product Search",
+        "SEARCH_BY_CODE": "fr_FR Search by product code",
         "SUBMIT": "fr_FR Submit",
         "ENTER_YOUR_SEARCH_TERM": "fr_FR Enter your search term (min 3 chars)...",
+        "ENTER_PRODUCT_TO_QUICK_ADD": "fr_FR Enter the product",
         "GUEST_USER": "fr_FR Guest User",
         "LAST_LOGIN": "fr_FR Last Login Date",
         "HOME": "fr_FR Home",
@@ -644,7 +713,8 @@
         "LOG_IN": "fr_FR Log In",
         "BACK": "fr_FR Back",
         "SHOW_ALL": "fr_FR Show All",
-        "MIN_VALIDATION_SEARCH_ERROR": "fr_FR Search term should be at least 3 characters in length"
+        "MIN_VALIDATION_SEARCH_ERROR": "fr_FR Search term should be at least 3 characters in length",
+        "CHANGE_ACCOUNT_MESSAGE": "fr_FR The active account has been changed"
     },
     "PROMOTION": {
         "TITLE": "fr_FR Promotion",
@@ -678,6 +748,7 @@
         "INCORRECT_CREDENTIALS_TOASTR_TITLE": "fr_FR Login Fail"
     },
     "PRODUCT_DETAILS": {
+        "IS_OPTIONAL":"fr_FR Is Optional",
         "PRODUCT_DETAIL": "fr_FR Product Details",
         "PRODUCT_CODE": "fr_FR Product ID: {{value}}",
         "STANDARD_PRICE": "fr_FR Standard Price",
@@ -691,8 +762,10 @@
         "DESCRIPTION": "fr_FR Description",
         "INFORMATION_TYPE": "fr_FR Information Type",
         "FEATURE": "fr_FR Feature",
+        "SELECT_ONE_OPTION": "fr_FR Select one option",
         "VALUE": "fr_FR Value",
-        "PRICE_IN_PROGRESS": " fr_FR Pricing is in progress."
+        "PRICE_IN_PROGRESS": " fr_FR Pricing is in progress",
+        "UPDATE_QUANTITY": "fr_FR Update Quantity"
     },
     "INSTALLED_PRODUCTS": {
         "PRODUCT_FAMILY": "fr_FR Product Family",
@@ -720,7 +793,8 @@
         "CART_TOTAL": "fr_FR Cart Total",
         "VIEW_CART": "fr_FR View Cart",
         "YOUR_CART_IS_EMPTY": "fr_FR Your cart is empty",
-        "PRICE_NOT_UPDATED_TXT": "fr_FR * Prices are yet to be updated."
+        "PRICE_NOT_UPDATED_TXT": "fr_FR * Prices are yet to be updated.",
+        "INACTIVE_CART_MESSAGE": "fr_FR You do not have a cart yet. Add products to get started"
     },
     "MINI_PROFILE": {
         "LOGIN": "fr_FR Login",
@@ -760,23 +834,23 @@
         "PRODUCT_ID": "fr_FR Product ID: {{productCode}}"
     },
     "DETAILS": {
-        "QUOTE_SUMMARY": "fr_FR QUOTE SUMMARY",
-        "ORDER_SUMMARY": "fr_FR ORDER SUMMARY",
-        "FAVORITE_SUMMARY": "fr_FR FAVORITE SUMMARY",
-        "LINE_ITEMS": "fr_FR LINE ITEMS",
-        "COMMENTS": "fr_FR COMMENTS",
-        "ATTACHMENTS": "fr_FR ATTACHMENTS",
+        "QUOTE_SUMMARY": "fr_FR Quote Summary",
+        "ORDER_SUMMARY": "fr_FR Order Summary",
+        "FAVORITE_SUMMARY": "fr_FR Favorite Summary",
+        "LINE_ITEMS": "fr_FR Line Items",
+        "COMMENTS": "fr_FR Comments",
+        "ATTACHMENTS": "fr_FR Attachments",
         "PRICE_SUMMARY": "fr_FR Price Summary",
-        "SUMMARY": "fr_FR SUMMARY",
+        "SUMMARY": "fr_FR Summary",
         "SUCCESSFUL_QUOTE_ACCEPTANCE_MESSAGE": "fr_FR You have successfully accepted the quote ({{quoteName}}) and the order has been generated for the same.",
         "GENERATED_ORDER_NUMBER": "fr_FR Your Order Is: {{orderName}}",
-        "VIEW_YOUR_ORDER": "fr_FR VIEW YOUR ORDER",
+        "VIEW_YOUR_ORDER": "fr_FR View Your Order",
         "GENERATE_ORDER": "fr_FR Generate Order",
         "GENERATE_QUOTE": "fr_FR Generate Quote",
         "GENERATE": "fr_FR Generate",
         "TEMPLATE": "fr_FR Template",
         "FILE_FORMAT": "fr_FR File Format",
-        "PRESENT": "fr_FR PRESENT",
+        "PRESENT": "fr_FR Present",
         "PRESENT_ORDER": "fr_FR Present Order",
         "SEND_TO": "fr_FR Send Order To",
         "MISSING_REQ_FIELDS": "fr_FR Some mandatory informations are missing in the order details. Please fill to proceed."
@@ -872,6 +946,6 @@
         "ACCOUNT": "fr_FR Account",
         "ORDER_NAME": "fr_FR Order Name",
         "PROPOSAL_NAME": "fr_FR Proposal Name",
-        "CREATED_DATE":"fr_FR Created Date"
+        "CREATED_DATE": "fr_FR Created Date"
     }
 }

@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectionStrategy, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { Observable, of, combineLatest } from 'rxjs';
 import { switchMap, take, map } from 'rxjs/operators';
 import { get } from 'lodash';
-import { CartService, Cart, AccountService, OrderService, Account } from '@congarevenuecloud/ecommerce';
+import { CartService, Cart, OrderService } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, OutputFieldComponent } from '@congarevenuecloud/elements';
 @Component({
   selector: 'app-action-bar',
@@ -14,37 +14,17 @@ export class ActionBarComponent implements OnInit {
 
   cart$: Observable<Cart>;
   loading: boolean = false;
+  fields: string[];
+  businessObjectFields: string[];
 
   @ViewChild('accountField', { static: false }) accountField: OutputFieldComponent;
 
-  constructor(
-    private cartService: CartService,
-    private accountService: AccountService,
-    private exceptionService: ExceptionService,
-    private orderService: OrderService,
-    private cdr: ChangeDetectorRef) { }
+  constructor(private cartService: CartService, private exceptionService: ExceptionService, private orderService: OrderService) { }
 
   ngOnInit() {
-    this.cart$ = this.cartService.getMyCart()
-      .pipe(
-        switchMap(cart => combineLatest([of(cart), get(cart, 'OrderId') ? this.orderService.getOrder(get(cart, 'OrderId')) : of(null), this.accountService.getCurrentAccount()])),
-        map(([cart, order, account]) => {
-          // cart.Order = order;
-          cart.Account = account;
-          return cart;
-        })
-      );
-  }
-
-  changeAccount(account: Account) {
-    this.accountService.setAccount(account, true).pipe(take(1))
-      .subscribe(
-        () => {
-          this.cdr.markForCheck();
-          this.exceptionService.showSuccess('ACTION_BAR.CHANGE_ACCOUNT_MESSAGE', 'ACTION_BAR.CHANGE_ACCOUNT_TITLE');
-          this.accountField.handleHidePop();
-        }
-      );
+    this.cart$ = this.cartService.getMyCart();
+    this.businessObjectFields = ['Description', 'BillToAccount', 'Amount', 'ABOType', 'DiscountPercent', 'configurationSyncDate', 'Accept', 'PriceList', 'SourceChannel'];
+    this.fields = ['AdjustmentType', 'AdjustmentAmount', 'StartDate', 'EndDate'];
   }
 
   createNewCart() {
