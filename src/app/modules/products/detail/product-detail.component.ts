@@ -13,7 +13,8 @@ import {
   Storefront,
   PriceListItemService,
   Cart,
-  ConstraintRuleService
+  ConstraintRuleService,
+  ItemRequest
 } from '@congarevenuecloud/ecommerce';
 import { ProductConfigurationComponent, ProductConfigurationSummaryComponent, ProductConfigurationService, RevalidateCartService } from '@congarevenuecloud/elements';
 import { BsModalRef } from 'ngx-bootstrap/modal';
@@ -26,7 +27,7 @@ import { BsModalRef } from 'ngx-bootstrap/modal';
 export class ProductDetailComponent implements OnInit, OnDestroy {
   @ViewChild('confirmationTemplate') confirmationTemplate: TemplateRef<any>;
   viewState$: BehaviorSubject<ProductDetailsState> = new BehaviorSubject<ProductDetailsState>(null);
-  recommendedProducts$: Observable<Array<Product>>;
+  recommendedProducts$: Observable<Array<ItemRequest>>;
   attachments$: Observable<Array<ProductInformation>>;
   modalRef: BsModalRef;
   primaryLineItem: CartItem = null;
@@ -157,7 +158,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       forEach(this.cartItemList, c => {
         c.IsOptional = event;
       });
-      this.productConfigurationService.changeItemToOptional(this.cartItemList);
+    this.productConfigurationService.changeItemToOptional(this.cartItemList);
   }
 
   handleEndDateChange(cartItem: CartItem) {

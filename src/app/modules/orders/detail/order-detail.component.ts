@@ -7,7 +7,7 @@ import { ApiService, FilterOperator } from '@congarevenuecloud/core';
 import {
   Order, Quote, OrderLineItem, OrderService, UserService,
   ItemGroup, LineItemService, Note, NoteService, EmailService, AccountService,
-  Contact, CartService, Cart, OrderLineItemService, Account, ContactService, OrderPayload, QuoteService, AttachmentDetails, AttachmentService, ProductInformationService
+  Contact, CartService, Cart, OrderLineItemService, Account, ContactService, QuoteService, AttachmentDetails, AttachmentService, ProductInformationService
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, LookupOptions, RevalidateCartService } from '@congarevenuecloud/elements';
 @Component({
@@ -30,7 +30,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
   @ViewChild('attachmentSection') attachmentSection: ElementRef;
 
   private subscriptions: Subscription[] = [];
-  orderGenerated: boolean = false;
   isLoggedIn$: Observable<boolean>;
   order: Order;
 
@@ -87,6 +86,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   isPrivate: boolean = false;
   maxFileSizeLimit = 29360128;
+  cartRecord: Cart;
 
   constructor(private activatedRoute: ActivatedRoute,
     private orderService: OrderService,
@@ -149,6 +149,9 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
         order.OrderLineItems = get(order, 'OrderLineItems');
         this.orderLineItems$.next(LineItemService.groupItems(order.OrderLineItems));
+        this.cartService.fetchCartStatus(get(get(first(this.orderLineItems$.value),'MainLine.Configuration'),'Id')).pipe(take(1)).subscribe(c=>{
+          this.cartRecord=c;
+        })
         return this.updateOrder(order);
       })).subscribe();
     this.getAttachments();
@@ -156,12 +159,12 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   refreshOrder(fieldValue, order, fieldName) {
     set(order, fieldName, fieldValue);
-    const payload: OrderPayload = {
+    const payload: Order = {
       'PrimaryContact': order.PrimaryContact,
       'Description': order.Description,
       'ShipToAccount': order.ShipToAccount,
       'BillToAccount': order.BillToAccount
-    };
+    } as Order;
     this.orderService.updateOrder(order.Id, payload).pipe(switchMap(c=>this.updateOrderValue(c))).subscribe(r => {
       this.updateOrder(r);
     });
@@ -232,8 +235,18 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   onGenerateOrder() {
     if (this.attachmentSection) this.attachmentSection.nativeElement.scrollIntoView({ behavior: 'smooth' });
-    this.getOrder();
-    this.orderGenerated = true;
+        let obsv$;
+        if(get(this.order, 'Status') == 'Draft') {
+            const payload = { 'Status': 'Generated'};
+            obsv$ = this.orderService.updateOrder(this.order.Id, payload as Order);
+        } else {
+          obsv$ = of(null);
+        }
+            
+    combineLatest([this.emailService.getEmailTemplateByName('DC Order generate-document Template'), obsv$]).pipe(
+      switchMap(result => {
+        return first(result) ? this.emailService.sendEmailNotificationWithTemplate(get(first(result), 'Id'), this.order, get(this.order.PrimaryContact, 'Id')) : of(null)
+      }), take(1)).subscribe(() => {this.getOrder()});
   }
 
   addComment(orderId: string) {
@@ -252,6 +265,14 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
           this.exceptionService.showError(err);
           this.commentsLoader = false;
         });
+  }
+
+  deleteAttachment(attachment: AttachmentDetails) {
+    attachment.DocumentMetadata.set('deleting', true);
+    this.attachmentService.deleteAttachment(attachment.DocumentMetadata.DocumentId).pipe(take(1)).subscribe(() => {
+      attachment.DocumentMetadata.set('deleting', false);
+      this.getAttachments();
+    })
   }
 
   clear() {

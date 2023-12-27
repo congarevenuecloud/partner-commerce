@@ -1,16 +1,17 @@
-import { Component, OnInit, ViewChild, TemplateRef, OnDestroy, ViewEncapsulation, ElementRef, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef, OnDestroy, ViewEncapsulation, ElementRef, NgZone, ChangeDetectorRef, Inject, Renderer2 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, of, BehaviorSubject, Subscription, combineLatest } from 'rxjs';
 import { filter, map, take, mergeMap, switchMap } from 'rxjs/operators';
-import { get, set, find, defaultTo, map as _map } from 'lodash';
+import { get, set, find, defaultTo, map as _map, isEmpty, first } from 'lodash';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { ApiService } from '@congarevenuecloud/core';
 import {
-  UserService, QuoteService, Quote, Order, OrderService, Note, NoteService, AttachmentService, CartService,
-  AttachmentDetails, ProductInformationService, ItemGroup, EmailService, LineItemService, QuoteLineItemService, Account, AccountService, Contact, ContactService, LineItem, QuoteLineItem
+  UserService, QuoteService, Quote, Order, OrderService, Note, NoteService, AttachmentService, CartService, EmailService, Cart,
+  AttachmentDetails, ProductInformationService, ItemGroup, LineItemService, QuoteLineItemService, Account, AccountService, Contact, ContactService, LineItem, QuoteLineItem
 } from '@congarevenuecloud/ecommerce';
-import { ExceptionService, LookupOptions, RevalidateCartService } from '@congarevenuecloud/elements';
+import { ExceptionService, LookupOptions, ToasterPosition } from '@congarevenuecloud/elements';
+import { DOCUMENT } from '@angular/common';
 @Component({
   selector: 'app-quote-details',
   templateUrl: './quote-detail.component.html',
@@ -50,9 +51,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   finalizeLoader = false;
 
-  quoteConfirmation:Quote;
-
-  quoteGenerated: boolean = false;
+  quoteConfirmation: Quote;
 
   notesSubscription: Subscription;
 
@@ -89,6 +88,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   isPrivate: boolean = false;
   maxFileSizeLimit = 29360128;
+  cartRecord: Cart;
 
   constructor(private activatedRoute: ActivatedRoute,
     private quoteService: QuoteService,
@@ -102,6 +102,11 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private attachmentService: AttachmentService,
     private productInformationService: ProductInformationService,
+    private cartService: CartService,
+    private emailService: EmailService,
+    @Inject(DOCUMENT) private document: Document,
+    private renderer: Renderer2
+
   ) { }
 
   ngOnInit() {
@@ -116,10 +121,16 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
         map(params => get(params, 'id')),
         mergeMap(quoteId => this.quoteService.getQuoteById(quoteId)),
         switchMap((quote: Quote) => {
-          this.quoteLineItems$.next(LineItemService.groupItems(get(quote, 'Items')));
-          return this.updateQuoteValue(quote)
-        }
-        )).subscribe());
+          const quoteLineItems = LineItemService.groupItems(get(quote, 'Items'));
+          this.quoteLineItems$.next(quoteLineItems);
+          return combineLatest([isEmpty(quoteLineItems) ? of(null) : (this.cartService.fetchCartStatus(get(get(first(this.quoteLineItems$.value),'MainLine.Configuration'),'Id'))), of(quote)])
+        }),
+        take(1),
+        switchMap(([cartRecord, quote]) => {
+          this.cartRecord = cartRecord;
+          return this.updateQuoteValue(quote);
+        })
+        ).subscribe());
     this.getAttachments();
   }
 
@@ -139,11 +150,10 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
       get(quote.ShipToAccount, 'Id') ? this.accountService.getAccount(get(quote.ShipToAccount, 'Id')) : of(null),
       get(quote.PrimaryContact, 'Id') ? this.contactService.fetch(get(quote.PrimaryContact, 'Id')) : of(null),
       this.quoteService.getMyQuote()
-    ]).pipe(map(([quote, accounts, billToAccount, shipToAccount, primaryContact,confirmQuote]) => {
+    ]).pipe(map(([quote, accounts, billToAccount, shipToAccount, primaryContact, confirmQuote]) => {
 
-      if(get(quote,"Id") === get(confirmQuote,"Id"))
-      {
-        confirmQuote.set("onDetailPage",true);
+      if (get(quote, "Id") === get(confirmQuote, "Id")) {
+        confirmQuote.set("onDetailPage", true);
         this.quoteConfirmation = confirmQuote;
       }
 
@@ -187,7 +197,26 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   editQuoteItems(quote: Quote) {
     this.editLoader = true;
-    this.quoteService.convertQuoteToCart(quote).pipe(take(1)).subscribe(value => {
+    if (!isEmpty(get(quote, 'Items'))) {
+      this.showProcessingOverlay();
+      this.quoteService.convertQuoteToCart(quote).pipe(take(1)).subscribe(value => {
+        set(value, 'Proposald', this.quote);
+        this.hideProcessingOverlay();
+        this.ngZone.run(() => this.router.navigate(['/carts', 'active']));
+      },
+        err => {
+          this.hideProcessingOverlay();
+          this.exceptionService.showError(err);
+          this.editLoader = false;
+        })
+    } else {
+      this.addLineItemsToQuote(quote);
+    }
+  }
+
+  addLineItemsToQuote(quote: Quote) {
+    this.editLoader = true;
+    this.cartService.createCartFromQuote(quote.Id).pipe(take(1)).subscribe(value => {
       set(value, 'Proposald', this.quote);
       this.ngZone.run(() => this.router.navigate(['/carts', 'active']));
     },
@@ -215,13 +244,21 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   onGenerateQuote() {
     if (this.attachmentSection) this.attachmentSection.nativeElement.scrollIntoView({ behavior: 'smooth' });
-    this.getQuote();
-    this.quoteGenerated = true;
+    let obsv$;
+    if(get(this.quote, 'ApprovalStage') == 'Draft'){
+      const payload = { 'ApprovalStage': 'Generated'};
+      obsv$ = this.quoteService.updateQuote(this.quote.Id, payload as Quote);
+    } else {
+      obsv$ = of(null);
+    }
+    combineLatest([this.emailService.getEmailTemplateByName('DC Quote generate-document Template'),obsv$]).pipe(
+      switchMap(result => {
+        return first(result) ? this.emailService.sendEmailNotificationWithTemplate(get(first(result), 'Id'), this.quote, get(this.quote.PrimaryContact, 'Id')) : of(null)
+      }), take(1)).subscribe(() => {
+        this.getQuote();
+       });
   }
 
-  /**
-   * @ignore
-   */
   clearFiles() {
     this.file = null;
     this.uploadFileList = null;
@@ -229,9 +266,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     this.isPrivate = false;
   }
 
-  /**
-   * @ignore
-   */
   getAttachments() {
     if (this.attachemntSubscription) this.attachemntSubscription.unsubscribe();
     this.attachemntSubscription = this.activatedRoute.params
@@ -240,9 +274,18 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
       ).subscribe((attachments: Array<AttachmentDetails>) => this.ngZone.run(() => this.attachmentList$.next(attachments)));
   }
 
-  /**
-   * @ignore
-   */
+  deleteAttachment(attachment: AttachmentDetails) {
+    attachment.DocumentMetadata.set('deleting', true);
+    this.attachmentService.deleteAttachment(attachment.DocumentMetadata.DocumentId).pipe(take(1)).subscribe(() => {
+      attachment.DocumentMetadata.set('deleting', false);
+      this.getAttachments();
+    })
+  }
+
+  getFileType(fileType: string): string {
+    return fileType.split('/')[1];
+  }
+
   uploadAttachment(parentId: string) {
     this.attachmentsLoader = true;
     this.attachmentService.uploadAttachment(this.file, this.isPrivate, parentId, 'proposal').pipe(take(1)).subscribe(res => {
@@ -256,18 +299,14 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * @ignore
-   */
+
   downloadAttachment(attachmentId: string) {
     this.productInformationService.getAttachmentUrl(attachmentId).subscribe((url: string) => {
       window.open(url, '_blank');
     });
   }
 
-  /**
-   * @ignore
-   */
+
   hasFileSizeExceeded(fileList, maxSize) {
     let totalFileSize = 0;
     for (let i = 0; i < fileList.length; i++) {
@@ -276,9 +315,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     this.hasSizeError = totalFileSize > maxSize;
   }
 
-  /**
-   * @ignore
-   */
+
   fileChange(event) {
     const fileList: FileList = event.target.files;
     if (fileList.length > 0) {
@@ -288,16 +325,12 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * @ignore
-   */
+
   onDragFile(event) {
     event.preventDefault();
   }
 
-  /**
-   * @ignore
-   */
+
   onDropFile(event) {
     event.preventDefault();
     const itemList: DataTransferItemList = event.dataTransfer.items;
@@ -317,6 +350,21 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
       this.hasFileSizeExceeded(fileList, event.target.dataset.maxSize);
     }
     this.file = this.uploadFileList[0];
+  }
+
+  showProcessingOverlay() {
+    const customElement = this.renderer.createElement('div');
+    this.renderer.addClass(customElement, 'custom-overlay');
+    this.renderer.appendChild(document.body, customElement);
+    this.exceptionService.showInfo('COMMON.PROCESSING_MESSAGE', 'COMMON.PROCESSING_TITLE', null, ToasterPosition.BOTTOM_LEFT, 15000, false, false, true, false);
+  }
+
+  hideProcessingOverlay() {
+    const customElement = document.querySelector('.custom-overlay');
+    if (customElement) {
+      this.renderer.removeChild(document.body, customElement);
+      this.exceptionService.clearToast();
+    }
   }
 
   ngOnDestroy() {

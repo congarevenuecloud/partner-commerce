@@ -25,6 +25,8 @@
       >
         {{ "ACTION_BAR.CONFIRM_ORDER" | translate }}
       </button>
+      <apt-generate-document [record]="order" class="ml-auto pt-2" (onStatusUpdate)="onGenerateOrder()">
+      </apt-generate-document>
     </ng-container>
 
     <ng-container *ngSwitchCase="'Generated'">
@@ -38,6 +40,8 @@
       >
         {{ "ACTION_BAR.CONFIRM_ORDER" | translate }}
       </button>
+      <apt-generate-document [record]="order" class="ml-auto pt-2" (onStatusUpdate)="onGenerateOrder()">
+      </apt-generate-document>
     </ng-container>
 
     <ng-container *ngSwitchCase="'Presented'">
@@ -51,6 +55,8 @@
       >
         {{ "ACTION_BAR.CONFIRM_ORDER" | translate }}
       </button>
+      <apt-generate-document [record]="order" class="ml-auto pt-2" (onStatusUpdate)="onGenerateOrder()">
+      </apt-generate-document>
     </ng-container>
   </div>
 
@@ -250,6 +256,7 @@
               *ngFor="let item of orderLineItems$ | async; let i = index"
             >
               <apt-line-item-table-row
+                [cart]="cartRecord"
                 [index]="i"
                 [parent]="item.MainLine"
                 [options]="item.Flat"
@@ -336,6 +343,7 @@
                         >
                         </apt-output-field>
                       </th>
+                      <th></th>
                     </tr>
                   </thead>
 
@@ -378,6 +386,11 @@
                             | date : "short"
                         }}
                       </td>
+                      <td><button class="btn btn-link p-0 m-0"
+                        (click)="deleteAttachment(attachment)" [ladda]="attachment?.DocumentMetadata?._metadata?.deleting" data-style="zoom-in"
+                        data-spinner-color="black">
+                        <span class="fa fa-trash"></span>
+                      </button></td>
                     </tr>
                   </tbody>
                 </table>

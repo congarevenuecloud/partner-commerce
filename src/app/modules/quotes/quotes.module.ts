@@ -20,7 +20,8 @@ import {
   ButtonModule,
   DataFilterModule,
   OutputFieldModule,
-  AlertModule
+  AlertModule,
+  QuickAddModule
 } from '@congarevenuecloud/elements';
 import { DetailsModule } from '../details/details.module';
 import { QuotesRoutingModule } from './quotes-routing.module';
@@ -58,8 +59,9 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
     ComponentModule,
     ButtonModule,
     CongaModule,
-    AlertModule
+    AlertModule,
+    QuickAddModule
   ],
-  declarations: [QuoteListComponent, QuoteDetailComponent,CreateQuoteComponent,  RequestQuoteFormComponent]
+  declarations: [QuoteListComponent, QuoteDetailComponent, CreateQuoteComponent, RequestQuoteFormComponent]
 })
 export class QuotesModule { }

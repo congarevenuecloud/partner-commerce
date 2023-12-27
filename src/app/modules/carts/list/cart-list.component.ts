@@ -24,8 +24,10 @@ export class CartListComponent implements OnInit {
   cart: Cart;
   view$: Observable<CartListView>;
   cartAggregate$: Observable<any>;
+  isCloneCart: boolean = false;
 
   @ViewChild('effectiveDateTemplate') effectiveDateTemplate: TemplateRef<any>;
+  @ViewChild('createCartTemplate') createCartTemplate: TemplateRef<any>;
 
   constructor(private cartService: CartService, public priceService: PriceService, private dateFormatPipe: DateFormatPipe, private currencyPipe: LocalCurrencyPipe,
     private modalService: BsModalService, private translateService: TranslateService, private exceptionService: ExceptionService) { }
@@ -38,6 +40,7 @@ export class CartListComponent implements OnInit {
     let tableOptions = {} as CartListView;
     this.view$ = this.cartService.getMyCart()
       .pipe(
+        take(1),
         map(() => {
           tableOptions = {
             tableOptions: {
@@ -101,7 +104,17 @@ export class CartListComponent implements OnInit {
                     this.loadView();
                   })),
                   disableReload: true
-                } as TableAction
+                } as TableAction,
+                {
+                  enabled: true,
+                  icon: 'fa-clone',
+                  massAction: false,
+                  label: 'Clone',
+                  theme: 'primary',
+                  validate: (record: Cart) => this.canPerformAction(record),
+                  action: (recordList: Array<Cart>) => this.newCart(this.createCartTemplate, first(recordList)),
+                  disableReload: true
+                } as TableAction,
               ],
               highlightRow: (record: Cart) => of(CartService.getCurrentCartId() === record.Id && !isNil(record.ActivationDate)),
               filters: this.getFilters(),
@@ -144,10 +157,16 @@ export class CartListComponent implements OnInit {
       })
   }
 
-  newCart(template: TemplateRef<any>) {
+  newCart(template: TemplateRef<any>, isCloneFrom?: Cart) {
     this.cart = new Cart();
+    if (isCloneFrom) {
+      this.isCloneCart = true;
+      this.cart = isCloneFrom;
+      this.cart.Name = `Clone of ${isCloneFrom.Name}`
+    }
     this.message = null;
     this.modalRef = this.modalService.show(template);
+    return of(null);
   }
 
   createCart() {
@@ -191,6 +210,38 @@ export class CartListComponent implements OnInit {
       value: 'Shadow',
       filterOperator: FilterOperator.NOT_EQUAL
     }] as Array<FieldFilter>;
+  }
+
+  closeNewCartModal() {
+    this.isCloneCart = false;
+    this.modalRef.hide();
+  }
+
+  cloneCart() {
+    this.loading = true;
+    delete this.cart.Status;
+    this.cartService.cloneCart(this.cart.Id, this.cart, true, true).pipe(take(1)).subscribe(
+      res => {
+        this.loading = false;
+        this.modalRef.hide();
+        this.exceptionService.showSuccess('SUCCESS.CART.CLONE_CART_SUCCESS');
+        this.loadView();
+      },
+      err => {
+        this.loading = false;
+        this.translateService.stream('MY_ACCOUNT.CART_LIST.CART_CLONE_FAILED').pipe(take(1)).subscribe((val: string) => {
+          this.message = val;
+        });
+      }
+    );
+  }
+
+  handleFormSubmit() {
+    if (this.isCloneCart) {
+      this.cloneCart();
+    } else {
+      this.createCart();
+    }
   }
 }
 

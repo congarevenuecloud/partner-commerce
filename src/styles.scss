@@ -121,6 +121,9 @@ address {
   color: $gray-600 !important;
 }
 
+.fa-chevron-right{
+  color: $gray-600 !important;
+}
 .thumbnail {
   max-width: 3rem;
   max-height: 3rem;
@@ -249,9 +252,14 @@ apt-batch-action {
   }
 }
 
-apt-price-summary div[class="card-body"] button.btn.btn-link:focus {
+apt-price-summary {
+  div[class="card-body"] button.btn.btn-link:focus {
   color: $primary;
   background: $light;
+}
+ div[class="card-header"] div[class="justify-content-between"] div[class="flex-row-reverse"] {
+  padding-top: 1.094rem !important;
+}
 }
 
 popover-container.Popover {
@@ -522,7 +530,6 @@ app-cart-detail apt-line-item-table-row apt-input-field {
   ng-select.form-control {
     font-size: inherit;
     margin-bottom: unset;
-    height: 1.7rem;
   }
 }
 
@@ -820,7 +827,7 @@ cc-page-header {
 }
 
 .accordion .card-header {
-  font-size: $font-size-sm;
+  font-size: $font-size-md;
   background-color: $gray-100 !important;
 }
 
@@ -925,6 +932,20 @@ table.table {
     span {
       line-height: 1.25rem;
       color: black;
+    }
+  }
+}
+
+apt-promotion {
+  div.card {
+    div {
+      div.card-body {
+        form.input-group {
+          apt-input-field {
+            width: 12.5rem !important;
+          }
+        }
+      }
     }
   }
 }
@@ -1043,5 +1064,96 @@ apt-table {
 .modal-header {
   h4 {
     color: $black;
+  }
+}
+
+apt-line-item-menu {
+  .navbar {
+    overflow: hidden;
+    background-color: $white;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+  }
+  
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 15px;
+  }
+  
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 46px;
+    height: 20.28px;
+    background-color: $gray-200;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    width: 13px;
+    height: 13px;
+    left: 4px;
+    bottom: 4px;
+    background-color: $white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked+.slider {
+    background-color: $dark-blue;
+  }
+  
+  input:focus+.slider {
+    box-shadow: 0 0 1px $dark-blue;
+  }
+  
+  input:checked+.slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+  
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }
+  
+  label.px-1{
+    font-weight: 500 !important;
+  }
+  
+  .active{
+    color: $dark-blue;
+  }
+  
+  .inactive{
+    color: $black ;
+  }
+  
+  .disabled{
+    color: $gray-500;
+  }
+  
+  button.btn-raised:hover {
+    color: $dark-blue;
   }
 }

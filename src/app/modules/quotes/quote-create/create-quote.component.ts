@@ -55,7 +55,7 @@ export class CreateQuoteComponent implements OnInit {
 
   updateQuote() {
     const quotePayload = this.quoteRequestObj.strip(['GrandTotal.Value','Owner','PriceList']);
-    this.quoteService.updateQuote(get(this.quoteConfirmation,"Id"),quotePayload).pipe(take(1)).
+    this.quoteService.updateQuote(get(this.quoteConfirmation,"Id"),quotePayload as Quote).pipe(take(1)).
     subscribe(data => {
     },err => {
       this.quoteConfirmation.set("retryUpdate",true);

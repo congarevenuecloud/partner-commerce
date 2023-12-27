@@ -23,7 +23,8 @@
             "FAILED_TO_ADD": "it_IT Failed to add item(s)",
             "FAILED_TO_UPDATE": "it_IT Failed to update item(s)",
             "FAILED_TO_DELETE": "it_IT Failed to delete item(s)",
-            "FAILED_TO_CLONE": "it_IT Failed to clone selected line item(s)"
+            "FAILED_TO_CLONE": "it_IT Failed to clone selected line item(s)",
+            "PENDING_CONFIGURATION": "it_IT This product needs to be configured"
         },
         "CART_ITEM": {
             "VALIDATE": "Sono errori con questo articolo carrello."
@@ -50,7 +51,8 @@
             "ADD_FAVORITE_TO_CART_FAILED": "it_IT Adding items to favorite failed.",
             "CREATION_FAILED_TITLE": "it_IT Favorite creation failed",
             "TRY_AGAIN_MSG":"it_IT Your favorite {{name}} could not be created. Please try again."
-        }
+        },
+        "GENERATE_DOCUMENT_ERROR": "it_IT Document generation has failed"
     },
     "SUCCESS": {
         "TITLE": "Successo",
@@ -62,8 +64,12 @@
             "DELETED": "it_IT Successfully deleted",
             "NEW_CART_CREATED": "it_IT New cart created successfully",
             "ACTIVATED": "it_IT Cart activated successfully",
+            "VIEW_UPDATED":"it_IT View updated successfully",
             "EFFECTIVE_DATE": "it_IT Effective date updated successfully",
-            "LINE_ITEM_CLONE": "it_IT Cloning of selected line item(s) is successful"
+            "LINE_ITEM_CLONE": "it_IT Cloning of selected line item(s) is successful",
+            "BULK_ADD": "it_IT {{data}} item(s) added successfully.",
+            "BULK_DELETE": "{{data}} elementi eliminati correttamente.",
+            "CLONE_CART_SUCCESS": "it_IT Cart cloned successfully"
         },
         "PROMOTION": {
             "VALID_PROMOTION_TITLE": "it_IT Promotion Applied",
@@ -73,8 +79,9 @@
         },
         "QUOTE_UPDATED": "Preventivo Aggiornato Con Successo!",
         "QUOTE_UPDATE_TITLE": "Citazione Di Aggiornamento",
-        "GENERATED": "Il documento dell'ordine è stato generato e può essere visualizzato nella scheda 'Allegati'.",
+        "GENERATED_ORDER": "it_IT Your order document {{data}} has been generated and can be viewed under the 'Attachments' tab.",
         "DOCUMENT_GENERATED_TITLE": "Documento Generato",
+        "GENERATED_QUOTE": "it_IT Your quote document {{data}} has been generated and can be viewed under the 'Attachments' tab.",
         "PRESENTED": "Il documento dell'ordine è stato presentato a {{primary_contact}} e la notifica via e-mail viene inviata.",
         "DOCUMENT_PRESENTED_TITLE": "Documento Presentato",
         "FAVORITE": {
@@ -85,11 +92,17 @@
             "DELETED": "it_IT Successfully deleted"
         }
     },
+    "WARNING": {
+        "TITLE": "it_IT Warning",
+        "GENERATE_DOCUMENT_STOPPED": "it_IT Document generation has stopped",
+        "GENERATE_DOCUMENT_HIBERNATE": "it_IT Document generation is hibernating"
+    },
     "INFO": {
         "TITLE": "it_IT Info",
         "CART": {
             "CART_ACTION_TIMEOUT": "it_IT Cart action timed out"
         },
+        "GENERATE_INFO": "it_IT Your document is being generated. You will get notified when its ready.",
         "DISCOVERY": {
             "ADD_BEFORE_CONFIGURE_MESSAGE": "it_IT To configure this product add it to the cart."
         },
@@ -156,7 +169,9 @@
             "IS_ACTIVE": "È Attivo",
             "SET_ACTIVE": "Set Active",
             "CART_CREATION_FAILED": "Impossibile creare il carrello. Si prega di contattare l'amministratore.",
-            "EFFECTIVE_DATE_NOT_UPDATED": "Impossibile aggiornare la data di entrata in vigore nel carrello."
+            "CART_CLONE_FAILED": "it_IT Could not clone the cart. Please contact your administrator.",
+            "EFFECTIVE_DATE_NOT_UPDATED": "Impossibile aggiornare la data di entrata in vigore nel carrello.",
+            "CLONE_CART": "it_IT Clone Cart"
         },
         "FAVORITE_DETAIL": {
             "FAVORITE_SUMMARY": "it_IT Favorite Summary",
@@ -195,6 +210,7 @@
             "FINALIZE": "it_IT Finalize"
         },
         "QUOTE_LIST": {
+            "CREATE_NEW": "Nuova citazione",
             "QUOTES": "Preventivi",
             "EXPECTED_START_DATE": "Previsto Inizio Data"
         },
@@ -283,6 +299,8 @@
         "ACTIVATE_CART":"it_IT Activate Cart",
         "ADD": "Inserisci",
         "REMOVE": "Rimuovere",
+        "DEFAULT_VIEW":"it_IT Default View",
+        "MY_VIEW":"it_IT My View",
         "INCLUDED": "it_IT Included",
         "FIELD": "Campo",
         "QUICK_ADD": "it_IT Quick-Add",
@@ -325,6 +343,7 @@
         "TOTAL": "Totale",
         "APPROVAL_STAGE": "Fase Di Approvazione",
         "ADD_TO_CART": "Aggiungi al Carrello",
+        "DELETE_FROM_CART": "Elimina dal carrello",
         "PLACE_QUOTE": "it_IT Place Quote",
         "REORDER": "Riordinare",
         "PRODUCT": "Prodotto",
@@ -351,6 +370,7 @@
         "FREQUENCY": "Frequenza",
         "NET_PRICE": "Prezzo Netto",
         "SEARCH_CONFIGURATION": "Ricerca Di Configurazione",
+        "SEARCH_LINE_ITEMS": "it_IT Search Line Items",
         "QTY": "Qty",
         "YES": "Sì",
         "NO": "No",
@@ -406,6 +426,12 @@
         "SELECT_ACTION": "it_IT Select action",
         "CONFIRM": "it_IT Confirm",
         "MY_FAVORITES": "it_IT My Favorites",
+        "PRICE_ERROR": "it_IT Pricing of your cart has failed, please proceed with either of the following.",
+        "RETRY":"it_IT Retry",
+        "RETRY_CART":"it_IT Retry pricing the cart",
+        "ABANDON":"it_IT Abandon",
+        "ABANDON_CART":"it_IT Abandon the cart",
+        "CLONE_CART":"it_IT Create a copy of the cart",
         "QUOTE_ID": "it_IT Quote ID",
         "EDIT_LAYOUT": "it_IT Edit Layout",
         "ADDITIONAL_INFORMATION": "it_IT Additional Information",
@@ -428,7 +454,13 @@
             "BY": "da",
             "MAKE_VISIBILITY_PRIVATE": "Rendi visibilità privata"
         },
-        "ALT_TEXT_IMAGE":"Immagine segnaposto generica"
+        "ALT_TEXT_IMAGE":"Immagine segnaposto generica",
+        "NO_LINE_ITEMS_MESSAGE": "Non ci sono ancora voci di dettaglio su questo {{record}}",
+        "PROCESSING_TITLE":"it_IT Please wait",
+        "PROCESSING_MESSAGE":"it_IT Your request is being processed.....",
+        "TABLE_ACTION_CONFIRMATION_MESSAGE":"it_IT Are you sure you want to {{actionType}} all {{recordCount}} {{objectName}}(s)",
+        "NO_MATCHING_ORDERS_FOUND": "it_IT No matching orders found",
+        "NO_MATCHING_QUOTES_FOUND": "it_IT No matching quotes found"    
     },
     "REVALIDATE_CART": {
         "REVALIDATION_REQUIRED": "Richiesta di riconvalida",
@@ -726,7 +758,9 @@
         "PROMOTION_AMOUNT": "Importo Di Promozione",
         "PROMOTION_APPLIED": "Di seguito le promozioni sono applicate con il prodotto",
         "PROMOTION_APPLIED_TO": "Promozioni Applicate",
+        "APPLY_PROMOTION":"it_IT Apply Promotion",
         "APPLIED_PROMOTIONS": "Applicato Promozioni",
+        "PROMOTIONS":"it_IT Promotions",
         "TOTAL_PROMOTION_AMOUNT": "Totale Importo Di Promozione",
         "PROMOTION_APPLIEDTO": "Promozioni Applicate A",
         "APPLIED_PROMOTION": "applicati i seguenti articoli nel carrello."
@@ -845,7 +879,9 @@
         "FILE_FORMAT": "File Format",
         "PRESENT": "Presente",
         "PRESENT_ORDER": "Presente Order",
-        "SEND_TO": "Invia Ordine a"
+        "SEND_TO": "Invia Ordine a",
+        "GENERATE_ORDER": "it_IT Generate Order",
+        "GENERATE_QUOTE": "it_IT Generate Quote"
     },
     "SERVICES": {
         "SELECTION_OF_ASSETS_MUST_TOOLTIP": "È necessario selezionare asset(s) per eseguire le azioni batch.",
