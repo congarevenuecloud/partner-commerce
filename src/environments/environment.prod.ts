@@ -9,9 +9,8 @@ export const environment: Configuration = {
   productIdentifier: 'Id',
   translationModule: 'Digital Commerce',
   hashRouting: true,
-  // *** TODO: Replace with details of your Conga platform instance ***
-  endpoint: 'Endpoint name',
-  storefrontId: 'Storefront Id',
-  clientId: 'Client Id',
-  authority: 'Auth Url'
+  storefrontId: 'Enter your storefront ID here',
+  endpoint: 'Enter your endpoint URL here',
+  clientId: 'Enter your client ID here',
+  authority: 'Enter your authority URL here'
 };

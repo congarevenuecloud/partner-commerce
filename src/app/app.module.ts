@@ -1,12 +1,14 @@
 import { NgModule } from '@angular/core';
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { AppRoutingModule } from './app-routing.module';
 import { TranslatorLoaderService, CommerceModule } from '@congarevenuecloud/ecommerce';
 import { TableModule, CongaModalModule, IconModule, ProductDrawerModule } from '@congarevenuecloud/elements';
 import { ComponentModule } from './components/component.module';
+import { AuthConfigModule } from './auth/auth-config.module';
+import { AppRoutingModule } from './app-routing.module';
+import { ConfigureGuard } from './services/configure.guard';
+import { AuthorizationGuard } from './auth/auth.guard';
 import { MainComponent } from './main.component';
 import { AppComponent } from './app.component';
 import { environment } from '../environments/environment';
@@ -19,8 +21,6 @@ import localeEs from '@angular/common/locales/es';
 import localeItExtras from '@angular/common/locales/extra/it';
 import localeFrExtras from '@angular/common/locales/extra/fr';
 import localeEsExtras from '@angular/common/locales/extra/es';
-import { MsalBroadcastService, MsalGuard, MsalInterceptor, MsalModule, MsalRedirectComponent, MsalService } from '@azure/msal-angular';
-
 
 registerLocaleData(localeIt, 'it-IT', localeItExtras);
 registerLocaleData(localeFr, 'fr-FR', localeFrExtras);
@@ -43,16 +43,12 @@ registerLocaleData(localeEs, 'es-MX', localeEsExtras);
     ProductDrawerModule,
     CongaModalModule,
     IconModule,
-    MsalModule
+    AuthConfigModule
   ],
   providers: [
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: MsalInterceptor,
-      multi: true
-    },
-    MsalGuard, MsalBroadcastService, MsalService
+    AuthorizationGuard,
+    ConfigureGuard
   ],
-  bootstrap: [AppComponent, MsalRedirectComponent]
+  bootstrap: [AppComponent]
 })
 export class AppModule { }

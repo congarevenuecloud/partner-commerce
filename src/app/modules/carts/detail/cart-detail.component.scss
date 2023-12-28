@@ -1,32 +1,95 @@
 @import "variables.scss";
 
-dt, dd{
-    display: block;
-    width: 100%;
+dt,
+dd {
+  display: block;
+  width: 100%;
 }
-dl, dd, dt{
-    margin-bottom: 0;
-}
-dt{
-    margin-top: $btn-block-spacing-y;
-}
-table{
 
-    height: 100px;
-    tr:first-child td{
-        border-top: none;
-    }
+dl,
+dd,
+dt {
+  margin-bottom: 0;
 }
+
+dt {
+  margin-top: $btn-block-spacing-y;
+}
+
+table {
+  height: 100px;
+
+  tr:first-child td {
+    border-top: none;
+  }
+}
+
 .cart-total {
-    width: 100px; 
-    overflow: hidden; 
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  width: 100px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.fixed-height{
-    height: 30px;
+
+.fixed-height {
+  height: 30px;
 }
-p.description{
-    max-height: 55px;
-    overflow-y: hidden;
+
+p.description {
+  max-height: 55px;
+  overflow-y: hidden;
+}
+
+.cart-title {
+  font-size: 1rem;
+  font-weight: $font-weight-normal;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 300px;
+  /* Adjust the width as needed */
+}
+
+.input-group {
+  input {
+    border-radius: 0.3rem;
+    padding-left: 2rem !important;
+    z-index: 0 !important;
+    border-top-left-radius: 0.25rem !important;
+    border-bottom-left-radius: 0.25rem !important;
+  }
+}
+
+.input-group-append {
+  position: absolute;
+  z-index: 1 !important;
+}
+
+.modal {
+  &.right {
+    .modal-content {
+      height: 100vh;
+    }
+    &.show {
+      .modal-dialog {
+        right: -1px;
+      }
+    }
+    .modal-dialog {
+      position: absolute;
+      transition: right 300ms;
+      margin: -1px 0 0 0;
+      right: -20rem;
+      width: 22rem;
+      max-width: 100vw;
+      top: 0;
+      .modal-content {
+        height: 100vh;
+      }
+    }
+  }
 }

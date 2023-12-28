@@ -23,7 +23,7 @@ export class DashboardViewComponent implements OnInit {
 
   ngOnInit() {
     this.cart$ = this.cartService.getMyCart();
-    this.showFavorites$ = this.storefrontService.isFavoriteDisabled().pipe(map(res => !res));
+    this.showFavorites$ = this.storefrontService.isFavoriteEnabled();
     this.me$ = this.userService.me().pipe(
       tap((user: User) => {
         this.userInitials = defaultTo(first(user.FirstName), '') + defaultTo(first(user.LastName), '');

@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, TemplateRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { first, get, isNil, find, forEach, maxBy, filter, last, defaultTo } from 'lodash';
-import { combineLatest, Observable, Subscription, of, BehaviorSubject } from 'rxjs';
+import { first, get, isNil, find, forEach, maxBy, filter, last, defaultTo, set } from 'lodash';
+import { combineLatest, Observable, Subscription, of, BehaviorSubject, take } from 'rxjs';
 import { switchMap, map as rmap, distinctUntilChanged } from 'rxjs/operators';
 import {
   CartService,
@@ -12,9 +12,12 @@ import {
   StorefrontService,
   Storefront,
   PriceListItemService,
-  Cart
+  Cart,
+  ConstraintRuleService,
+  ItemRequest
 } from '@congarevenuecloud/ecommerce';
-import { ProductConfigurationComponent, ProductConfigurationSummaryComponent, ProductConfigurationService } from '@congarevenuecloud/elements';
+import { ProductConfigurationComponent, ProductConfigurationSummaryComponent, ProductConfigurationService, RevalidateCartService } from '@congarevenuecloud/elements';
+import { BsModalRef } from 'ngx-bootstrap/modal';
 @Component({
   selector: 'app-product-detail',
   templateUrl: './product-detail.component.html',
@@ -22,10 +25,12 @@ import { ProductConfigurationComponent, ProductConfigurationSummaryComponent, Pr
 })
 
 export class ProductDetailComponent implements OnInit, OnDestroy {
-
+  @ViewChild('confirmationTemplate') confirmationTemplate: TemplateRef<any>;
   viewState$: BehaviorSubject<ProductDetailsState> = new BehaviorSubject<ProductDetailsState>(null);
-  recommendedProducts$: Observable<Array<Product>>;
+  recommendedProducts$: Observable<Array<ItemRequest>>;
   attachments$: Observable<Array<ProductInformation>>;
+  modalRef: BsModalRef;
+  primaryLineItem: CartItem = null;
 
   cartItemList: Array<CartItem>;
   product: Product;
@@ -34,20 +39,26 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   currentQty: number;
   relatedTo: CartItem;
   cart: Cart;
-  netPrice: number = 0;
   priceInProgress: boolean = false;
+  unsavedConfiguration: boolean = false;
+  disabled: boolean = false;
+  handleredirect: boolean = true;
+  activeCart: Cart = null;
+  configurationPending: boolean;
+  discovery: string;
 
   @ViewChild(ProductConfigurationSummaryComponent, { static: false })
   configSummaryModal: ProductConfigurationSummaryComponent;
   @ViewChild(ProductConfigurationComponent, { static: false })
   productConfigComponent: ProductConfigurationComponent;
-
   constructor(private cartService: CartService,
     private router: Router,
     private route: ActivatedRoute,
     private productService: ProductService,
+    private revalidateCartService: RevalidateCartService,
     private storefrontService: StorefrontService,
-    private productConfigurationService: ProductConfigurationService) {
+    private productConfigurationService: ProductConfigurationService,
+    private crService: ConstraintRuleService) {
   }
 
   ngOnInit() {
@@ -61,17 +72,25 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         const cartItem$ = this.cartService.getMyCart().pipe(
           rmap(cart => {
             this.cart = cart;
-            return find(get(cart, 'LineItems'), { Id: get(params, 'cartItem') })
+            const cartItem = find(get(cart, 'LineItems'), { Id: get(params, 'cartItem') });
+            return isNil(get(cartItem, 'Id')) ? null : cartItem;
           }),
           distinctUntilChanged((oldCli, newCli) => get(newCli, 'Quantity') === this.currentQty)
         );
-        return combineLatest([product$, cartItem$, this.storefrontService.getStorefront()]);
+        // TODO: Needs to be removed when product features are part of get products API call (CPQ-52267)
+        const productFeatureValues$ = this.productService.getProductsWithFeatureValues([get(params, 'id')]).pipe(rmap((products: Array<Product>) => get(first(products), 'ProductFeatureValues')));
+        return combineLatest([product$, cartItem$, this.storefrontService.getStorefront(), this.revalidateCartService.revalidateFlag, productFeatureValues$]);
       }),
-      rmap(([product, cartItemList, storefront]) => {
+      rmap(([product, cartItemList, storefront, revalidate, productFeatureValues]) => {
+        this.recommendedProducts$ = this.crService.getRecommendationsForProducts();
         const pli = PriceListItemService.getPriceListItemForProduct(product as Product);
         this.currentQty = isNil(cartItemList) ? defaultTo(get(pli, 'DefaultQuantity'), 1) : get(cartItemList, 'Quantity', 1);
         this.productConfigurationService.changeProductQuantity(this.currentQty);
         this.product = product as Product;
+        this.discovery = this.storefrontService.getDiscovery();
+        this.disabled = revalidate;
+        set(product, 'ProductFeatureValues', productFeatureValues);
+        if (!isNil(cartItemList)) this.primaryLineItem = cartItemList;
         return {
           product: product as Product,
           relatedTo: cartItemList,
@@ -81,12 +100,18 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       })
     ).subscribe(r => this.viewState$.next(r)));
 
+    this.subscriptions.push(this.productConfigurationService.unsavedConfiguration.subscribe(res => {
+      this.unsavedConfiguration = res;
+    }));
+
     this.subscriptions.push(this.productConfigurationService.configurationChange.subscribe(response => {
       if (get(response, 'configurationChanged')) this.configurationChanged = true;
-      this.netPrice = defaultTo(get(response, 'netPrice'), 0);
+      this.activeCart = get(response, 'cart') ? get(response, 'cart') : null;
+      this.configurationPending = get(response, 'hasErrors');
       this.relatedTo = get(this.viewState$, 'value.relatedTo');
       this.product = get(response, 'product') ? get(response, 'product') : this.product;
       this.cartItemList = get(response, 'itemList');
+      if (!isNil(this.cartItemList)) this.primaryLineItem = find(this.cartItemList, (r) => get(r, 'LineType') == 'Product/Service');
     }));
   }
 
@@ -101,15 +126,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   onAddToCart(cartItems: Array<CartItem>): void {
+    this.productConfigurationService.unsavedConfiguration.next(false);
     this.configurationChanged = false;
     const primaryItem = find(cartItems, i => get(i, 'IsPrimaryLine') === true && isNil(get(i, 'Option')));
     if (!isNil(primaryItem) && (get(primaryItem, 'Product.HasOptions') || get(primaryItem, 'Product.HasAttributes'))) {
       this.router.navigate(['/products', get(this, 'product.Id'), get(primaryItem, 'Id')]);
     }
 
-    if (get(cartItems, 'LineItems') && this.viewState$.value.storefront.ConfigurationLayout === 'Embedded') {
-      cartItems = get(cartItems, 'LineItems');
-    }
 
     if (!isNil(this.relatedTo) && (get(this.relatedTo, 'HasOptions') || get(this.relatedTo, 'HasAttributes')))
       this.router.navigate(['/products', get(this.viewState$, 'value.product.Id'), get(this.relatedTo, 'Id')]);
@@ -126,8 +149,16 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     if (this.cartItemList && this.cartItemList.length > 0)
       forEach(this.cartItemList, c => {
         if (c.LineType === 'Product/Service') c.Quantity = newQty;
-        this.productConfigurationService.changeProductQuantity(newQty);
+        this.productConfigurationService.changeProductQuantity(newQty, c);
       });
+  }
+
+  changeProductToOptional(event: boolean) {
+    if (this.cartItemList && this.cartItemList.length > 0)
+      forEach(this.cartItemList, c => {
+        c.IsOptional = event;
+      });
+    this.productConfigurationService.changeItemToOptional(this.cartItemList);
   }
 
   handleEndDateChange(cartItem: CartItem) {

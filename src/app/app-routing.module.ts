@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { MsalGuard } from '@azure/msal-angular';
+import { AuthorizationGuard } from './auth/auth.guard';
 import { MainComponent } from './main.component';
 import { environment } from '../environments/environment';
 
@@ -9,7 +9,7 @@ import { environment } from '../environments/environment';
     RouterModule.forRoot([
       {
         path: '',
-        canActivate: [MsalGuard],
+        canActivate: [AuthorizationGuard],
         component: MainComponent,
         children: [
           {
@@ -42,7 +42,7 @@ import { environment } from '../environments/environment';
             path: 'dashboard',
             loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule)
           },
-          { 
+          {
             path: 'proposals',
             loadChildren: () => import('./modules/quotes/quotes.module').then(m => m.QuotesModule)
           },
@@ -53,6 +53,10 @@ import { environment } from '../environments/environment';
           {
             path: 'checkout',
             loadChildren: () => import('./modules/checkout/checkout.module').then(m => m.CheckoutModule),
+          },
+          {
+            path: 'favorites',
+            loadChildren: () => import('./modules/favorites/favorites.module').then(m => m.FavoritesModule),
           },
           {
             path: '**',

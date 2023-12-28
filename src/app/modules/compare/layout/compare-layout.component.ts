@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { ConfigurationService } from '@congarevenuecloud/core';
-import { ProductService, Product, Cart, CartService } from '@congarevenuecloud/ecommerce';
-import { ProductDrawerService, BatchSelectionService } from '@congarevenuecloud/elements';
+import { map, switchMap } from 'rxjs/operators';
 import { get } from 'lodash';
+import { ConfigurationService, FilterOperator } from '@congarevenuecloud/core';
+import { ProductService, Product, Cart, CartService, FieldFilter } from '@congarevenuecloud/ecommerce';
+import { ProductDrawerService, BatchSelectionService } from '@congarevenuecloud/elements';
 
 @Component({
   selector: 'app-compare-layout',
@@ -25,28 +25,31 @@ export class CompareLayoutComponent implements OnInit, OnDestroy {
   private subs: Array<any> = [];
 
   ngOnInit() {
-    this.activatedRoute.queryParams.subscribe(params => {
-      this.cart$ = this.cartService.getMyCart();
-      let newIdentifiers = decodeURIComponent(get(params, 'products')).split(',');
-      if (newIdentifiers.length > 5) {
-        newIdentifiers = newIdentifiers.splice(0, 5);
-        this.router.navigateByUrl(`/products/compare?products=${newIdentifiers.join(',')}`);
-      }
-      else {
-        this.subs.push(this.productService.getProducts(null, null, null, null, null, null).pipe(map(res => res.Products)).subscribe(products => {
-          const tableProducts = products.filter(product => newIdentifiers.includes(product[this.identifier]));
-          this.products = tableProducts;
-          this.batchSelectionService.setSelectedProducts(tableProducts);
-          if (newIdentifiers.length < 2) this.router.navigateByUrl('/');
-          this.identifiers = tableProducts.map(product => product[this.identifier]);
+    let newIdentifiers = null;
+    this.subs.push(this.activatedRoute.queryParams.pipe(
+      switchMap(params => {
+        this.cart$ = this.cartService.getMyCart();
+        newIdentifiers = decodeURIComponent(get(params, 'products')).split(',');
+        const filter = [{
+          field: this.identifier,
+          value: newIdentifiers,
+          filterOperator: FilterOperator.IN
+        }] as Array<FieldFilter>;
+        return this.productService.getProducts(null, null, null, null, null, null, null, null, filter);
+      }),
+      map(res => {
+        const tableProducts = res.Products;
+        this.products = tableProducts;
+        this.batchSelectionService.setSelectedProducts(tableProducts);
+        if (newIdentifiers.length < 2) this.router.navigateByUrl('/');
+        this.identifiers = tableProducts.map(product => product[this.identifier]);
+        this.productDrawerService.closeDrawer();
+        // Wait for product drawer subscription to fire to close drawer if on the compare page.
+        setTimeout(() => {
           this.productDrawerService.closeDrawer();
-          // Wait for product drawer subscription to fire to close drawer if on the compare page.
-          setTimeout(() => {
-            this.productDrawerService.closeDrawer();
-          }, 0);
-        }));
-      }
-    });
+        }, 0);
+      })
+    ).subscribe());
   }
 
   ngOnDestroy() {

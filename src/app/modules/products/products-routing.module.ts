@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { ProductListComponent } from './list/product-list.component';
 import { ProductDetailComponent } from './detail/product-detail.component';
+import { ConfigureGuard } from '../../services/configure.guard';
 const routes: Routes = [
   {
     path: '',
@@ -14,7 +15,8 @@ const routes: Routes = [
   },
   {
     path: ':id',
-    component: ProductDetailComponent
+    component: ProductDetailComponent,
+    canDeactivate: [ConfigureGuard]
   },
   {
     path: 'category/:categoryId',

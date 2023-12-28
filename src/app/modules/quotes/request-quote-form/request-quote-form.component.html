@@ -3,20 +3,14 @@
     <div class="row">
       <div class="col-12 col-md-6">
         <div class="form-group">
+          <apt-output-field [record]="quote.Account" field="Name" label="Sold To" [editable]="false"
+            [showQuickView]="true">
+          </apt-output-field>
+        </div>
+        <div class="form-group">
           <apt-input-field [entity]="quote" [field]="'ProposalName'" [(ngModel)]="quote.ProposalName"
             (ngModelChange)="quoteChange()" [label]="'CREATE_QUOTE.QUOTE_TITLE' | translate" [required]="true"
-            [errorMsg]="'Quote title cannot be empty'"></apt-input-field>
-        </div>
-        <div class="form-group">
-          <apt-input-field [entity]="quote" [field]="'RFPResponseDueDate'" [(ngModel)]="quote.RFPResponseDueDate"
-            (ngModelChange)="quoteChange()">
-          </apt-input-field>
-        </div>
-        <div class="form-group">
-          <apt-input-field placeholder="{{'CREATE_QUOTE.SEARCH_CONTACTS' | translate }}" [entity]="quote"
-            [field]="'PrimaryContact'" [lookupOptions]="lookupOptions" [required]="true" [(ngModel)]="contact"
-            (ngModelChange)="primaryContactChange()" [errorMsg]="'Primary contact is mandatory'">
-          </apt-input-field>
+            [errorMsg]="!quote.ProposalName ? 'Quote title cannot be empty' : ''"></apt-input-field>
         </div>
         <div class="form-group">
           <apt-input-field [entity]="quote" [field]="'ShipToAccount'" [(ngModel)]="quote.ShipToAccount"
@@ -34,17 +28,23 @@
             </apt-address>
           </small>
         </div>
-        <div class="form-group">
-          <apt-output-field [record]="quote.Account" field="Name" label="Sold To" [editable]="false"
-            [showQuickView]="true">
-          </apt-output-field>
-        </div>
       </div>
       <div class="col-12 col-md-6">
         <div>
           <div class="form-group">
             <apt-output-field [record]="quote.PriceList" field="Name" label="Price List" [editable]="false"
               [showQuickView]="true"></apt-output-field>
+          </div>
+          <div class="form-group">
+            <apt-input-field [entity]="quote" [field]="'RFPResponseDueDate'" [(ngModel)]="quote.RFPResponseDueDate"
+              (ngModelChange)="quoteChange()">
+            </apt-input-field>
+          </div>
+          <div class="form-group">
+            <apt-input-field placeholder="{{'CREATE_QUOTE.SEARCH_CONTACTS' | translate }}" [entity]="quote"
+              [field]="'PrimaryContact'" [lookupOptions]="lookupOptions" [required]="true" [(ngModel)]="contact"
+              (ngModelChange)="primaryContactChange()" [errorMsg]="'Primary contact is mandatory'">
+            </apt-input-field>
           </div>
         </div>
       </div>

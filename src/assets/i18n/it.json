@@ -1,5 +1,10 @@
 {
     "ERROR": {
+        "UPDATE_ORDER_FAILED":"it_IT {{value}} is created but some fields may need to be reviewed. To review you can visit order details page",
+        "UPDATE_QUOTE_FAILED":"it_IT {{value}} is created but some fields may need to be reviewed. To review you can visit quote details page",
+        "UPDATE_ORDER_FAILED_ON_DETAILS_PAGE":"it_IT {{value}} is created but some fields may need to be reviewed.",
+        "UPDATE_QUOTE_FAILED_ON_DETAILS_PAGE":"it_IT {{value}} is created but some fields may need to be reviewed.",
+        "RECORD_ERROR": "Questo record contiene errori in sospeso",
         "OPTION_GROUP": {
             "ERROR": "opzione gruppo Errori",
             "MIN_OPTIONS": "voi dovere Selezionare a meno {{value}} opzioni.",
@@ -14,7 +19,12 @@
             "PRICE_CHANGE": "Il prezzo del carrello è stato aggiornato",
             "PRICE_CHANGE_TOASTR_TITLE": "Aggiornamento Prezzo",
             "VALIDATE": "Ci sono errori nel tuo carrello.",
-            "CONSTRAINT_RULES": "Un articolo nel carrello ha violato 1 o più regole di vincolo."
+            "CONSTRAINT_RULES": "Un articolo nel carrello ha violato 1 o più regole di vincolo.",
+            "FAILED_TO_ADD": "it_IT Failed to add item(s)",
+            "FAILED_TO_UPDATE": "it_IT Failed to update item(s)",
+            "FAILED_TO_DELETE": "it_IT Failed to delete item(s)",
+            "FAILED_TO_CLONE": "it_IT Failed to clone selected line item(s)",
+            "PENDING_CONFIGURATION": "it_IT This product needs to be configured"
         },
         "CART_ITEM": {
             "VALIDATE": "Sono errori con questo articolo carrello."
@@ -32,14 +42,34 @@
             "TABLE_COL_OPTION": "it_IT Option"
         },
         "APPLICATION_ERROR_TOASTR_TITLE": "Errore Di Applicazione",
-        "INVALID_REQUEST_ERROR_TOASTR_TITLE": "it_IT Invalid Request"
+        "INVALID_REQUEST_ERROR_TOASTR_TITLE": "it_IT Invalid Request",
+        "INVALID_QUANTITY": "it_IT Cannot add a quantity less than 1",
+        "NEGATIVE_VALUE": "it_IT Cannot have values less than 0",
+        "INVALID_CODE": "it_IT Invalid product code",
+        "REQUIRED_FIELD": "it_IT Required field",
+        "FAVORITE": {
+            "ADD_FAVORITE_TO_CART_FAILED": "it_IT Adding items to favorite failed.",
+            "CREATION_FAILED_TITLE": "it_IT Favorite creation failed",
+            "TRY_AGAIN_MSG":"it_IT Your favorite {{name}} could not be created. Please try again."
+        },
+        "GENERATE_DOCUMENT_ERROR": "it_IT Document generation has failed"
     },
     "SUCCESS": {
         "TITLE": "Successo",
         "CART": {
             "ITEM_ADDED_TOASTR_MESSAGE": "{{productName}} è stato aggiunto al carrello.",
+            "BULK_MESSAGE": "it_IT {{productName}} were added to the cart.",
             "ITEM_ADDED_TOASTR_TITLE": "Elemento Aggiunto",
-            "CONFIGURATION_UPDATED": "{{productName}} configurazione è stato aggiornato."
+            "CONFIGURATION_UPDATED": "{{productName}} configurazione è stato aggiornato.",
+            "DELETED": "it_IT Successfully deleted",
+            "NEW_CART_CREATED": "it_IT New cart created successfully",
+            "ACTIVATED": "it_IT Cart activated successfully",
+            "VIEW_UPDATED":"it_IT View updated successfully",
+            "EFFECTIVE_DATE": "it_IT Effective date updated successfully",
+            "LINE_ITEM_CLONE": "it_IT Cloning of selected line item(s) is successful",
+            "BULK_ADD": "it_IT {{data}} item(s) added successfully.",
+            "BULK_DELETE": "{{data}} elementi eliminati correttamente.",
+            "CLONE_CART_SUCCESS": "it_IT Cart cloned successfully"
         },
         "PROMOTION": {
             "VALID_PROMOTION_TITLE": "it_IT Promotion Applied",
@@ -49,15 +79,36 @@
         },
         "QUOTE_UPDATED": "Preventivo Aggiornato Con Successo!",
         "QUOTE_UPDATE_TITLE": "Citazione Di Aggiornamento",
-        "GENERATED": "Il documento dell'ordine è stato generato e può essere visualizzato nella scheda 'Allegati'.",
+        "GENERATED_ORDER": "it_IT Your order document {{data}} has been generated and can be viewed under the 'Attachments' tab.",
         "DOCUMENT_GENERATED_TITLE": "Documento Generato",
+        "GENERATED_QUOTE": "it_IT Your quote document {{data}} has been generated and can be viewed under the 'Attachments' tab.",
         "PRESENTED": "Il documento dell'ordine è stato presentato a {{primary_contact}} e la notifica via e-mail viene inviata.",
         "DOCUMENT_PRESENTED_TITLE": "Documento Presentato",
         "FAVORITE": {
             "TITLE": "it_IT Favorite items added!",
             "ADD_FAVORITE": "it_IT Added new {{name}} Favorite.",
             "UPDATE_FAVORITE": "it_IT Updated existing {{name}} Favorite",
-            "ADD_FAVORITE_TO_CART": "it_IT Items from {{name}} were added to the cart."
+            "ADD_FAVORITE_TO_CART": "it_IT Items from {{name}} were added to the cart.",
+            "DELETED": "it_IT Successfully deleted"
+        }
+    },
+    "WARNING": {
+        "TITLE": "it_IT Warning",
+        "GENERATE_DOCUMENT_STOPPED": "it_IT Document generation has stopped",
+        "GENERATE_DOCUMENT_HIBERNATE": "it_IT Document generation is hibernating"
+    },
+    "INFO": {
+        "TITLE": "it_IT Info",
+        "CART": {
+            "CART_ACTION_TIMEOUT": "it_IT Cart action timed out"
+        },
+        "GENERATE_INFO": "it_IT Your document is being generated. You will get notified when its ready.",
+        "DISCOVERY": {
+            "ADD_BEFORE_CONFIGURE_MESSAGE": "it_IT To configure this product add it to the cart."
+        },
+        "FAVORITE": {
+            "TITLE": "it_IT Creating your favorite",
+            "CREATING_FAVORITE_MSG": "it_IT Your favorite {{name}} is being created"
         }
     },
     "ASSETS": {
@@ -67,6 +118,10 @@
         "CHANGECONFIGURATION_SUCCESS": "Il bene è stato aggiunto al tuo carrello.",
         "CHANGECONFIGURATION_START_DATE": "Configurazione Di Data Di Inizio",
         "CHANGECONFIGURATION_END_DATE": "Configurazione Data Di Fine"
+    },
+    "COMPARE": {
+      "NO_COMPARABLE_FEATURE": "it_IT {{products }} does not have comparable features to the selected products",
+      "OTHER_FEATURES": "it_IT Other Features"
     },
     "MY_ACCOUNT": {
         "LAST_LOGIN_DATE": "Last Login:",
@@ -84,7 +139,7 @@
             "ORDER_NAME": "Nome Dell'Ordine",
             "QUOTES_THIS_WEEK": "it_IT Quotes this week",
             "RECENT_QUOTES": "it_IT Recent Quotes",
-            "SHOW_MORE":"it_IT Show more"
+            "SHOW_MORE": "it_IT Show more"
         },
         "ORDER_LIST": {
             "NUM_OF_ITEMS": "di Elementi"
@@ -113,7 +168,10 @@
             "NUMBER_OF_ITEMS": "Numero di Elementi",
             "IS_ACTIVE": "È Attivo",
             "SET_ACTIVE": "Set Active",
-            "CART_CREATION_FAILED": "Impossibile creare il carrello. Si prega di contattare l'amministratore."
+            "CART_CREATION_FAILED": "Impossibile creare il carrello. Si prega di contattare l'amministratore.",
+            "CART_CLONE_FAILED": "it_IT Could not clone the cart. Please contact your administrator.",
+            "EFFECTIVE_DATE_NOT_UPDATED": "Impossibile aggiornare la data di entrata in vigore nel carrello.",
+            "CLONE_CART": "it_IT Clone Cart"
         },
         "FAVORITE_DETAIL": {
             "FAVORITE_SUMMARY": "it_IT Favorite Summary",
@@ -149,18 +207,10 @@
             "QUOTES_BY_STATUS": "Preventivi Per Stato",
             "QUOTES_BY_DUE_DATE": "Le Citazioni Della Data Di Scadenza",
             "TOTAL_QUOTES": "Totale Citazioni",
-            "FINALIZE": "it_IT Finalize",
-            "ATTACHMENTS": {
-                "TITLE": "Aggiungere un nuovo file(s)",
-                "INPUT_LABEL": "Rilasciare i file per Allegare o",
-                "BROWSE": "sfoglia",
-                "FILE_SIZE_EXCEEDED_ERROR": "Di dimensioni superiori a 25 MB",
-                "NO_ATTACHMENTS": "Allegati non sono ancora stati aggiunti",
-                "REMOVE_ATTACHMENT": "Rimuovere L'Allegato",
-                "BY": "da"
-            }
+            "FINALIZE": "it_IT Finalize"
         },
         "QUOTE_LIST": {
+            "CREATE_NEW": "Nuova citazione",
             "QUOTES": "Preventivi",
             "EXPECTED_START_DATE": "Previsto Inizio Data"
         },
@@ -184,6 +234,7 @@
         "SUBMIT": "Invia"
     },
     "BUTTON": {
+        "RETRY":"it_IT retry",
         "Buy More": "Comprare Di Più",
         "Buy_More": "Comprare Di Più",
         "Change Configuration": "Modificare La Configurazione",
@@ -215,7 +266,8 @@
         "SHOW": "Mostra",
         "SORT_BY": "Ordina Per",
         "SORT_BY_RELEVANCE": "Rilevanza",
-        "NO_RESULT_FOUND": "it_IT Your search  <strong><em> \t &#8212; \t {{value}} - \t </em></strong>  did not match any products",
+        "YOUR_SEARCH": "it_IT Your search \t",
+        "NO_MATCH":"it_IT did not match any products",
         "NO_RESULT": "it_IT There are no products to display",
         "SUGGESTIONS": "it_IT Suggestions",
         "SUGGESTIONS_1": "it_IT Make sure that all words are spelled correctly",
@@ -240,13 +292,28 @@
         "LAST": "Ultimo"
     },
     "COMMON": {
+        "HERE":"it_IT here",
+        "PENDING_OPERATIONS":"it_IT Operations are pending on your cart",
+        "REVALIDATING_CART":"it_IT Cart is being revalidated",
+        "PRICING_CART":"it_IT Cart is being priced",
+        "ACTIVATE_CART":"it_IT Activate Cart",
         "ADD": "Inserisci",
         "REMOVE": "Rimuovere",
-        "INCLUDED":"it_IT INCLUDED",
+        "DEFAULT_VIEW":"it_IT Default View",
+        "MY_VIEW":"it_IT My View",
+        "INCLUDED": "it_IT Included",
         "FIELD": "Campo",
+        "QUICK_ADD": "it_IT Quick-Add",
+        "ADD_PRODUCT": "it_IT Add Product",
+        "NO_PRODUCT": "it_IT No product found",
         "OPERATOR": "Operatore",
+        "PICKVALUE": "it_IT Select value from dropdown",
+        "QUICK_ORDER": "it_IT Quick-Order",
+        "QUICK_QUOTE": "it_IT Quick-Quote",
+        "VIEW_DETAILS": "it_IT View Details",
+        "CART_TOTALS": "it_IT Cart Totals",
         "OVERVIEW": "it_IT Overview",
-        "LAST_WEEK":"it_IT Last week",
+        "LAST_WEEK": "it_IT Last week",
         "ORDER_TOTAL": "it_IT Total ordered amount",
         "QUOTE_TOTAL": "it_IT Total quoted amount",
         "VALUE": "Valore",
@@ -271,12 +338,16 @@
         "ITEMS": "Articoli",
         "YOUR_PRICE": "Il Prezzo",
         "QUANTITY": "Quantità",
+        "QUANTITY_NOT_MODIFIABLE": "it_IT Quantity is not modifiable",
         "QUOTE": "Citazione",
         "TOTAL": "Totale",
         "APPROVAL_STAGE": "Fase Di Approvazione",
         "ADD_TO_CART": "Aggiungi al Carrello",
+        "DELETE_FROM_CART": "Elimina dal carrello",
+        "PLACE_QUOTE": "it_IT Place Quote",
         "REORDER": "Riordinare",
         "PRODUCT": "Prodotto",
+        "NO_ITEMS_FOUND":"it_IT No lineitems to display",
         "SELLING_FREQUENCY": "Vendita Di Frequenza",
         "UNIT_PRICE": "Prezzo Unitario",
         "START_DATE": "Data Di Inizio",
@@ -299,6 +370,7 @@
         "FREQUENCY": "Frequenza",
         "NET_PRICE": "Prezzo Netto",
         "SEARCH_CONFIGURATION": "Ricerca Di Configurazione",
+        "SEARCH_LINE_ITEMS": "it_IT Search Line Items",
         "QTY": "Qty",
         "YES": "Sì",
         "NO": "No",
@@ -336,13 +408,13 @@
         "ADD_COMMENT": "Aggiungi Un Commento",
         "CREATE_QUOTE": "Creare Preventivo",
         "DEFALUT_COMMENT": "Non c'è stato alcun commento ancora",
-        "PLACE_ORDER": "L'ordine Di Creazione",
+        "PLACE_ORDER": "it_IT Place Order",
         "PLACE_ORDER_PAY": "Crea Ordine & Pay",
         "ON": "su",
         "CONFIRM_CHANGES": "it_IT Confirm Changes",
         "ADD_PRODUCTS": "it_IT Add Products",
         "ADD_INSTALLED_PRODUCTS": "it_IT Add Installed Products",
-        "NO_DATA": "it_IT n/a",
+        "NO_DATA": "it_IT --",
         "PRICE_NOT_AUTOUPDATED": "it_IT * Prices shown in this page are not auto-updated.",
         "UPDATE_PRICE": "it_IT Update Prices",
         "FAVORITES": "it_IT Favorites",
@@ -354,6 +426,12 @@
         "SELECT_ACTION": "it_IT Select action",
         "CONFIRM": "it_IT Confirm",
         "MY_FAVORITES": "it_IT My Favorites",
+        "PRICE_ERROR": "it_IT Pricing of your cart has failed, please proceed with either of the following.",
+        "RETRY":"it_IT Retry",
+        "RETRY_CART":"it_IT Retry pricing the cart",
+        "ABANDON":"it_IT Abandon",
+        "ABANDON_CART":"it_IT Abandon the cart",
+        "CLONE_CART":"it_IT Create a copy of the cart",
         "QUOTE_ID": "it_IT Quote ID",
         "EDIT_LAYOUT": "it_IT Edit Layout",
         "ADDITIONAL_INFORMATION": "it_IT Additional Information",
@@ -363,10 +441,47 @@
         "CREATED_BY": "it_IT Created By",
         "ADJUSTMENT_TYPE": "it_IT Adjustment Type",
         "ADJUSTMENT_AMOUNT": "it_IT Adjustment Amount",
-        "SHOW_ALL":"it_IT Show All"
+        "SHOW_ALL": "it_IT Show All",
+        "WELCOME_MESSAGE": "it_IT Hello, {{userName}}!",
+        "PAGES":"it_IT Pages",
+        "ATTACHMENT_DETAILS": {
+            "TITLE": "Allega nuovo/i file",
+            "INPUT_LABEL": "Trascina i file da allegare o",
+            "BROWSE": "sfoglia",
+            "FILE_SIZE_EXCEEDED_ERROR": "Dimensione superiore a 28 MB",
+            "NO_ATTACHMENTS": "Non sono stati ancora aggiunti allegati",
+            "REMOVE_ATTACHMENT": "Rimuovi allegato",
+            "BY": "da",
+            "MAKE_VISIBILITY_PRIVATE": "Rendi visibilità privata"
+        },
+        "ALT_TEXT_IMAGE":"Immagine segnaposto generica",
+        "NO_LINE_ITEMS_MESSAGE": "Non ci sono ancora voci di dettaglio su questo {{record}}",
+        "PROCESSING_TITLE":"it_IT Please wait",
+        "PROCESSING_MESSAGE":"it_IT Your request is being processed.....",
+        "TABLE_ACTION_CONFIRMATION_MESSAGE":"it_IT Are you sure you want to {{actionType}} all {{recordCount}} {{objectName}}(s)",
+        "NO_MATCHING_ORDERS_FOUND": "it_IT No matching orders found",
+        "NO_MATCHING_QUOTES_FOUND": "it_IT No matching quotes found"    
+    },
+    "REVALIDATE_CART": {
+        "REVALIDATION_REQUIRED": "Richiesta di riconvalida",
+        "REVALIDATION_REQUIRED_MSG": "La configurazione dei seguenti elementi nel tuo carrello è cambiata e deve essere riconvalidata",
+        "WHAT_TO_DO": "Se non sei sicuro di cosa fare, puoi",
+        "DEACTIVATE_CART": "disattivare questo carrello",
+        "FORNOW": "per ora",
+        "REVALIDATE": "Riconvalida",
+        "TO_BE_REVALIDATE": "Da riconvalidare",
+        "OPTIONAL": "opzionale",
+        "REQUIRED": "richiesto",
+        "REVALIDATION_ERROR": "La riconvalida è fallita! Puoi riprovare di seguito",
+        "PRODUCTNAME": "Nome prodotto",
+        "REVALIDATION_WARNING": "Alcuni elementi nel tuo carrello devono essere validati",
+        "VALIDATE_CART": "Convalida carrello",
+        "SUCCESSFULLY_REVALIDATED": "Riconvalidato con successo",
+        "REVALIDATION_INFO": "Se selezioni un prodotto opzionale, l'intero bundle, incluso altri prodotti opzionali, verrà riconvalidato per mantenere l'integrità del prodotto bundle",
+        "REVALIDATE_YOUR_CART": "Riconvalida il tuo carrello"
     },
     "CREATE_QUOTE": {
-        "QUOTE_SUMMARY": "PREVENTIVO SOMMARIO",
+        "QUOTE_SUMMARY": "Preventivo Sommario",
         "QUOTE_TITLE": "Quotazione Del Titolo",
         "EXPECTED_RESPONSE_DATE": "Previsto La Risposta Data",
         "PRIMARY_CONTACT": "Contatto Principale",
@@ -539,12 +654,13 @@
         "ADDRESS_LINE1": "Indirizzo",
         "PLACEHOLDER_FOR_ADDRESS_LINE1": "1234 Main St",
         "CITY": "Città",
-        "COUNTRY": "Mailing Codice Di Paese",
-        "STATE": "Mailing Stato\/Provincia, Codice",
+        "COUNTRY": "Codice Di Paese",
+        "STATE": "Stato\/Provincia, Codice",
         "ZIP": "Zip",
-        "INVALID_SHIPPING": "Inserisci il tuo indirizzo di spedizione.",
-        "INVALID_CITY": "Si prega di inserire la tua città.",
-        "INVALID_ZIP": "C.a.p. richiesto."
+        "INVALID_SHIPPING": "Inserisci il tuo indirizzo di spedizione",
+        "INVALID_CITY": "Si prega di inserire la tua città",
+        "INVALID_STATE": "Inserisci il tuo stato",
+        "INVALID_ZIP": "C.a.p. richiesto"
     },
     "MANAGE_CART": {
         "CART_SUMMARY": {
@@ -610,7 +726,9 @@
     "HEADER": {
         "PRODUCT_SERACH": "La Ricerca Del Prodotto",
         "SUBMIT": "Invia",
+        "SEARCH_BY_CODE": "it_IT Search by product code",
         "ENTER_YOUR_SEARCH_TERM": "Inserisci il termine di ricerca (min 3 caratteri) ...",
+        "ENTER_PRODUCT_TO_QUICK_ADD": "it_IT Enter the product",
         "GUEST_USER": "Utente Guest",
         "LAST_LOGIN": "Ultima Data Di Accesso",
         "HOME": "Casa",
@@ -621,7 +739,8 @@
         "LOG_IN": "Log In",
         "BACK": "Indietro",
         "SHOW_ALL": "Mostra Tutti",
-        "MIN_VALIDATION_SEARCH_ERROR": "it_IT Search term should be at least 3 characters in length"
+        "MIN_VALIDATION_SEARCH_ERROR": "it_IT Search term should be at least 3 characters in length",
+        "CHANGE_ACCOUNT_MESSAGE": "it_IT The active account has been changed"
     },
     "PROMOTION": {
         "TITLE": "Promozione",
@@ -639,7 +758,9 @@
         "PROMOTION_AMOUNT": "Importo Di Promozione",
         "PROMOTION_APPLIED": "Di seguito le promozioni sono applicate con il prodotto",
         "PROMOTION_APPLIED_TO": "Promozioni Applicate",
+        "APPLY_PROMOTION":"it_IT Apply Promotion",
         "APPLIED_PROMOTIONS": "Applicato Promozioni",
+        "PROMOTIONS":"it_IT Promotions",
         "TOTAL_PROMOTION_AMOUNT": "Totale Importo Di Promozione",
         "PROMOTION_APPLIEDTO": "Promozioni Applicate A",
         "APPLIED_PROMOTION": "applicati i seguenti articoli nel carrello."
@@ -656,6 +777,7 @@
         "INCORRECT_CREDENTIALS_TOASTR_TITLE": "Login Fail"
     },
     "PRODUCT_DETAILS": {
+        "IS_OPTIONAL":"it_IT Is Optional",
         "PRODUCT_DETAIL": "Dettagli Del Prodotto",
         "PRODUCT_CODE": "ID prodotto: {{valore}}",
         "STANDARD_PRICE": "Il Prezzo Standard",
@@ -669,8 +791,10 @@
         "DESCRIPTION": "Descrizione",
         "INFORMATION_TYPE": "Tipo Di Informazioni",
         "FEATURE": "Funzione",
+        "SELECT_ONE_OPTION": "it_IT Select one option",
         "VALUE": "Valore",
-        "PRICE_IN_PROGRESS":"Precios en progreso"
+        "PRICE_IN_PROGRESS": "Precios en progreso",
+        "UPDATE_QUANTITY": "Aggiorna quantità"
     },
     "INSTALLED_PRODUCTS": {
         "PRODUCT_FAMILY": "Famiglia Di Prodotti",
@@ -697,7 +821,8 @@
     "MINI_CART": {
         "CART_TOTAL": "Carrello Totale",
         "VIEW_CART": "Vedi Il Carrello",
-        "YOUR_CART_IS_EMPTY": "Il tuo carrello è vuoto"
+        "YOUR_CART_IS_EMPTY": "Il tuo carrello è vuoto",
+        "INACTIVE_CART_MESSAGE": "Non hai ancora un carrello. Aggiungi prodotti per iniziare"
     },
     "MINI_PROFILE": {
         "LOGIN": "Login",
@@ -738,23 +863,25 @@
         "PRODUCT_ID": "ID prodotto: {{productCode}}"
     },
     "DETAILS": {
-        "QUOTE_SUMMARY": "PREVENTIVO SOMMARIO",
-        "ORDER_SUMMARY": "RIEPILOGO ORDINE",
-        "LINE_ITEMS": "GLI ELEMENTI DI RIGA",
-        "FAVORITE_SUMMARY": "it_IT FAVORITE SUMMARY",
-        "COMMENTS": "COMMENTI",
-        "ATTACHMENTS": "ALLEGATI",
+        "QUOTE_SUMMARY": "Preventivo Sommario",
+        "ORDER_SUMMARY": "Riepilogo Ordine",
+        "LINE_ITEMS": "Gli Elementi Di Riga",
+        "FAVORITE_SUMMARY": "it_IT Favorite Summary",
+        "COMMENTS": "Commenti" ,
+        "ATTACHMENTS": "Allegati",
         "PRICE_SUMMARY": "Prezzo Riepilogo",
-        "SUMMARY": "RIEPILOGO",
+        "SUMMARY": "Riepilogo",
         "SUCCESSFUL_QUOTE_ACCEPTANCE_MESSAGE": "Si sono riusciti ad accettare la citazione ({{quoteName}}) e l'ordine è stato generato per la stessa.",
         "GENERATED_ORDER_NUMBER": "Il tuo Numero di Ordine È: {{orderName}}",
-        "VIEW_YOUR_ORDER": "VISUALIZZA IL TUO ORDINE",
+        "VIEW_YOUR_ORDER": "Visualizza Il Tuo Ordine",
         "GENERATE": "Genera Ordine",
         "TEMPLATE": "Modello",
         "FILE_FORMAT": "File Format",
         "PRESENT": "Presente",
         "PRESENT_ORDER": "Presente Order",
-        "SEND_TO": "Invia Ordine a"
+        "SEND_TO": "Invia Ordine a",
+        "GENERATE_ORDER": "it_IT Generate Order",
+        "GENERATE_QUOTE": "it_IT Generate Quote"
     },
     "SERVICES": {
         "SELECTION_OF_ASSETS_MUST_TOOLTIP": "È necessario selezionare asset(s) per eseguire le azioni batch.",
@@ -848,6 +975,6 @@
         "ACCOUNT": "it_IT Account",
         "ORDER_NAME": "it_IT Order Name",
         "PROPOSAL_NAME": "it_IT Proposal Name",
-        "CREATED_DATE":"it_IT Created Date"
+        "CREATED_DATE": "it_IT Created Date"
     }
 }
