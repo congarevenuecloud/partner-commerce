@@ -13,7 +13,8 @@ import {
   Storefront,
   PriceListItemService,
   Cart,
-  ConstraintRuleService
+  ConstraintRuleService,
+  ItemRequest
 } from '@congarevenuecloud/ecommerce';
 import { ProductConfigurationComponent, ProductConfigurationSummaryComponent, ProductConfigurationService, RevalidateCartService } from '@congarevenuecloud/elements';
 import { BsModalRef } from 'ngx-bootstrap/modal';
@@ -26,7 +27,7 @@ import { BsModalRef } from 'ngx-bootstrap/modal';
 export class ProductDetailComponent implements OnInit, OnDestroy {
   @ViewChild('confirmationTemplate') confirmationTemplate: TemplateRef<any>;
   viewState$: BehaviorSubject<ProductDetailsState> = new BehaviorSubject<ProductDetailsState>(null);
-  recommendedProducts$: Observable<Array<Product>>;
+  recommendedProducts$: Observable<Array<ItemRequest>>;
   attachments$: Observable<Array<ProductInformation>>;
   modalRef: BsModalRef;
   primaryLineItem: CartItem = null;
@@ -80,7 +81,12 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         const productFeatureValues$ = this.productService.getProductsWithFeatureValues([get(params, 'id')]).pipe(rmap((products: Array<Product>) => get(first(products), 'ProductFeatureValues')));
         return combineLatest([product$, cartItem$, this.storefrontService.getStorefront(), this.revalidateCartService.revalidateFlag, productFeatureValues$]);
       }),
-      rmap(([product, cartItemList, storefront, revalidate, productFeatureValues]) => {
+      switchMap(([product, cartItemList, storefront, revalidate, productFeatureValues]) => {
+        const pli = PriceListItemService.getPriceListItemForProduct(product as Product);
+        this.currentQty = isNil(cartItemList) ? defaultTo(get(pli, 'DefaultQuantity'), 1) : get(cartItemList, 'Quantity', 1);
+        return combineLatest([of(product), of(cartItemList), of(storefront),of(revalidate), of(productFeatureValues),this.productConfigurationService.changeProductQuantity(this.currentQty)])
+      }),
+      rmap(([product, cartItemList, storefront, revalidate, productFeatureValues, qty]) => {
         this.recommendedProducts$ = this.crService.getRecommendationsForProducts();
         const pli = PriceListItemService.getPriceListItemForProduct(product as Product);
         this.currentQty = isNil(cartItemList) ? defaultTo(get(pli, 'DefaultQuantity'), 1) : get(cartItemList, 'Quantity', 1);
@@ -148,7 +154,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     if (this.cartItemList && this.cartItemList.length > 0)
       forEach(this.cartItemList, c => {
         if (c.LineType === 'Product/Service') c.Quantity = newQty;
-        this.productConfigurationService.changeProductQuantity(newQty, c);
+        this.productConfigurationService.changeProductQuantity(newQty, c).subscribe(()=>{});
       });
   }
 
@@ -157,7 +163,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       forEach(this.cartItemList, c => {
         c.IsOptional = event;
       });
-      this.productConfigurationService.changeItemToOptional(this.cartItemList);
+    this.productConfigurationService.changeItemToOptional(this.cartItemList);
   }
 
   handleEndDateChange(cartItem: CartItem) {

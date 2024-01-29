@@ -12,6 +12,7 @@ import {
   BreadcrumbModule,
   PriceSummaryModule,
   AlertModule,
+  CaptchaModule,
   InputFieldModule
 } from '@congarevenuecloud/elements';
 import { TabsModule } from 'ngx-bootstrap/tabs';
@@ -31,6 +32,7 @@ import { PricingModule } from '@congarevenuecloud/ecommerce';
     CheckoutRoutingModule,
     FormsModule,
     ComponentModule,
+    CaptchaModule,
     ConfigurationSummaryModule,
     PriceModule,
     PricingModule,

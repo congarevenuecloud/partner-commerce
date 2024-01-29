@@ -29,19 +29,14 @@ export class ActionBarComponent implements OnInit {
 
   createNewCart() {
     this.loading = true;
-    this.cartService.createNewCart()
-      .pipe(
-        take(1),
-        switchMap(cart => this.cartService.setCartActive(cart))
-      )
-      .subscribe(cart => {
+    this.cartService.createNewCart().pipe(take(1)).subscribe(cart => {
+      this.loading = false;
+      this.exceptionService.showSuccess('ACTION_BAR.CART_CREATION_TOASTR_MESSAGE');
+    },
+      error => {
         this.loading = false;
-        this.exceptionService.showSuccess('ACTION_BAR.CART_CREATION_TOASTR_MESSAGE');
-      },
-        error => {
-          this.loading = false;
-          this.exceptionService.showError(error);
-        });
+        this.exceptionService.showError(error);
+      });
   }
 
 }

@@ -5,22 +5,22 @@
 </apt-breadcrumb>
 <ng-content select=".constraintAlerts"></ng-content>
 <div class="pb-5">
-  <div class="headerContainer">
+  <div [ngClass]="(smallScreen && largeContainer) ? 'headerContainerLarge' :'headerContainer'">
     <nav class="navbar d-block pb-0 px-0 nav-tabs bg-white" [ngClass]="headerClass" #headerNav>
       <div class="d-flex border-bottom">
         <div class="flex-grow-1 px-3 pb-3 justify-content-center d-flex flex-column w-100">
           <h3 [innerHTML]="title" *ngIf="title"></h3>
-          <span [innerHTML]="subtitle" *ngIf="subtitle"></span>
+          <span [innerHTML]="subtitle" *ngIf="subtitle" class="pb-lg-0 pb-md-0 pb-sm-2 pb-2"></span>
           <ng-content select=".detail-header"></ng-content>
         </div>
-        <div class="ml-auto p-2 actions primary-actions">
+        <div class="ml-auto p-2 actions primary-actions d-lg-block d-md-block d-sm-none d-none">
           <div class="border-left pl-4 h-100" #primaryActions [hidden]="hidePrimaryActions">
             <ng-content select=".primary-actions"></ng-content>
           </div>
         </div>
       </div>
 
-      <div class="d-flex align-items-end">
+      <div class="d-flex align-items-end px-3">
         <div *ngFor="let tab of sections; let i = index;" (click)="scrollTo(tab)">
           <a class="nav-link text-capitalize"
             [class.active]="tab.active"
@@ -46,7 +46,7 @@
           </ul>
         </div>
 
-        <div class="ml-auto p-2 actions secondary-actions">
+        <div class="ml-auto p-2 actions secondary-actions d-lg-block d-md-block d-sm-none d-none">
           <div class="border-left pl-4 h-100" #secondaryActions [hidden]="hideSecondaryActions">
             <ng-content select=".secondary-actions"></ng-content>
           </div>

@@ -1,5 +1,5 @@
 <app-detail *ngIf="favorite$ | async as favorite; else loading" [context]="favorite" [route]="'favorites'">
-  <div *ngIf="favorite?.IsActive" class="primary-actions">
+  <div *ngIf="favorite?.IsActive" class="primary-actions d-lg-block d-md-block d-sm-none d-none">
     <button type="button" class="btn btn-primary btn-raised px-4" (click)="addFavoriteToCart(favorite)"
       [ladda]="isLoading" data-style="zoom-in">
       {{ "COMMON.ADD_TO_CART" | translate }}
@@ -12,6 +12,12 @@
 
       <span class="badge badge-info ml-3 px-3 py-1 border" *ngIf="!favorite?.IsActive">{{
         "MY_ACCOUNT.FAVORITE_DETAIL.INACTIVE" | translate }}</span>
+    </div>
+    <div *ngIf="favorite?.IsActive" class="d-lg-none d-md-none d-sm-block d-block d-flex align-items-end">
+      <button type="button" class="btn btn-primary btn-raised px-4" (click)="addFavoriteToCart(favorite)"
+        [ladda]="isLoading" data-style="zoom-in">
+        {{ "COMMON.ADD_TO_CART" | translate }}
+      </button>
     </div>
   </div>
 

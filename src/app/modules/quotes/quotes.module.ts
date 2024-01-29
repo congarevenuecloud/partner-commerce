@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LaddaModule } from 'angular2-ladda';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { DatepickerModule, BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -11,6 +12,7 @@ import {
   PriceModule,
   BreadcrumbModule,
   InputFieldModule,
+  CaptchaModule,
   AddressModule,
   IconModule,
   LineItemTableRowModule,
@@ -20,7 +22,8 @@ import {
   ButtonModule,
   DataFilterModule,
   OutputFieldModule,
-  AlertModule
+  AlertModule,
+  QuickAddModule
 } from '@congarevenuecloud/elements';
 import { DetailsModule } from '../details/details.module';
 import { QuotesRoutingModule } from './quotes-routing.module';
@@ -33,10 +36,12 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
 @NgModule({
   imports: [
     CommonModule,
+    TooltipModule,
     QuotesRoutingModule,
     FormsModule,
     PriceModule,
     PricingModule,
+    CaptchaModule,
     DatepickerModule.forRoot(),
     BsDatepickerModule.forRoot(),
     BreadcrumbModule,
@@ -58,8 +63,9 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
     ComponentModule,
     ButtonModule,
     CongaModule,
-    AlertModule
+    AlertModule,
+    QuickAddModule
   ],
-  declarations: [QuoteListComponent, QuoteDetailComponent,CreateQuoteComponent,  RequestQuoteFormComponent]
+  declarations: [QuoteListComponent, QuoteDetailComponent, CreateQuoteComponent, RequestQuoteFormComponent]
 })
 export class QuotesModule { }

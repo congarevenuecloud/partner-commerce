@@ -1,5 +1,5 @@
 <ng-container *ngIf="view$ | async as view; else loadingTemplate">
-  <apt-breadcrumb [sobject]="view?.cart" [route]="'carts'" *ngIf="readonly; else cartBreadcrumb">
+  <apt-breadcrumb [sobject]="view?.cart" [route]="'carts'" *ngIf="readOnly; else cartBreadcrumb">
     <app-action-bar></app-action-bar>
   </apt-breadcrumb>
 
@@ -24,9 +24,19 @@
             <span class="badge badge-primary ml-2 align-self-center" *ngIf="cart?.Status">{{ cart?.Status }}</span>
           </span>
 
-          <button *ngIf="!readonly" class="btn btn-outline-primary align-self-center" [routerLink]="['/products']">
+          <button *ngIf="!readOnly" class="btn btn-outline-primary align-self-center d-lg-block d-md-block d-sm-none d-none" [routerLink]="['/products']">
             {{ "COMMON.ADD_PRODUCTS" | translate }}
           </button>
+          <apt-add-to-cart *ngIf="readOnly" [customButtonActions]="customButtonActions" [ngClass]="'d-lg-block d-md-block d-sm-none d-none'"
+            [showQuantityControls]="false"></apt-add-to-cart>
+          <div class="d-sm-flex d-flex ml-auto d-md-none d-lg-none mt-3 justify-content-end dropdown">
+            <a class="fa fa-ellipsis-v dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+              <ng-container *ngTemplateOutlet="cartActionButtons"></ng-container>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -34,7 +44,7 @@
         <div class="col-12 col-md-8">
           <div class="d-flex flex-column">
             <div class="card">
-              <div class="card-header">
+              <div class="card-header border-bottom">
                 <h5>
                   {{ "DETAILS.CART_SUMMARY" | translate }}
                 </h5>
@@ -90,10 +100,22 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4 padding">
+          <apt-price-summary [record]="view?.cart" [page]="'carts'" [readonly]="readOnly" [disabled]="disabled"
+            [showTotalsOnly]="true" [loading]="loading" (onFinalizeQuote)="convertCartToQuote(view?.cart?.Proposald)"
+            (onShowPanel)="openNav()"></apt-price-summary>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12 col-md-12">
+          <div class="d-flex flex-column">
             <div class="mt-4">
               <div class="d-block border-bottom card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                  <h4 class="card-title mb-0">
+                <div class="card-header d-flex justify-content-between align-items-center py-0">
+                  <h4 class="card-title mb-1">
                     <span *ngIf="view?.orderOrQuote?.Id; else manageCart">{{
                       "DETAILS.LINE_ITEMS" | translate
                       }}</span>
@@ -105,21 +127,35 @@
                     </ng-template>
                   </h4>
 
-                  <span class="d-flex text-primary pt-1 align-items-center">
+                  <span class="d-flex text-primary align-items-center">
+                    <apt-line-item-menu></apt-line-item-menu>
                     <apt-select-all [items]="primaryLI"></apt-select-all>
                   </span>
                 </div>
-
+                <div class="pt-3 pl-lg-3 px-3">
+                  <form class="input-group input-group-sm col-lg-4 col-md-4 col-sm-12 col-12 px-0 d-flex align-items-center pl-0">
+                    <div class="input-group-append">
+                      <button class="btn btn-link">
+                        <i class="fas fa-search"></i>
+                      </button>
+                    </div>
+                    <input type="search" class="form-control" placeholder="{{'COMMON.SEARCH_LINE_ITEMS' | translate}}"
+                      [(ngModel)]="searchText" name="searchText" (ngModelChange)="searchChange()">
+                  </form>
+                </div>
                 <div class="table">
                   <table class="table" *ngIf="view?.lineItems?.length > 0; else empty">
                     <tbody>
-                      <apt-line-item-table-row *ngFor="
-                          let item of view?.lineItems;
-                          let i = index;
-                          trackBy: trackById
-                        " [index]="i" [cart]="view?.cart" [parent]="item.MainLine" [children]="item.SecondaryLines"
-                        [readonly]="readonly" [editableFields]="false">
-                      </apt-line-item-table-row>
+                      <ng-container *ngFor="
+                      let item of view?.lineItems;
+                      let i = index;
+                      trackBy: trackById
+                    ">
+                        <apt-line-item-table-row *ngIf="!item.MainLine?._metadata?.hide" [index]="i" [cart]="view?.cart"
+                          [parent]="item.MainLine" [children]="item.SecondaryLines" [readOnly]="readOnly"
+                          [editableFields]="false">
+                        </apt-line-item-table-row>
+                      </ng-container>
                     </tbody>
                   </table>
                 </div>
@@ -146,12 +182,7 @@
             </div>
           </div>
         </div>
-        <div class="col-12 col-md-4">
-          <apt-price-summary [record]="view?.cart" [page]="'carts'" [readonly]="readonly" [disabled]="disabled"
-            (onFinalizeQuote)="convertCartToQuote(view?.cart?.Proposald)"></apt-price-summary>
 
-          <apt-promotion class="mt-3" [cart]="view?.cart"></apt-promotion>
-        </div>
       </div>
 
       <div class="row mt-4" *ngIf="view?.productList?.length > 0">
@@ -165,10 +196,56 @@
       </div>
     </div>
   </div>
+  <div id="mySidenav" class="sidenav" [ngClass]="showSideNav? 'showNav': ''">
+    <apt-price-summary [record]="view?.cart" [page]="'carts'" [readonly]="readOnly" [disabled]="disabled"
+    [loading]="loading" (onFinalizeQuote)="convertCartToQuote(view?.cart?.Proposald)"
+    (onHidePanel)="closeNav()"></apt-price-summary>
+    <apt-promotion class="mt-3" [cart]="view?.cart" [readOnly]="readOnly"></apt-promotion>
+</div>
 </ng-container>
+
+<ng-template #cartActionButtons>
+  <div>
+    <button *ngIf="!readOnly"
+            class="btn-link btn text-primary "
+            [routerLink]="['/products']">
+            {{ "COMMON.ADD_PRODUCTS" | translate }}
+          </button>
+  </div>
+  <div>
+    <button *ngIf="readOnly" class="btn-link btn text-primary" (click)="openCloneCartModal()">{{ "MY_ACCOUNT.CART_LIST.CLONE_CART" | translate }}</button>
+  </div>
+</ng-template>
 
 <ng-template #loadingTemplate>
   <div class="d-flex justify-content-center pt-5 mt-5">
     <apt-dots></apt-dots>
   </div>
+</ng-template>
+
+<!-- Template for creating new cart -->
+<ng-template #cloneCartTemplate>
+  <form (ngSubmit)="cloneCart()">
+    <div class="modal-header d-flex flex-row-reverse px-0 pb-1">
+      <button type="button" class="close pull-right" aria-label="Close" (click)="closeCloneCartModal()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body pt-0 bg-white custom-border-bottom-radius-0">
+      <h4 class="modal-title pull-left font-weight-bold  pb-3 pt-2">
+        {{'MY_ACCOUNT.CART_LIST.CLONE_CART' | translate }}
+      </h4>
+      <div>
+        <apt-input-field placeholder="{{'COMMON.NAME' | translate}}" name="cartName" [(ngModel)]="cartName"
+          [showLabel]="false" field="Name" [entity]="cart"></apt-input-field>
+      </div>
+      <small class="text-danger animated fadeIn" *ngIf="message">{{message}}</small>
+    </div>
+    <div class="d-flex justify-content-end modal-footer border-top  bg-white">
+      <button class="btn btn-link pr-1" type="button" (click)="closeCloneCartModal()">{{'COMMON.CANCEL' |
+        translate}}</button>
+      <button class="btn button btn-primary btn-raised px-1 m-0 w-25" type="submit" [ladda]="loading">{{'COMMON.SAVE' |
+        translate}}</button>
+    </div>
+  </form>
 </ng-template>

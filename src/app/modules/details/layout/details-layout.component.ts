@@ -1,5 +1,5 @@
 import { Component, AfterContentInit, ElementRef, QueryList, HostListener, Input, ContentChildren, ViewChild } from '@angular/core';
-import * as _ from 'lodash';
+import { get, set, findIndex } from 'lodash';
 import { AObject } from '@congarevenuecloud/core';
 import { DetailSectionComponent } from '../detail-section/detail-section.component';
 
@@ -19,17 +19,20 @@ export class DetailsLayoutComponent implements AfterContentInit {
   @Input() subtitle: string;
   @Input() context: AObject;
   @Input() route: string;
+  @Input() largeContainer:boolean=false;
 
   private activeTabIndex = 0;
 
   hidePrimaryActions: boolean = false;
   hideSecondaryActions: boolean = false;
+  smallScreen: boolean=false;
 
   ngAfterContentInit() {
-    this.hidePrimaryActions = _.get(this, 'primaryActions.nativeElement.children.length', 0) <= 0;
-    this.hideSecondaryActions = _.get(this, 'secondaryActions.nativeElement.children.length', 0) <= 0;
+    this.hidePrimaryActions = get(this, 'primaryActions.nativeElement.children.length', 0) <= 0;
+    this.hideSecondaryActions = get(this, 'secondaryActions.nativeElement.children.length', 0) <= 0;
 
-    _.set(this, 'sections.first.active', true);
+    set(this, 'sections.first.active', true);
+    this.onResize()
   }
 
   
@@ -58,7 +61,7 @@ export class DetailsLayoutComponent implements AfterContentInit {
    ScrollTo method scrolls the page to the specified tab content.
    */
   scrollTo(tab: DetailSectionComponent) {
-    const index = _.findIndex(this.sections.toArray(), t => t.title === tab.title);
+    const index = findIndex(this.sections.toArray(), t => t.title === tab.title);
     if (index === 0)
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     else
@@ -105,5 +108,15 @@ export class DetailsLayoutComponent implements AfterContentInit {
       const endO = (endA < endB) ? endA : endB;
       return (endO - startO) / height;
     }
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+     if(window.innerWidth <= 430){
+      this.smallScreen=true;
+     }
+     else{
+      this.smallScreen=false;
+     }
   }
 }

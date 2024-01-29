@@ -4,6 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { LaddaModule } from 'angular2-ladda';
+import { CongaModule } from '@congarevenuecloud/core';
 import { PricingModule } from '@congarevenuecloud/ecommerce';
 import {
   OutputFieldModule,
@@ -29,6 +30,7 @@ import { OrderDetailComponent } from './detail/order-detail.component';
 @NgModule({
   declarations: [OrderListComponent, OrderDetailComponent],
   imports: [
+    CongaModule,
     CommonModule,
     OrdersRoutingModule,
     TableModule,

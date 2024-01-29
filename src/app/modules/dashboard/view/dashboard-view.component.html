@@ -3,40 +3,28 @@
 </apt-breadcrumb>
 <apt-alert [record]="cart$ | async" [autoRun]="false"></apt-alert>
 <div class="row no-gutters flex-fill">
-  <div class="col-2 border-right bg-white">
-    <div class="card" *ngIf="me$ | async as me">
-      <div class="card-body">
-        <div class="media">
-          <h4
-            class="d-flex justify-content-center align-items-center bg-secondary text-white rounded-circle user-avatar">
-            {{userInitials}}</h4>
-          <div class="media-body ml-3 text-truncate">
-            <h5 class="my-0">{{me?.FirstName}}</h5>
-            <h5 class="my-0">{{me?.LastName}}</h5>
-            <div>{{me?.Title}}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <ul class="list-group list-group-flush pt-0">
+  <div class="col-2 border-right bg-white d-none d-md-block d-lg-block d-sm-none">
+    <ul class="list-group list-group-flush p-2">
       <a href="javascript:void(0)" [routerLink]="['/overview']" routerLinkActive="active"
-        class="list-group-item list-group-item-action py-2 border-top">{{'COMMON.OVERVIEW' | translate}}</a>
+        class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.OVERVIEW' | translate}}</a>
       <a href="javascript:void(0)" [routerLink]="['/orders']" routerLinkActive="active"
-        class="list-group-item list-group-item-action py-2">{{'COMMON.MY_ORDERS' | translate}}</a>
+        class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.MY_ORDERS' | translate}}</a>
       <a href="javascript:void(0)" [routerLink]="['/proposals']" routerLinkActive="active"
-        class="list-group-item list-group-item-action py-2">{{'COMMON.MY_QUOTES' | translate}}</a>
+        class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.MY_QUOTES' | translate}}</a>
       <a href="javascript:void(0)" [routerLink]="['/carts']" routerLinkActive="active"
-        class="list-group-item list-group-item-action py-2">{{'COMMON.MY_CARTS' | translate}}</a>
+        class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.MY_CARTS' | translate}}</a>
       <a href="javascript:void(0)" *ngIf="showFavorites$ | async" [routerLink]="['/favorites']" routerLinkActive="active"
-        class="list-group-item list-group-item-action py-2">{{'COMMON.MY_FAVORITES' | translate}}</a>
+        class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.MY_FAVORITES' | translate}}</a>
       <a href="javascript:void(0)" [routerLink]="['/products']" routerLinkActive="active"
-        class="list-group-item list-group-item-action py-2">{{'COMMON.PRODUCT_CATALOG' | translate}}</a>
+        class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.PRODUCT_CATALOG' | translate}}</a>
       <a href="javascript:void(0)" [routerLink]="['/user']" routerLinkActive="active"
-        class="list-group-item list-group-item-action py-2 border-bottom">{{'COMMON.MY_ACCOUNT_SETTINGS' | translate}}</a>
+        class="list-group-item list-group-item-action py-2">{{'COMMON.MY_ACCOUNT_SETTINGS' | translate}}</a>
     </ul>
   </div>
-  <div class="col-10 pt-2 px-3">
+  <div class="col-10 pt-2 px-3 d-none d-md-block d-lg-block d-sm-none">
+    <router-outlet></router-outlet>
+  </div>
+  <div class="col-12 pt-2 px-3 d-block d-md-none d-sm-block d-lg-none">
     <router-outlet></router-outlet>
   </div>
 </div>

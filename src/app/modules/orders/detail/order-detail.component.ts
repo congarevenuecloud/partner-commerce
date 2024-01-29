@@ -7,7 +7,7 @@ import { ApiService, FilterOperator } from '@congarevenuecloud/core';
 import {
   Order, Quote, OrderLineItem, OrderService, UserService,
   ItemGroup, LineItemService, Note, NoteService, EmailService, AccountService,
-  Contact, CartService, Cart, OrderLineItemService, Account, ContactService, OrderPayload, QuoteService, AttachmentDetails, AttachmentService, ProductInformationService
+  Contact, CartService, Cart, OrderLineItemService, Account, ContactService, QuoteService, AttachmentDetails, AttachmentService, ProductInformationService
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, LookupOptions, RevalidateCartService } from '@congarevenuecloud/elements';
 @Component({
@@ -28,9 +28,9 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
   attachemntSubscription: Subscription;
 
   @ViewChild('attachmentSection') attachmentSection: ElementRef;
+  @ViewChild('fileInput') fileInput: ElementRef;
 
   private subscriptions: Subscription[] = [];
-  orderGenerated: boolean = false;
   isLoggedIn$: Observable<boolean>;
   order: Order;
 
@@ -73,7 +73,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   hasSizeError: boolean;
 
-  orderConfirmation:Order
+  orderConfirmation: Order
 
   file: File;
 
@@ -87,6 +87,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   isPrivate: boolean = false;
   maxFileSizeLimit = 29360128;
+  cartRecord: Cart;
 
   constructor(private activatedRoute: ActivatedRoute,
     private orderService: OrderService,
@@ -131,13 +132,12 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
         })
       );
 
-    this.orderSubscription = combineLatest(order$.pipe(startWith(null)),this.orderService.getMyOrder())
-      .pipe(map(([order,confirmOrder]) => {
+    this.orderSubscription = combineLatest(order$.pipe(startWith(null)), this.orderService.getMyOrder())
+      .pipe(map(([order, confirmOrder]) => {
         if (!order) return;
 
-        if(get(confirmOrder,"Id") === get(order,"Id"))
-        {
-          confirmOrder.set("onDetailPage",true);
+        if (get(confirmOrder, "Id") === get(order, "Id")) {
+          confirmOrder.set("onDetailPage", true);
           this.orderConfirmation = cloneDeep(confirmOrder);
         }
 
@@ -149,6 +149,9 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
         order.OrderLineItems = get(order, 'OrderLineItems');
         this.orderLineItems$.next(LineItemService.groupItems(order.OrderLineItems));
+        this.cartService.fetchCartStatus(get(get(first(this.orderLineItems$.value), 'MainLine.Configuration'), 'Id')).pipe(take(1)).subscribe(c => {
+          this.cartRecord = c;
+        })
         return this.updateOrder(order);
       })).subscribe();
     this.getAttachments();
@@ -156,36 +159,36 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   refreshOrder(fieldValue, order, fieldName) {
     set(order, fieldName, fieldValue);
-    const payload: OrderPayload = {
+    const payload: Order = {
       'PrimaryContact': order.PrimaryContact,
       'Description': order.Description,
       'ShipToAccount': order.ShipToAccount,
       'BillToAccount': order.BillToAccount
-    };
-    this.orderService.updateOrder(order.Id, payload).pipe(switchMap(c=>this.updateOrderValue(c))).subscribe(r => {
+    } as Order;
+    this.orderService.updateOrder(order.Id, payload).pipe(switchMap(c => this.updateOrderValue(c))).subscribe(r => {
       this.updateOrder(r);
     });
   }
 
   updateOrderValue(order): Observable<Order> {
     return combineLatest([of(order),
-      get(order, 'Proposal') ? this.quoteService.getQuote(`${get(order.Proposal, 'Id')}`) : of(null),
-      get(order.BillToAccount, 'Id') ? this.accountService.getAccount(get(order.BillToAccount, 'Id')) : of(null),
-      get(order.ShipToAccount, 'Id') ? this.accountService.getAccount(get(order.ShipToAccount, 'Id')) : of(null),
-      get(order.PrimaryContact, 'Id') ? this.contactService.fetch(get(order.PrimaryContact, 'Id')) : of(null),
-      this.accountService.getCurrentAccount()])
-    .pipe(
-      map(([order, quote, billToAccount, shipToAccount, contact, soldToAccount]) => {
-        order.Proposal = quote;
-        order.SoldToAccount = defaultTo(find([soldToAccount], acc => acc.Id === order.SoldToAccount.Id), order.SoldToAccount);
-        order.BillToAccount = defaultTo(billToAccount, order.BillToAccount);
-        order.ShipToAccount = defaultTo(shipToAccount, order.ShipToAccount);
-        order.PrimaryContact = defaultTo(contact, order.PrimaryContact) as Contact;
-        set(order, 'PrimaryContact.Account', find(billToAccount, acc => order.PrimaryContact && get(acc, 'Id') === get(order.PrimaryContact.Account, 'Id')));
-        this.order = order;
-        return order;
-      })
-    );
+    get(order, 'Proposal') ? this.quoteService.getQuote(`${get(order.Proposal, 'Id')}`) : of(null),
+    get(order.BillToAccount, 'Id') ? this.accountService.getAccount(get(order.BillToAccount, 'Id')) : of(null),
+    get(order.ShipToAccount, 'Id') ? this.accountService.getAccount(get(order.ShipToAccount, 'Id')) : of(null),
+    get(order.PrimaryContact, 'Id') ? this.contactService.fetch(get(order.PrimaryContact, 'Id')) : of(null),
+    this.accountService.getCurrentAccount()])
+      .pipe(
+        map(([order, quote, billToAccount, shipToAccount, contact, soldToAccount]) => {
+          order.Proposal = quote;
+          order.SoldToAccount = defaultTo(find([soldToAccount], acc => acc.Id === order.SoldToAccount.Id), order.SoldToAccount);
+          order.BillToAccount = defaultTo(billToAccount, order.BillToAccount);
+          order.ShipToAccount = defaultTo(shipToAccount, order.ShipToAccount);
+          order.PrimaryContact = defaultTo(contact, order.PrimaryContact) as Contact;
+          set(order, 'PrimaryContact.Account', find(billToAccount, acc => order.PrimaryContact && get(acc, 'Id') === get(order.PrimaryContact.Account, 'Id')));
+          this.order = order;
+          return order;
+        })
+      );
   }
 
   editOrderItems(order: Order) {
@@ -232,8 +235,18 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   onGenerateOrder() {
     if (this.attachmentSection) this.attachmentSection.nativeElement.scrollIntoView({ behavior: 'smooth' });
-    this.getOrder();
-    this.orderGenerated = true;
+    let obsv$;
+    if (get(this.order, 'Status') == 'Draft') {
+      const payload = { 'Status': 'Generated' };
+      obsv$ = this.orderService.updateOrder(this.order.Id, payload as Order);
+    } else {
+      obsv$ = of(null);
+    }
+
+    combineLatest([this.emailService.getEmailTemplateByName('DC Order generate-document Template'), obsv$]).pipe(
+      switchMap(result => {
+        return first(result) ? this.emailService.sendEmailNotificationWithTemplate(get(first(result), 'Id'), this.order, get(this.order.PrimaryContact, 'Id')) : of(null)
+      }), take(1)).subscribe(() => { this.getOrder() });
   }
 
   addComment(orderId: string) {
@@ -252,6 +265,14 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
           this.exceptionService.showError(err);
           this.commentsLoader = false;
         });
+  }
+
+  deleteAttachment(attachment: AttachmentDetails) {
+    attachment.DocumentMetadata.set('deleting', true);
+    this.attachmentService.deleteAttachment(attachment.DocumentMetadata.DocumentId).pipe(take(1)).subscribe(() => {
+      attachment.DocumentMetadata.set('deleting', false);
+      this.getAttachments();
+    })
   }
 
   clear() {
@@ -284,6 +305,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     this.uploadFileList = null;
     this.attachmentsLoader = false;
     this.isPrivate = false;
+    this.fileInput.nativeElement.value = null;
   }
 
   getAttachments() {

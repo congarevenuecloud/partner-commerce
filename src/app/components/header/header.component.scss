@@ -39,6 +39,12 @@
   }
 }
 
+.user-avatar {
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-basis: 2.5rem;
+}
+
 .modal.show .modal-dialog.menu {
   left: 0;
 }
@@ -60,11 +66,6 @@
 }
 app-category-carousel {
   width: 100%;
-}
-
-.user-avatar {
-  height: 3rem;
-  flex-basis: 3rem;
 }
 
 .edit-icon {

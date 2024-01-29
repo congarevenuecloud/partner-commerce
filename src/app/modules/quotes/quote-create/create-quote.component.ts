@@ -22,7 +22,10 @@ export class CreateQuoteComponent implements OnInit {
   loading: boolean = false;
   quoteRequestObj: Quote;
   quoteBreadCrumbObj$: Observable<Quote>;
-  disableSubmit: boolean = false;
+  disableSubmit: boolean = true;
+  // TODO: Update the variable names to avoid confusions.
+  showCaptcha: boolean=false;
+  displayCaptcha: boolean;
 
   constructor(private cartService: CartService, private quoteService: QuoteService, private modalService: BsModalService, private translate: TranslateService, private storefrontService: StorefrontService, private ngZone: NgZone) { }
 
@@ -36,6 +39,22 @@ export class CreateQuoteComponent implements OnInit {
     this.disableSubmit = isEmpty(this.quoteRequestObj.PrimaryContact && this.quoteRequestObj.ProposalName);
   }
 
+  loadCaptcha() {
+       this.displayCaptcha = true;
+  }
+
+  captchaSuccess(cart: Cart){
+    this.showCaptcha= false;
+    this.convertCartToQuote(cart);
+  }
+
+  quotePlacement(cart: Cart){
+  if(this.displayCaptcha)
+     this.showCaptcha=true;
+  else{
+    this.convertCartToQuote(cart);
+  }
+  }
   convertCartToQuote(cart: Cart) {
     const quoteAmountGroup = find(get(cart, 'SummaryGroups'), c => get(c, 'LineType') === 'Grand Total');
     set(this.quoteRequestObj, 'GrandTotal.Value', defaultTo(get(quoteAmountGroup, 'NetPrice', 0).toString(), '0'));
@@ -55,7 +74,7 @@ export class CreateQuoteComponent implements OnInit {
 
   updateQuote() {
     const quotePayload = this.quoteRequestObj.strip(['GrandTotal.Value','Owner','PriceList']);
-    this.quoteService.updateQuote(get(this.quoteConfirmation,"Id"),quotePayload).pipe(take(1)).
+    this.quoteService.updateQuote(get(this.quoteConfirmation,"Id"),quotePayload as Quote).pipe(take(1)).
     subscribe(data => {
     },err => {
       this.quoteConfirmation.set("retryUpdate",true);
