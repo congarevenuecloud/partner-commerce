@@ -49,7 +49,7 @@
   .form-group {
     margin-bottom: 0;
     input:not(.form-control-plaintext) {
-      width: 70px;
+      width: 4.375rem;
     }
   }
   label {
@@ -58,21 +58,58 @@
   .nav-link {
     &.active,
     &:hover {
-      border-bottom-width: 3px;
+      border-bottom-width: 0.188rem;
     }
   }
   .actions {
     white-space: nowrap;
     // overflow: hidden;
     &.primary-actions {
-      height: 80px;
+      height: 5rem;
       > div {
         display: flex;
         align-items: center;
       }
     }
     &.secondary-actions {
-      height: 70px;
+      height: 4.375rem;
+      > div {
+        display: flex;
+        align-items: center;
+      }
+    }
+  }
+}
+
+.headerContainerLarge {
+  height: 18rem;
+  .form-group {
+    margin-bottom: 0;
+    input:not(.form-control-plaintext) {
+      width: 4.375rem;
+    }
+  }
+  label {
+    white-space: nowrap;
+  }
+  .nav-link {
+    &.active,
+    &:hover {
+      border-bottom-width: 0.188rem;
+    }
+  }
+  .actions {
+    white-space: nowrap;
+    // overflow: hidden;
+    &.primary-actions {
+      height: 5rem;
+      > div {
+        display: flex;
+        align-items: center;
+      }
+    }
+    &.secondary-actions {
+      height: 4.375rem;
       > div {
         display: flex;
         align-items: center;

@@ -121,6 +121,10 @@ address {
   color: $gray-600 !important;
 }
 
+.fa-chevron-right {
+  color: $gray-600 !important;
+}
+
 .thumbnail {
   max-width: 3rem;
   max-height: 3rem;
@@ -138,7 +142,7 @@ address {
   right: 0;
   left: auto;
   opacity: 1;
-  box-shadow: 0 0.5rem 1rem rgba(0,0,0,.175);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .175);
 }
 
 // mini-cart related fixes
@@ -249,14 +253,20 @@ apt-batch-action {
   }
 }
 
-apt-price-summary div[class="card-body"] button.btn.btn-link:focus {
-  color: $primary;
-  background: $light;
+apt-price-summary {
+  div[class="card-body"] button.btn.btn-link:focus {
+    color: $primary;
+    background: $light;
+  }
+
+  div[class="card-header"] div[class="justify-content-between"] div[class="flex-row-reverse"] {
+    padding-top: 1.094rem !important;
+  }
 }
 
 popover-container.Popover {
-  width: 25rem;
-  max-width: 25rem;
+  width: 22rem;
+  max-width: 22rem;
 
   &.show {
     animation: showPopover 0.4s ease-in forwards;
@@ -266,12 +276,14 @@ popover-container.Popover {
   border-radius: 0.25rem;
 }
 
-.popover{
-  border:$popover-border !important;
+.popover {
+  border: $popover-border !important;
 }
-.popover-body{
+
+.popover-body {
   padding: 0rem 0rem !important;
 }
+
 .modal-content {
   background-color: transparent !important;
 }
@@ -284,7 +296,7 @@ popover-container.Popover {
   border-radius: 0.25rem 0.25rem 0.25rem 0.25rem !important;
 }
 
-.full-length-display{
+.full-length-display {
   padding-bottom: 4.375rem !important;
 }
 
@@ -350,24 +362,50 @@ typeahead-container {
   border: 0.063rem solid rgba(198, 205, 210, 1) !important;
 }
 
-typeahead-container.dropdown-menu {
-  padding-bottom: 0 !important;
-  right: inherit !important;
-  opacity: 1 !important;
-  padding: 0rem !important;
-  height: auto !important;
 
-  button.dropdown-item {
-    padding: 0 1.5rem;
-    max-width: 100%;
-  }
+div.input-icons{
+  typeahead-container.dropdown-menu {
+    padding-bottom: 0 !important;
+    right: inherit !important;
+    opacity: 1 !important;
+    padding: 0rem !important;
+    height: auto !important;
 
-  .dropdown-item.active,
-  .dropdown-item:active {
-    background-color: rgba(230, 234, 238, 1);
-    color: $black;
+    button.dropdown-item {
+      padding: 0 1.5rem;
+      width: 29.375rem;
+      max-width: 100%;
+    }
+
+    .dropdown-item.active,
+    .dropdown-item:active {
+      background-color: rgba(230, 234, 238, 1);
+      color: $black;
+    }
   }
 }
+
+td.col-md-3{
+  typeahead-container.dropdown-menu {
+    padding-bottom: 0 !important;
+    right: inherit !important;
+    opacity: 1 !important;
+    padding: 0rem !important;
+    height: 6.25rem !important;
+
+    button.dropdown-item {
+      padding: 0 1.5rem;
+      max-width: 100%;
+    }
+
+    .dropdown-item.active,
+    .dropdown-item:active {
+      background-color: rgba(230, 234, 238, 1);
+      color: $black;
+    }
+  }
+}
+
 
 apt-alert {
   div.alert:first-child {
@@ -522,7 +560,6 @@ app-cart-detail apt-line-item-table-row apt-input-field {
   ng-select.form-control {
     font-size: inherit;
     margin-bottom: unset;
-    height: 1.7rem;
   }
 }
 
@@ -729,6 +766,7 @@ div.tooltip {
   .list-group-item {
     &.active {
       background-color: $EC-Sky-1;
+      border-radius: 5px;
       color: inherit;
       border-left: 0.25rem solid $CC-Primary-active;
       border-top: none;
@@ -801,7 +839,7 @@ cc-page-header {
   border-radius: 0.2rem;
 }
 
-.rightspace{
+.rightspace {
   padding-right: 5rem !important;
 }
 
@@ -820,7 +858,7 @@ cc-page-header {
 }
 
 .accordion .card-header {
-  font-size: $font-size-sm;
+  font-size: $font-size-md;
   background-color: $gray-100 !important;
 }
 
@@ -925,6 +963,20 @@ table.table {
     span {
       line-height: 1.25rem;
       color: black;
+    }
+  }
+}
+
+apt-promotion {
+  div.card {
+    div {
+      div.card-body {
+        form.input-group {
+          apt-input-field {
+            width: 12.5rem !important;
+          }
+        }
+      }
     }
   }
 }
@@ -1043,5 +1095,130 @@ apt-table {
 .modal-header {
   h4 {
     color: $black;
+  }
+}
+
+apt-line-item-menu {
+  .navbar {
+    overflow: hidden;
+    background-color: $white;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 15px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 46px;
+    height: 20.28px;
+    background-color: $gray-200;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    width: 13px;
+    height: 13px;
+    left: 4px;
+    bottom: 4px;
+    background-color: $white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  input:checked+.slider {
+    background-color: $dark-blue;
+  }
+
+  input:focus+.slider {
+    box-shadow: 0 0 1px $dark-blue;
+  }
+ 
+  div.flex-fill{
+    background-color: $gray-100 !important;
+  }
+
+  input:checked+.slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+
+  label.px-1 {
+    font-weight: 500 !important;
+  }
+
+  .active {
+    color: $dark-blue;
+  }
+
+  .inactive {
+    color: $black ;
+  }
+
+  .disabled {
+    color: $gray-500;
+  }
+
+  button.btn-raised:hover {
+    color: $dark-blue;
+  }
+}
+
+// Mobile view support
+@media only screen and (max-width: 600px) {
+
+  apt-breadcrumb {
+    padding-top: 1rem;
+  }
+
+  app-header .sf-label,
+  .wrap-text span dd,
+  ol.breadcrumb li:nth-child(2) {
+    max-width: 3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // TODO: This will be taken out once related categories is moved as a modal
+  .category-list-container {
+    .card-body {
+      padding-bottom: 0rem !important;
+
+      ul.list-unstyled {
+        li a {
+          font-size: $font-size-md;
+        }
+      }
+    }
   }
 }

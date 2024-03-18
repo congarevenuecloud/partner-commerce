@@ -22,7 +22,6 @@ export class DashboardViewComponent implements OnInit {
     private storefrontService: StorefrontService) { }
 
   ngOnInit() {
-    this.cart$ = this.cartService.getMyCart();
     this.showFavorites$ = this.storefrontService.isFavoriteEnabled();
     this.me$ = this.userService.me().pipe(
       tap((user: User) => {

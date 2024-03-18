@@ -14,7 +14,7 @@ import { TranslateService } from '@ngx-translate/core';
       </div>
 
       <div class="d-flex align-items-center">
-        <div class="input-group input-group-sm mr-3">
+        <div class="input-group input-group-sm mr-3 d-none d-sm-none d-md-flex">
           <div class="input-group-prepend">
             <label class="input-group-text" for="sort">{{'PRODUCT_LIST.SHOW' | translate}}</label>
           </div>
@@ -26,7 +26,7 @@ import { TranslateService } from '@ngx-translate/core';
           </select>
         </div>
 
-        <div class="input-group input-group-sm mr-3">
+        <div class="input-group input-group-sm mr-0 mr-sm-0 mr-md-3">
           <div class="input-group-prepend">
             <label class="input-group-text" for="sort">{{'PRODUCT_LIST.SORT_BY' | translate}}</label>
           </div>
@@ -36,14 +36,14 @@ import { TranslateService } from '@ngx-translate/core';
           </select>
         </div>
         <a href="javascript:void(0)"
-            class="btn btn-link btn-sm pb-0 px-0 text-dark"
+            class="btn btn-link btn-sm pb-0 px-0 text-dark d-none d-sm-none d-md-block"
             [class.disabled]="view == 'grid'"
             [attr.disabled]="view == 'grid'"
             (click)="onViewChange.emit('grid')">
           <i class="fas fa-grip-vertical"></i>
         </a>
         <a href="javascript:void(0)"
-            class="btn btn-link btn-sm pb-0 text-dark"
+            class="btn btn-link btn-sm pb-0 text-dark d-none d-sm-none d-md-block"
             [class.disabled]="view == 'list'"
             [attr.disabled]="view == 'list'"
             (click)="onViewChange.emit('list')">

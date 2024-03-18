@@ -1,4 +1,4 @@
-<div class="fixed-top navbar navbar-light bg-light border-bottom">
+<div class="fixed-top navbar navbar-light bg-light border-bottom py-0">
   <div class="d-flex align-items-center">
     <button class="navbar-toggler px-2" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
       (click)="menuModal.show()">
@@ -6,16 +6,18 @@
     </button>
 
     <ng-container *ngIf="storefront$ | async as storefront">
-      <button class="navbar-brand btn btn-link d-none d-md-inline-block p-0 mr-2" [routerLink]="['/']"
+      <button class="navbar-brand btn btn-link d-none d-md-inline-block p-0 mr-2 d-lg-block d-sm-none" [routerLink]="['/']"
         *ngIf="storefront?.Logo">
         <img class="pl-2" [src]="storefront?.Logo | image" />
       </button>
-      <span class="mr-1 mt-1">
+      <span class="mr-1 mt-1 d-none d-md-block d-lg-block d-sm-none">
         <img
           src="./assets/images/conga.png"
           alt="" srcset="">
       </span>
-      <span class="sf-label mb-0">{{storefront?.Name}}</span>
+      <span class="sf-label mb-0 d-lg-block d-md-block d-sm-none d-none">{{storefront?.Name}}</span>
+      <span tooltip="{{storefront?.Name}}" class="sf-label m-0 d-lg-none d-md-none d-sm-block d-block"> {{storefront?.Name | truncate:8}}
+      </span>
     </ng-container>
   </div>
 
@@ -24,14 +26,12 @@
     <apt-mini-cart></apt-mini-cart>
     <ng-container *ngIf="user$ | async as user">
       <div class="d-flex user-action flex-column text-primary align-items-flex-start exclude-border">
-        <strong>
-          <font size="1">{{ 'COMMON.WELCOME_MESSAGE' | translate: {userName: user?.FirstName} }}</font>
-        </strong>
         <div dropdown>
-          <button class="btn btn-link dropdown-toggle font-weight-bold p-0 m-0"
-            (click)="toggleMyAccountDropdown($event)" data-toggle="dropdown" #btnDropdown> {{'COMMON.ACCOUNT' |
-            translate}} <i class="fa fa-caret-down fa-lg ml-1"></i>
-          </button>
+          <div dropdown-item class="media">
+            <h4 role="button"
+              class="d-flex justify-content-center align-items-center bg-secondary rounded-circle user-avatar text-white mt-1" (click)="toggleMyAccountDropdown($event)" data-toggle="dropdown" #btnDropdown>
+              {{userInitials}}</h4>
+          </div>
           <div class="dropdown-menu dropdown-menu-right m-0" aria-labelledby="dropdownMenuButton" id="accountMenu"
             [ngClass]="showAccountHome ? 'show' : ''">
             <div class="m-2">
@@ -66,6 +66,12 @@
                 </a>
                 <a class="pt-3" href="javascript:void(0)" *ngIf="showFavorites$ | async"  [routerLink]="['/favorites']" [routerLinkActive]="'active'">
                   {{'COMMON.MY_FAVORITES' | translate}}
+                </a>
+                <a href="javascript:void(0)" [routerLink]="['/products']" routerLinkActive="active" class="pt-3 d-lg-none d-md-none d-sm-block d-block">
+                 {{'COMMON.PRODUCT_CATALOG' | translate}}
+                </a>
+                <a href="javascript:void(0)" [routerLink]="['/user']" routerLinkActive="active" class="pt-3 d-lg-none d-md-none d-sm-block d-block">
+                  {{'COMMON.MY_ACCOUNT_SETTINGS' | translate}}
                 </a>
                 <a class="pt-3" href="javascript:void(0)" (click)="doLogout()">
                   {{'HEADER.LOG_OUT' | translate}}

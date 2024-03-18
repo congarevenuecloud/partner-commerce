@@ -14,7 +14,8 @@ import { PricingModule } from '@congarevenuecloud/ecommerce';
 import {
   ProductCarouselModule, ConfigurationSummaryModule, PriceModule, PromotionModule, InputDateModule,
   LineItemTableRowModule, BreadcrumbModule, IconModule, PriceSummaryModule, OutputFieldModule,
-  InputFieldModule, AlertModule, ConstraintRuleModule, TableModule, ChartModule, SelectAllModule
+  InputFieldModule, AlertModule, ConstraintRuleModule, TableModule, ChartModule, SelectAllModule,
+  QuickAddModule, ButtonModule
 } from '@congarevenuecloud/elements';
 import { ComponentModule } from '../../components/component.module';
 import { CartsRoutingModule } from './carts-routing.module';
@@ -56,7 +57,9 @@ import { CartListComponent } from './list/cart-list.component';
     TableModule,
     ChartModule,
     ConstraintRuleModule,
-    SelectAllModule
+    SelectAllModule,
+    QuickAddModule,
+    ButtonModule
   ]
 })
 export class CartsModule { }

@@ -21,7 +21,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
   ordersByStatus$: Observable<GroupByAggregateResponse>;
   orderAmountByStatus$: Observable<GroupByAggregateResponse>;
   colorPalette = ['#D22233', '#F2A515', '#6610f2', '#008000', '#17a2b8', '#0079CC', '#CD853F', '#6f42c1', '#20c997', '#fd7e14'];
-  aggregateFields : Array<AggregateFields> = [
+  aggregateFields: Array<AggregateFields> = [
     {
       AggregateFunction: 'count',
       AggregateField: 'Status'
@@ -30,7 +30,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
       AggregateFunction: 'sum',
       AggregateField: 'OrderAmount'
     }
-]
+  ]
 
   filterOptions: FilterOptions = {
     visibleFields: [
@@ -53,7 +53,6 @@ export class OrderListComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadView();
-    this.getChartData();
   }
 
   loadView() {
@@ -63,13 +62,20 @@ export class OrderListComponent implements OnInit, OnDestroy {
         switchMap(() => {
           tableOptions = {
             tableOptions: {
+              stickyColumnCount:1,
+              stickyColumns: [{ 
+                prop: 'Name',
+                label: 'CUSTOM_LABELS.ORDER_NAME'
+              }],
               columns: [
                 {
                   prop: 'Name',
-                  label: 'CUSTOM_LABELS.ORDER_NAME'
+                  label: 'CUSTOM_LABELS.ORDER_NAME',
+                  mobileView: true
                 },
                 {
-                  prop: 'Status'
+                  prop: 'Status',
+                  mobileView: true
                 },
                 {
                   prop: 'PriceList.Name',
@@ -84,7 +90,8 @@ export class OrderListComponent implements OnInit, OnDestroy {
                   label: 'CUSTOM_LABELS.SHIP_TO'
                 },
                 {
-                  prop: 'OrderAmount'
+                  prop: 'OrderAmount',
+                  mobileView: true
                 },
                 {
                   prop: 'CreatedDate',
@@ -111,14 +118,15 @@ export class OrderListComponent implements OnInit, OnDestroy {
           this.fetchOrderTotals();
           return of(tableOptions);
         }));
+    this.getChartData();
   }
 
-  getChartData(){
-    const queryFields=['Status'];
-    const groupByFields=['Status'];
-    return this.orderService.getOrderAggregatesByStatus(null, this.aggregateFields, queryFields,  groupByFields).pipe(take(1)).subscribe((data) => {
-      this.orderAmountByStatus$ = of(omit(mapValues(groupBy(data, 'Status'), (s) => sumBy(s, 'sum(OrderAmount)')),'null'));
-      this.ordersByStatus$=of(omit(mapValues(groupBy(data, 'Status'), s => sumBy(s, 'count(Status)')), 'null'))
+  getChartData() {
+    const queryFields = ['Status'];
+    const groupByFields = ['Status'];
+    return this.orderService.getOrderAggregatesByStatus(null, this.aggregateFields, queryFields, groupByFields, this.filterList$.value).pipe(take(1)).subscribe((data) => {
+      this.orderAmountByStatus$ = of(omit(mapValues(groupBy(data, 'Status'), (s) => sumBy(s, 'sum(OrderAmount)')), 'null'));
+      this.ordersByStatus$ = of(omit(mapValues(groupBy(data, 'Status'), s => sumBy(s, 'count(Status)')), 'null'))
     });
   }
 
@@ -152,8 +160,8 @@ export class OrderListComponent implements OnInit, OnDestroy {
       ).subscribe();
   }
 
-  getDateFormat(record:Order) {
-    return this.dateFormatPipe.transform(get(record,'CreatedDate'));
+  getDateFormat(record: Order) {
+    return this.dateFormatPipe.transform(get(record, 'CreatedDate'));
   }
 
   ngOnDestroy() {

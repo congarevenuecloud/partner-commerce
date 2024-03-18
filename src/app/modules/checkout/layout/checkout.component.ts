@@ -6,7 +6,7 @@ import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { TranslateService } from '@ngx-translate/core';
-import { get, uniqueId, set, cloneDeep } from 'lodash';
+import { get, uniqueId, set, cloneDeep, isNil, isEmpty } from 'lodash';
 import { ConfigurationService } from '@congarevenuecloud/core';
 import {
   Account, Cart, CartService, Order, OrderService, Contact, ContactService,
@@ -24,14 +24,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   @ViewChild('staticTabs') staticTabs: TabsetComponent;
   @ViewChild('confirmationTemplate') confirmationTemplate: TemplateRef<any>;
   @ViewChild('priceSummary') priceSummary: PriceSummaryComponent;
-
   primaryContact: Contact;
   order: Order;
   orderConfirmation: Order;
   loading: boolean = false;
   uniqueId: string;
   confirmationModal: BsModalRef;
-
   errMessages: any = {
     requiredFirstName: '',
     requiredLastName: '',
@@ -53,6 +51,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     secondaryTextField: 'Email',
     fieldList: ['Id', 'Name', 'Email']
   };
+  disableSubmit: boolean = false;
+  showCaptcha: boolean = false;
+  displayCaptcha: boolean;
 
   private subscriptions: Subscription[] = [];
 
@@ -70,10 +71,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     private emailService: EmailService) {
     this.uniqueId = uniqueId();
   }
-
   ngOnInit() {
     this.subscriptions.push(this.userService.isLoggedIn().subscribe(isLoggedIn => this.isLoggedIn = isLoggedIn));
-
     this.subscriptions.push(this.accountService.getCurrentAccount().subscribe(() => {
       this.lookupOptions.expressionOperator = 'AND';
       this.lookupOptions.filters = null;
@@ -83,7 +82,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.order = new Order();
     this.subscriptions.push(this.cartService.getMyCart().subscribe(cart => {
       this.cart = cart;
-
       // Setting default values on order record.
       this.order.Name = 'New Order'
       this.order.SoldToAccount = get(cart, 'Account');
@@ -91,13 +89,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.order.ShipToAccount = get(cart, 'Account');
       this.order.PriceList = get(cart, 'PriceList');
     }));
-
     this.subscriptions.push(this.contactService.getMyContact()
       .pipe(take(1)).subscribe(c => {
         this.primaryContact = this.order.PrimaryContact = get(c, 'Contact');
         this.order.PrimaryContact = this.primaryContact
       }));
-
     this.subscriptions.push(this.translate.stream(['PRIMARY_CONTACT', 'AOBJECTS']).subscribe((val: string) => {
       this.errMessages.requiredFirstName = val['PRIMARY_CONTACT']['INVALID_FIRSTNAME'];
       this.errMessages.requiredLastName = val['PRIMARY_CONTACT']['INVALID_LASTNAME'];
@@ -115,20 +111,26 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }));
     this.onBillToChange();
     this.onShipToChange();
+    this.isButtonDisabled();
+  }
+
+  isButtonDisabled() {
+    this.disableSubmit = isNil(this.order.PrimaryContact) || !this.order.Name || isNil(this.order.BillToAccount) || isNil(this.order.ShipToAccount);
   }
 
   submitOrder() {
     this.convertCartToOrder(get(this, 'order'), get(this, 'order.PrimaryContact'));
   }
-
   onBillToChange() {
     if (get(this.order.BillToAccount, 'Id'))
       this.billToAccount$ = this.accountService.getAccount(get(this.order.BillToAccount, 'Id'));
+    this.isButtonDisabled()
   }
 
   onShipToChange() {
     if (get(this.order.ShipToAccount, 'Id'))
       this.shipToAccount$ = this.accountService.getAccount(get(this.order.ShipToAccount, 'Id'));
+    this.isButtonDisabled()
   }
 
   onPrimaryContactChange() {
@@ -138,6 +140,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         set(this.order, 'PrimaryContact', c);
       })
     );
+    this.isButtonDisabled()
   }
 
   convertCartToOrder(order: Order, primaryContact: Contact, cart?: Cart, selectedAccount?: AccountInfo, acceptOrder?: boolean) {
@@ -148,7 +151,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.loading = false;
       this.orderConfirmation = orderResponse;
       this.updateOrder();
-      this.onOrderConfirmed();
     },
       err => {
         this.exceptionService.showError(err);
@@ -158,11 +160,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   updateOrder()
   {
-      const orderPayload = get(this,'order').strip(['Name','BillToAccount','ShipToAccount','SoldToAccount','PrimaryContact','Location','Owner','PriceList']);
-      this.orderService.updateOrder(get(this.orderConfirmation,"Id"),orderPayload).pipe(
-        take(1)
-      ).subscribe(res => {
-      },
+    const orderPayload = get(this,'order').strip(['Name','BillToAccount','ShipToAccount','SoldToAccount','PrimaryContact','Location','Owner','PriceList']);
+    this.orderService.updateOrder(get(this.orderConfirmation,"Id"),orderPayload as Order).pipe(
+      take(1)
+    ).subscribe(res => {
+      this.onOrderConfirmed();
+    },
       err => {
         this.orderConfirmation.set("retryUpdate",true)
         this.orderConfirmation.set("updatePayload",orderPayload);
@@ -170,13 +173,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.orderService.publish(this.orderConfirmation);
       })
   }
-
   redirectOrderPage() {
     this.ngZone.run(() => {
       this.router.navigate(['/orders', this.orderConfirmation.Id]);
     });
   }
-
   onOrderConfirmed() {
     const ngbModalOptions: ModalOptions = {
       backdrop: 'static',
@@ -192,11 +193,27 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
   }
 
+  loadCaptcha() {
+    this.displayCaptcha = true;
+  }
+
+  captchaSuccess(cart: Cart) {
+    this.showCaptcha = false;
+    this.submitOrder();
+  }
+
+  orderPlacement() {
+    if (this.displayCaptcha)
+      this.showCaptcha = true;
+    else {
+      this.submitOrder();
+    }
+  }
+
   closeModal() {
     this.confirmationModal.hide();
     this.redirectOrderPage();
   }
-
   ngOnDestroy() {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }

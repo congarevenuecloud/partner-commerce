@@ -16,7 +16,6 @@ export class CompareLayoutComponent implements OnInit, OnDestroy {
   products: Array<Product>;
   identifiers: Array<string>;
   identifier: string = 'Id';
-  cart$: Observable<Cart>;
 
   constructor(private config: ConfigurationService, private activatedRoute: ActivatedRoute, private cartService: CartService, private router: Router, private productService: ProductService, private batchSelectionService: BatchSelectionService, private productDrawerService: ProductDrawerService) {
     this.identifier = this.config.get('productIdentifier');
@@ -28,7 +27,6 @@ export class CompareLayoutComponent implements OnInit, OnDestroy {
     let newIdentifiers = null;
     this.subs.push(this.activatedRoute.queryParams.pipe(
       switchMap(params => {
-        this.cart$ = this.cartService.getMyCart();
         newIdentifiers = decodeURIComponent(get(params, 'products')).split(',');
         const filter = [{
           field: this.identifier,
