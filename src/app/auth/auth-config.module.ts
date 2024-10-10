@@ -44,7 +44,7 @@ export const httpLoaderFactory = () => {
         provide: StsConfigLoader,
         useFactory: httpLoaderFactory,
         deps: [HttpClient],
-      },
+      }
     })
   ],
   providers: [
