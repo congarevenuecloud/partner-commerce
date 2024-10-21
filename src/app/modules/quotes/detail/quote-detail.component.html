@@ -45,7 +45,7 @@
           </div>
         </div>
       </div>
-      <div class="d-lg-block d-md-block d-sm-none d-none"
+      <div
         *ngIf="quote?.ApprovalStage === 'Accepted' && order$ | async as order">
         <span class="pr-4 d-flex align-items-baseline">
           <apt-output-field [record]="order" field="Name" [label]="'MY_ACCOUNT.ORDER_DETAIL.ORDER_ID' | translate"
@@ -53,14 +53,6 @@
           <span class="badge badge-primary ml-1">{{order?.Status}}</span>
         </span>
       </div>
-    </div>
-    <div class="d-lg-none d-md-none d-sm-block d-block"
-      *ngIf="quote?.ApprovalStage === 'Accepted' && order$ | async as order">
-      <span class="pr-4 d-flex align-items-baseline">
-        <apt-output-field [record]="order" field="Name" [label]="'MY_ACCOUNT.ORDER_DETAIL.ORDER_ID' | translate"
-          layout="inline" [editable]="false" [showQuickView]="true"></apt-output-field>
-        <span class="badge badge-primary ml-1">{{order?.Status}}</span>
-      </span>
     </div>
     <app-progress class="status-bar" *ngIf="quoteStatusMap[quote.ApprovalStage]" [steps]="quoteStatusSteps"
       [currentStep]="quoteStatusMap[quote.ApprovalStage]">
