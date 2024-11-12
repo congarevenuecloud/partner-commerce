@@ -1,14 +1,13 @@
-import { Component, OnInit, ViewChild, TemplateRef, OnDestroy, ViewEncapsulation, ElementRef, NgZone, ChangeDetectorRef, Inject, Renderer2, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef, OnDestroy, ViewEncapsulation, ElementRef, NgZone, ChangeDetectorRef, Inject, Renderer2 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, of, BehaviorSubject, Subscription, combineLatest } from 'rxjs';
 import { filter, map, take, mergeMap, switchMap } from 'rxjs/operators';
 import { get, set, find, defaultTo, map as _map, isEmpty, first } from 'lodash';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
-import { ApiService } from '@congarevenuecloud/core';
 import {
-  UserService, QuoteService, Quote, Order, OrderService, Note, NoteService, AttachmentService, CartService, EmailService, Cart,
-  AttachmentDetails, ProductInformationService, ItemGroup, LineItemService, QuoteLineItemService, Account, AccountService, Contact, ContactService, LineItem, QuoteLineItem
+  QuoteService, Quote, Order, OrderService, Note, AttachmentService, CartService, EmailService, Cart,
+  AttachmentDetails, ProductInformationService, ItemGroup, LineItemService, AccountService, Contact, ContactService
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, LookupOptions, ToasterPosition } from '@congarevenuecloud/elements';
 import { DOCUMENT } from '@angular/common';
@@ -149,9 +148,11 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   refreshQuote(fieldValue, quote, fieldName) {
     set(quote, fieldName, fieldValue);
+    const quoteItems = get(quote, 'Items');
     const payload = quote.strip(['Owner', 'Items', 'TotalCount', 'ResponseStatus']);
     this.quoteSubscription.push(this.quoteService.updateQuote(quote.Id, payload).pipe(switchMap(c => this.updateQuoteValue(c))).subscribe(r => {
       this.quote = r;
+      set(this.quote, 'Items', quoteItems);
     }))
   }
 

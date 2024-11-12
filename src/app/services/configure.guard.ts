@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
-import { CanDeactivate } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { ProductDetailComponent } from '../modules/products/detail/product-detail.component';
 import { get } from 'lodash';
 import { ProductConfigurationService } from '@congarevenuecloud/elements';
+import { ProductDetailComponent } from '../modules/products/detail/product-detail.component';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ConfigureGuard implements CanDeactivate<ProductDetailComponent>{
+export class ConfigureGuard {
 
   constructor(private productConfigService: ProductConfigurationService) { }
   canDeactivate(

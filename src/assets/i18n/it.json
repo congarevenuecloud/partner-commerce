@@ -447,6 +447,7 @@
         "PAGES": "it_IT Pages",
         "REPLACE": "it_IT  Product",
         "ACTION": "it_IT Action",
+        "MANAGE_VIEW":"it_IT Manage View",
         "ATTACHMENT_DETAILS": {
             "TITLE": "Allega nuovo/i file",
             "INPUT_LABEL": "Trascina i file da allegare o",
