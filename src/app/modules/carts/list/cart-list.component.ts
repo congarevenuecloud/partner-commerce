@@ -2,12 +2,12 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subscription } from 'rxjs';
 import { catchError, map, take } from 'rxjs/operators';
 import { ClassType } from 'class-transformer/ClassTransformer';
 import { find, first, get, isNil } from 'lodash';
 import { AObject, FilterOperator } from '@congarevenuecloud/core';
-import { CartService, Cart, PriceService, CartResult, FieldFilter, SummaryGroup, LocalCurrencyPipe, DateFormatPipe } from '@congarevenuecloud/ecommerce';
+import { CartService, Cart, PriceService, CartResult, FieldFilter, SummaryGroup, LocalCurrencyPipe, DateFormatPipe, AccountService } from '@congarevenuecloud/ecommerce';
 import { TableOptions, TableAction, ExceptionService } from '@congarevenuecloud/elements';
 
 @Component({
@@ -25,15 +25,16 @@ export class CartListComponent implements OnInit {
   view$: Observable<CartListView>;
   cartAggregate$: Observable<any>;
   isCloneCart: boolean = false;
+  subscription: Subscription;
 
   @ViewChild('effectiveDateTemplate') effectiveDateTemplate: TemplateRef<any>;
   @ViewChild('createCartTemplate') createCartTemplate: TemplateRef<any>;
 
   constructor(private cartService: CartService, public priceService: PriceService, private dateFormatPipe: DateFormatPipe, private currencyPipe: LocalCurrencyPipe,
-    private modalService: BsModalService, private translateService: TranslateService, private exceptionService: ExceptionService) { }
+    private modalService: BsModalService, private translateService: TranslateService, private exceptionService: ExceptionService, private accountService: AccountService) { }
 
   ngOnInit() {
-    this.loadView();
+    this.subscription = this.accountService.getCurrentAccount().subscribe(() => this.loadView());
   }
 
   loadView() {
@@ -95,7 +96,7 @@ export class CartListComponent implements OnInit {
                         this.exceptionService.showSuccess('SUCCESS.CART.ACTIVATED');
                         this.loadView();
                       })
-                  ),
+                    ),
                   disableReload: true
                 } as TableAction,
                 {
@@ -266,6 +267,11 @@ export class CartListComponent implements OnInit {
     } else {
       this.createCart();
     }
+  }
+
+  ngOnDestroy() {
+    if (!isNil(this.subscription))
+      this.subscription.unsubscribe();
   }
 }
 

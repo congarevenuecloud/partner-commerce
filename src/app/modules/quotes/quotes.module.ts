@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LaddaModule } from 'angular2-ladda';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
-import { DatepickerModule, BsDatepickerModule } from 'ngx-bootstrap/datepicker';
+import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { CongaModule } from '@congarevenuecloud/core';
 import { PricingModule } from '@congarevenuecloud/ecommerce';
@@ -42,7 +42,6 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
     PriceModule,
     PricingModule,
     CaptchaModule,
-    DatepickerModule.forRoot(),
     BsDatepickerModule.forRoot(),
     BreadcrumbModule,
     InputFieldModule,

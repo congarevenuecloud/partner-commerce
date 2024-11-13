@@ -1,15 +1,14 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, ChangeDetectorRef, AfterViewChecked, NgZone, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, BehaviorSubject, combineLatest, of } from 'rxjs';
-import { filter, flatMap, map, switchMap, mergeMap, startWith, take, tap } from 'rxjs/operators';
-import { get, set, indexOf, first, sum, isEmpty, cloneDeep, filter as rfilter, find, compact, uniq, defaultTo, isNil, last } from 'lodash';
-import { ApiService, FilterOperator } from '@congarevenuecloud/core';
+import { filter, map, switchMap, mergeMap, take } from 'rxjs/operators';
+import { get, set, indexOf, first, sum, cloneDeep, find, defaultTo, isNil } from 'lodash';
 import {
-  Order, Quote, OrderLineItem, OrderService, UserService,
-  ItemGroup, LineItemService, Note, NoteService, EmailService, AccountService, CartItem,
-  Contact, CartService, Cart, OrderLineItemService, Account, ContactService, QuoteService, AttachmentDetails, AttachmentService, ProductInformationService
+  Order, OrderLineItem, OrderService, UserService,
+  ItemGroup, LineItemService, Note, NoteService, EmailService, AccountService,
+  Contact, Cart, Account, ContactService, QuoteService, AttachmentDetails, AttachmentService, ProductInformationService
 } from '@congarevenuecloud/ecommerce';
-import { ExceptionService, LookupOptions, RevalidateCartService } from '@congarevenuecloud/elements';
+import { ExceptionService, LookupOptions } from '@congarevenuecloud/elements';
 @Component({
   selector: 'app-order-detail',
   templateUrl: './order-detail.component.html',
@@ -101,11 +100,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     private router: Router,
     private emailService: EmailService,
     private accountService: AccountService,
-    private cartService: CartService,
     private cdr: ChangeDetectorRef,
-    private orderLineItemService: OrderLineItemService,
-    private apiService: ApiService,
-    private revalidateCartService: RevalidateCartService,
     private quoteService: QuoteService,
     private contactService: ContactService,
     private attachmentService: AttachmentService,
@@ -136,7 +131,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
         filter(params => get(params, 'id') != null),
         map(params => get(params, 'id')),
         mergeMap(orderId => this.orderService.getOrder(orderId)),
-        switchMap((order: Order)=>{
+        switchMap((order: Order) => {
           return this.updateOrderValue(order)
         })
       );
@@ -161,7 +156,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
           set(this.cartRecord, 'Id', get(get(first(this.orderLineItems$.value), 'MainLine.Configuration'), 'Id'));
           this.cartRecord.BusinessObjectType = 'Order';
           return of(order);
-        }),take(1)).subscribe(order => {
+        }), take(1)).subscribe(order => {
           this.updateOrder(order)
         });
     this.getAttachments();
@@ -169,6 +164,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   refreshOrder(fieldValue, order, fieldName) {
     set(order, fieldName, fieldValue);
+    const orderItems = get(order, 'OrderLineItems');
     const payload: Order = {
       'PrimaryContact': order.PrimaryContact,
       'Description': order.Description,
@@ -176,6 +172,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
       'BillToAccount': order.BillToAccount
     } as Order;
     this.orderService.updateOrder(order.Id, payload).pipe(switchMap(c => this.updateOrderValue(c))).subscribe(r => {
+      set(r, 'OrderLineItems', orderItems);
       this.updateOrder(r);
     });
   }
@@ -307,9 +304,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     this.cdr.detectChanges();
   }
 
-  /**
-     * @ignore
-     */
   clearFiles() {
     this.file = null;
     this.uploadFileList = null;
@@ -327,9 +321,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
       ).subscribe((attachments: Array<AttachmentDetails>) => this.ngZone.run(() => this.attachmentList$.next(attachments)));
   }
 
-  /**
-   * @ignore
-   */
   uploadAttachment(parentId: string) {
     this.attachmentsLoader = true;
     this.attachmentService.uploadAttachment(this.file, this.isPrivate, parentId, 'order').pipe(take(1)).subscribe(res => {
@@ -343,18 +334,12 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     });
   }
 
-  /**
-   * @ignore
-   */
   downloadAttachment(attachmentId: string) {
     this.productInformationService.getAttachmentUrl(attachmentId).subscribe((url: string) => {
       window.open(url, '_blank');
     });
   }
 
-  /**
-   * @ignore
-   */
   hasFileSizeExceeded(fileList, maxSize) {
     let totalFileSize = 0;
     for (let i = 0; i < fileList.length; i++) {
@@ -363,9 +348,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     this.hasSizeError = totalFileSize > maxSize;
   }
 
-  /**
-   * @ignore
-   */
   fileChange(event) {
     const fileList: FileList = event.target.files;
     if (fileList.length > 0) {
@@ -376,16 +358,10 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     }
   }
 
-  /**
-  * @ignore
-  */
   onDragFile(event) {
     event.preventDefault();
   }
 
-  /**
-   * @ignore
-   */
   onDropFile(event) {
     event.preventDefault();
     const itemList: DataTransferItemList = event.dataTransfer.items;

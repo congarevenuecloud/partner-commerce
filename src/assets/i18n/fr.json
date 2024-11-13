@@ -457,6 +457,7 @@
         "PAGES": "fr_FR Pages",
         "REPLACE": "fr_FR Replace Product",
         "ACTION": "fr_FR Action",
+        "MANAGE_VIEW":"fr_FR Manage View",
         "ATTACHMENT_DETAILS": {
             "TITLE": "fr_FR Attach new file(s)",
             "INPUT_LABEL": "fr_FR Drop files to Attach or",

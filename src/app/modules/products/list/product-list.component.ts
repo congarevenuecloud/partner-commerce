@@ -7,7 +7,7 @@ import { mergeMap, take } from 'rxjs/operators';
 import { FilterOperator } from '@congarevenuecloud/core';
 import { Category, ProductService, ProductResult, PreviousState, FieldFilter, AccountService, CategoryService, Product, FacetFilter, FacetFilterPayload, CartService, StorefrontService } from '@congarevenuecloud/ecommerce';
 import { DomSanitizer } from '@angular/platform-browser';
-import {BatchSelectionService} from '@congarevenuecloud/elements'
+import { BatchSelectionService } from '@congarevenuecloud/elements'
 
 @Component({
   selector: 'app-product-list',
@@ -22,7 +22,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   sortField: string = 'Name';
   productFamilyFilter: Array<FieldFilter>;
   subCategories: Array<Category> = [];
-  enableOneTime$:Observable<boolean>;
+  enableOneTime$: Observable<boolean>;
 
   searchString: string = null;
   data$: BehaviorSubject<ProductResult> = new BehaviorSubject<ProductResult>(null);
@@ -34,6 +34,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   productResult: PreviousState;
   private static VIEW_KEY = 'view';
   private static PAGESIZE_KEY = 'pagesize'
+  private PRICELIST_KEY: string = 'pricelistId';
   product = new Product();
   facetFilterPayload: FacetFilterPayload;
 
@@ -44,11 +45,11 @@ export class ProductListComponent implements OnInit, OnDestroy {
     last: ''
   };
 
-  selectedCount:number = 0; 
+  selectedCount: number = 0;
 
   constructor(private activatedRoute: ActivatedRoute, private sanitizer: DomSanitizer, private router: Router, private categoryService: CategoryService, public batchSelectionService: BatchSelectionService,
     public productService: ProductService, private translateService: TranslateService, private accountService: AccountService,
-    private storefrontService:StorefrontService) { }
+    private storefrontService: StorefrontService) { }
 
   ngOnDestroy() {
     if (!isNil(this.subscription))
@@ -88,7 +89,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
         this.data$.next(null);
         this.hasSearchError = false;
         this.searchString = get(params, 'query');
-        this.searchString= this.sanitizer.sanitize(
+        this.searchString = this.sanitizer.sanitize(
           SecurityContext.URL,
           this.searchString
         );
@@ -106,8 +107,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
           this.hasSearchError = true;
           return of(null);
         } else
-          return combineLatest([this.productService.getProducts(categories, this.pageSize, this.page, sortBy, 'ASC', this.searchString, null, null, this.productFamilyFilter, this.facetFilterPayload), this.categoryService.getCategories()]);
-      }),
+          return combineLatest([this.productService.getProducts(categories, this.pageSize, this.page, sortBy, 'ASC', this.searchString, null, null, this.productFamilyFilter, this.facetFilterPayload, true, { cacheKey: localStorage.getItem(this.PRICELIST_KEY) }), this.categoryService.getCategories()]);
+      })
     ).subscribe(([r, categories]) => {
       if (!isEmpty(this.facetFilterPayload)) set(r, 'Facets', this.facetFilterPayload);
       this.data$.next(r);
@@ -123,7 +124,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
       }
       this.moveToLast = false;
     });
-    this.subscription =(this.batchSelectionService.getSelectedProducts().subscribe((data)=>{
+    this.subscription = (this.batchSelectionService.getSelectedProducts().subscribe((data) => {
       this.selectedCount = data?.length ? data.length : 0;
     }));
   }
@@ -140,8 +141,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
    * This function is called when adding search filter criteria to product grid.
    * @param condition Search filter query to filter products.
    */
-  onFilterAdd(condition:FieldFilter) {
-    this.productFamilyFilter= isNil(this.productFamilyFilter) ? [] : this.productFamilyFilter;
+  onFilterAdd(condition: FieldFilter) {
+    this.productFamilyFilter = isNil(this.productFamilyFilter) ? [] : this.productFamilyFilter;
     this.productFamilyFilter.push(condition);
     this.page = 1;
     this.getResults();
@@ -151,7 +152,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
    * This function is called when removing search filter criteria to product grid.
    * @param condition Search filter query to remove from products grid.
    */
-  onFilterRemove(condition:FieldFilter) {
+  onFilterRemove(condition: FieldFilter) {
     remove(this.productFamilyFilter, (c) => isEqual(c, condition));
     this.page = 1;
     this.getResults();
