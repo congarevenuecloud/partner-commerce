@@ -56,7 +56,7 @@
       <span tooltip="{{order?.Name}}" class="page-header d-lg-none d-md-none d-sm-block d-block">{{ order?.Name |
         truncate:13 }}</span>
 
-      <span class="badge badge-primary ml-3 px-3 py-1" *ngIf="order?.Status">{{ order?.Status }}</span>
+      <span class="badge badge-light ml-1 px-2 py-1" *ngIf="order?.Status">{{ order?.Status }}</span>
 
       <div class="d-sm-block d-block ml-auto d-md-none d-lg-none pt-2"
         *ngIf="order?.Status === 'Draft' || order?.Status === 'Generated' || order?.Status === 'Presented'">

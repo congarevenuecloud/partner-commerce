@@ -4,12 +4,12 @@
   </apt-alert>
 
   <div class="detail-header">
-    <div class="d-flex align-items-center justify-content-between mb-3">
+    <div [ngClass]="quote.ApprovalStage !== 'Accepted' ?  'd-flex justify-content-between mb-3 ' :' d-flex flex-column flex-sm-row justify-content-between mb-3'" >
       <div class="d-flex align-items-center">
         <span class="page-header d-lg-block d-md-block d-sm-none d-none">{{quote?.Name}}</span>
         <span tooltip="{{quote?.Name}}" class="page-header d-block d-sm-block d-md-none d-lg-none">{{quote?.Name |
           truncate:13}}</span>
-        <span class="badge badge-primary mt-1 ml-3 px-3 py-2 border text-uppercase"
+        <span class="badge badge-light mt-1 ml-1 px-2 py-2 text-uppercase"
           *ngIf="quote?.ApprovalStage">{{quote?.ApprovalStage}}</span>
       </div>
         <apt-generate-document *ngIf="quote.ApprovalStage !== 'Accepted'" [record]="quote"
@@ -50,7 +50,7 @@
         <span class="pr-4 d-flex align-items-baseline">
           <apt-output-field [record]="order" field="Name" [label]="'MY_ACCOUNT.ORDER_DETAIL.ORDER_ID' | translate"
             layout="inline" [editable]="false" [showQuickView]="true"></apt-output-field>
-          <span class="badge badge-primary ml-1">{{order?.Status}}</span>
+          <span class="badge badge-light ml-1">{{order?.Status}}</span>
         </span>
       </div>
     </div>
