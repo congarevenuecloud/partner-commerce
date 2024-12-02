@@ -962,6 +962,11 @@ table.table {
   }
 }
 
+.btn:focus {
+  outline: 0 !important; 
+  box-shadow:none !important;
+}
+
 apt-promotion {
   div {
     div.card {
@@ -1200,6 +1205,7 @@ apt-line-item-menu {
     text-overflow: ellipsis;
   }
 
+  // TODO: This will be taken out once related categories is moved as a modal
   .category-list-container {
     .card-body {
       padding-bottom: 0rem !important;

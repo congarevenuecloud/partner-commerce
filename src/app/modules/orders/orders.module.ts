@@ -20,7 +20,8 @@ import {
   FilesModule,
   TableModule,
   ChartModule,
-  AddressModule
+  AddressModule,
+  FileUploaderModule
 } from '@congarevenuecloud/elements';
 import { OrdersRoutingModule } from './orders-routing.module';
 import { ComponentModule } from '../../components/component.module';
@@ -53,7 +54,8 @@ import { OrderDetailComponent } from './detail/order-detail.component';
     IconModule,
     AlertModule,
     FilesModule,
-    AddressModule
+    AddressModule,
+    FileUploaderModule
   ]
 })
 export class OrdersModule { }

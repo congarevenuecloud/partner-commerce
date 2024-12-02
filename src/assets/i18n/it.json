@@ -123,6 +123,22 @@
         "NO_COMPARABLE_FEATURE": "it_IT {{products }} does not have comparable features to the selected products",
         "OTHER_FEATURES": "it_IT Other Features"
     },
+    "PRESENT":{
+        "ORDER":"it_IT Present Order",
+        "QUOTE":"it_IT Present Quote"
+    },
+    "EMAIL":{
+        "FROM":"it_IT From",
+        "TO":"it_IT To",
+        "CC":"it_IT Cc",
+        "BCC":"it_IT Bcc",
+        "SUBJECT":"it_IT Email Subject",
+        "SUBJECT_VALIDATION_MSG":"it_IT Please enter email subject",
+        "MESSAGE":"it_IT Email Message",
+        "TEMPLATE":"it_IT Email Template",
+        "VALID_EMAIL":"it_IT Please enter valid email ids.",
+        "INVALID_TO_FIELD":"it_IT is required"
+    },
     "MY_ACCOUNT": {
         "LAST_LOGIN_DATE": "Last Login:",
         "OVERVIEW": "Panoramica",
@@ -145,7 +161,7 @@
             "NUM_OF_ITEMS": "di Elementi"
         },
         "ORDER_DETAIL": {
-            "CONFIRM_ORDER": "it_IT Confirm Order",
+            "CONFIRM_ORDER": "it_IT Confirm",
             "BILLING_ADDRESS": "Indirizzo Di Fatturazione",
             "SHIPPING_ADDRESS": "Indirizzo Di Spedizione",
             "PAYMENT_INFO": "Informazioni Di Pagamento",
@@ -447,18 +463,33 @@
         "PAGES": "it_IT Pages",
         "REPLACE": "it_IT  Product",
         "ACTION": "it_IT Action",
+        "SEND":"it_IT Send",
+        "DISCARD":"it_IT Discard",
+        "NEXT":"it_IT Next",
         "MANAGE_VIEW":"it_IT Manage View",
         "ATTACHMENT_DETAILS": {
             "TITLE": "Allega nuovo/i file",
             "INPUT_LABEL": "Trascina i file da allegare o",
             "BROWSE": "sfoglia",
-            "FILE_SIZE_EXCEEDED_ERROR": "Dimensione superiore a 28 MB",
-            "UNSUPPORTED_FILE_TYPE_ERROR": "it_IT Unsupported file type. [Supported file types are {{supportedFileTypes}}]",
+            "FILE_SIZE_EXCEEDED_ERROR": "it_IT Max file size exceeded: {{maxFileSize}}MB",
+            "UNSUPPORTED_FILE_TYPE_ERROR": "it_IT Unsupported file type.",
             "SUPPORTED_FILE_TYPES": "it_IT Supported file types are {{supportedFileTypes}}",
             "NO_ATTACHMENTS": "Non sono stati ancora aggiunti allegati",
             "REMOVE_ATTACHMENT": "Rimuovi allegato",
             "BY": "da",
-            "MAKE_VISIBILITY_PRIVATE": "Rendi visibilità privata"
+            "MAKE_VISIBILITY_PRIVATE": "Rendi visibilità privata",
+            "UPLOAD_FILES":"it_IT Upload files",
+            "ADD_ATTACHMENT":"it_IT Add attachment",
+            "ADDITIONAL_ATTACHMENT":"it_IT Additional attachments",
+            "DOCUMENTS":"it_IT Documents",
+            "NO_DOC_MATCH_MESSAGE":"it_IT No documents match the search criteria",
+            "AVAILABLE_DOCUMENTS":"it_IT Available documents",
+            "DOC_SELECTED":"it_IT Selected documents ({{number}})",
+            "NO_DOC_SELECTED":"it_IT No documents selected",
+            "REVIEW_AND_SEND":"it_IT Review and Send",
+            "SEARCH_DOCUMENTS":"it_IT Search documents",
+            "SEARCH_TEMPLATE_PLACEHOLDER":"it_IT Type to search email templates",
+            "MAX_FILE_UPLOAD_ERROR":"it_IT Maximum files allowed {{number}}"
         },
         "ALT_TEXT_IMAGE": "Immagine segnaposto generica",
         "NO_LINE_ITEMS_MESSAGE": "Non ci sono ancora voci di dettaglio su questo {{record}}",
@@ -895,12 +926,15 @@
         "SUCCESSFUL_QUOTE_ACCEPTANCE_MESSAGE": "Si sono riusciti ad accettare la citazione ({{quoteName}}) e l'ordine è stato generato per la stessa.",
         "GENERATED_ORDER_NUMBER": "Il tuo Numero di Ordine È: {{orderName}}",
         "VIEW_YOUR_ORDER": "Visualizza Il Tuo Ordine",
+        "GENERATE_ORDER": "it_IT Generate",
+        "GENERATE_QUOTE": "it_IT Generate",
         "GENERATE": "Genera Ordine",
         "INCLUDE_WATERMARK": "it_IT Include Watermark",
         "TEMPLATE": "Modello",
         "FILE_FORMAT": "File Format",
         "PRESENT": "Presente",
-        "PRESENT_ORDER": "Presente Order",
+        "PRESENT_ORDER": "Presente",
+        "PRESENT_QUOTE":"Presente",
         "SEND_TO": "Invia Ordine a"
     },
     "SERVICES": {
@@ -971,7 +1005,8 @@
         "OF": "Di",
         "PER_PAGE": "Per pagina",
         "NO_DATA_TO_DISPLAY": "it_IT No records found",
-        "NO_FILTERS_MATCHED": "it_IT No records match the filter criteria applied"
+        "NO_FILTERS_MATCHED": "it_IT No records match the filter criteria applied",
+        "SEQUENCE":"it_IT Sequence"
     },
     "FAVORITE": {
         "VISIBILITY": "it_IT Visibility",
