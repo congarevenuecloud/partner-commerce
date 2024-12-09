@@ -22,7 +22,7 @@
   </div>
 
   <app-detail-section [title]="'DETAILS.FAVORITE_SUMMARY' | translate">
-    <div class="row pb-3">
+    <div class="row pb-3 pt-3">
       <div class="col-12">
         <div class="card">
           <div class="card-header">
@@ -104,7 +104,7 @@
         </h5>
       </div>
       <div class="card-body">
-        <table class="table table-responsive" *ngIf="lineItems$ | async as lineItems; else loading">
+        <table class="table" *ngIf="lineItems$ | async as lineItems; else loading">
           <tbody>
             <ng-container *ngFor="let item of lineItems; let i = index">
               <apt-line-item-table-row [index]="i" [parent]="item.MainLine" [options]="item.Options"

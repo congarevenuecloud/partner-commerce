@@ -962,6 +962,11 @@ table.table {
   }
 }
 
+.btn:focus {
+  outline: 0 !important; 
+  box-shadow:none !important;
+}
+
 apt-promotion {
   div {
     div.card {

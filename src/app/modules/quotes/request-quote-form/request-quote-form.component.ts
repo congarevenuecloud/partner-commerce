@@ -2,8 +2,8 @@ import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 import { Observable, of, combineLatest } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { get } from 'lodash';
-import { AccountService, ContactService, UserService, Quote, QuoteService, PriceListService, Cart, Account, Contact, PriceList } from '@congarevenuecloud/ecommerce';
+import { get, set } from 'lodash';
+import { AccountService, ContactService, UserService, Quote, QuoteService, PriceListService, Cart, Account, Contact, PriceList, StorefrontService } from '@congarevenuecloud/ecommerce';
 import { LookupOptions } from '@congarevenuecloud/elements';
 
 @Component({
@@ -34,16 +34,19 @@ export class RequestQuoteFormComponent implements OnInit {
     private accountService: AccountService,
     private userService: UserService,
     private plservice: PriceListService,
-    private contactService: ContactService) { }
+    private contactService: ContactService,
+    private storefrontService: StorefrontService) { }
 
   ngOnInit() {
-    combineLatest(this.accountService.getCurrentAccount(), this.userService.me(), (this.cart.Proposald ? this.quoteService.getQuoteById(get(this.cart, 'Proposald.Id')) : of(null)))
-      .pipe(take(1)).subscribe(([account, user, quote]) => {
+    combineLatest(this.accountService.getCurrentAccount(), this.userService.me(), (this.cart.Proposald ? this.quoteService.getQuoteById(get(this.cart, 'Proposald.Id')) : of(null)), this.storefrontService.getStorefront())
+      .pipe(take(1)).subscribe(([account, user, quote, storefront]) => {
         this.quote.ProposalName = 'New Quote';
         this.quote.ShipToAccount = account;
         this.quote.BillToAccount = account;
         this.quote.Account = get(this.cart, 'Account');
         this.quote.PrimaryContact = get(user, 'Contact');
+        this.quote.Requestor = account?.Owner || user;
+        this.quote.SourceChannel = get(storefront, 'ChannelType');
         this.contact = this.cart.Proposald ? get(quote[0], 'PrimaryContact.Id') : get(user, 'Contact.Id');
         if (get(this.cart, 'Proposald.Id')) {
           this.quote = get(this.cart, 'Proposal');
