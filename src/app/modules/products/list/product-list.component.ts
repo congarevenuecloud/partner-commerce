@@ -1,13 +1,13 @@
 import { Component, OnInit, OnDestroy, SecurityContext } from '@angular/core';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
+import { DomSanitizer } from '@angular/platform-browser';
 import { get, isNil, isEmpty, toString, toNumber, set, remove, isEqual } from 'lodash';
-import { Observable, of, BehaviorSubject, Subscription, combineLatest, empty } from 'rxjs';
+import { Observable, of, BehaviorSubject, Subscription, combineLatest } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { mergeMap, take } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { FilterOperator } from '@congarevenuecloud/core';
 import { Category, ProductService, ProductResult, PreviousState, FieldFilter, AccountService, CategoryService, Product, FacetFilter, FacetFilterPayload, CartService, StorefrontService } from '@congarevenuecloud/ecommerce';
-import { DomSanitizer } from '@angular/platform-browser';
-import { BatchSelectionService } from '@congarevenuecloud/elements'
+import { BatchSelectionService } from '@congarevenuecloud/elements';
 
 @Component({
   selector: 'app-product-list',

@@ -122,21 +122,21 @@
         "NO_COMPARABLE_FEATURE": "fr_FR {{products }} does not have comparable features to the selected products",
         "OTHER_FEATURES": "fr_FR Other Features"
     },
-    "PRESENT":{
-        "ORDER":"fr_FR Present Order",
-        "QUOTE":"fr_FR Present Quote"
+    "PRESENT": {
+        "ORDER": "fr_FR Present Order",
+        "QUOTE": "fr_FR Present Quote"
     },
-    "EMAIL":{
-        "FROM":"fr_FR From",
-        "TO":"fr_FR To",
-        "CC":"fr_FR Cc",
-        "BCC":"fr_FR Bcc",
-        "SUBJECT":"fr_FR Email Subject",
-        "SUBJECT_VALIDATION_MSG":"fr_FR Please enter email subject",
-        "MESSAGE":"fr_FR Email Message",
-        "TEMPLATE":"fr_FR Email Template",
-        "VALID_EMAIL":"fr_FR Please enter valid email ids.",
-        "INVALID_TO_FIELD":"fr_FR is required"
+    "EMAIL": {
+        "FROM": "fr_FR From",
+        "TO": "fr_FR To",
+        "CC": "fr_FR Cc",
+        "BCC": "fr_FR Bcc",
+        "SUBJECT": "fr_FR Email Subject",
+        "SUBJECT_VALIDATION_MSG": "fr_FR Please enter email subject",
+        "MESSAGE": "fr_FR Email Message",
+        "TEMPLATE": "fr_FR Email Template",
+        "VALID_EMAIL": "fr_FR Please enter valid email ids.",
+        "INVALID_TO_FIELD": "fr_FR is required"
     },
     "MY_ACCOUNT": {
         "LAST_LOGIN_DATE": "fr_FR Last Login Date",
@@ -153,7 +153,6 @@
             "EMAIL": "fr_FR Email",
             "RECENT_ORDERS": "fr_FR Recent Orders",
             "RECENT_QUOTES": "fr_FR Recent Quotes",
-            "SHOW_MORE": "fr_FR Show more",
             "ORDER_NAME": "fr_FR Order Name"
         },
         "ORDER_LIST": {
@@ -172,12 +171,13 @@
             "ORDER_DATE": "fr_FR Order Date",
             "ORDER_STATUS": "fr_FR Order Status",
             "PRODUCT_CONFIG": "fr_FR Product Configuration",
-            "ORDERS_BY_STATUS": "fr_FR Orders by Status",
-            "SHIP_TO_ACCOUNT": "fr_FR Ship to Account",
-            "BILL_TO_ACCOUNT": "fr_FR Bill to Account",
+            "ORDERS_BY_STATUS": "fr_FR Orders By Status",
+            "SHIP_TO_ACCOUNT": "fr_FR Ship To Account",
+            "BILL_TO_ACCOUNT": "fr_FR Bill To Account",
             "ORDER_TITLE": "fr_FR Order Title",
             "ACCOUNT_NAME": "fr_FR Account Name",
-            "DESCRIPTION": "fr_FR Description"
+            "DESCRIPTION": "fr_FR Description",
+            "ORDER_PENDING":"fr_FR Orders Pending for Activation"
         },
         "CART_LIST": {
             "CREATE_NEW": "fr_FR New Cart",
@@ -223,6 +223,7 @@
             "CONFIGURATION": "fr_FR Configuration",
             "QUOTES_BY_STATUS": "fr_FR Quotes By Status",
             "QUOTES_BY_DUE_DATE": "fr_FR Quotes By Due Date",
+            "QUOTES_AMOUNT_BY_STATUS": "fr_FR Quote Amount By Status",
             "TOTAL_QUOTES": "fr_FR Total Quotes",
             "FINALIZE": "fr_FR Finalize"
         },
@@ -473,10 +474,14 @@
         "PAGES": "fr_FR Pages",
         "REPLACE": "fr_FR Replace Product",
         "ACTION": "fr_FR Action",
-        "SEND":"fr_FR Send",
-        "DISCARD":"fr_FR Discard",
-        "NEXT":"fr_FR Next",
-        "MANAGE_VIEW":"fr_FR Manage View",
+        "SEND": "fr_FR Send",
+        "DISCARD": "fr_FR Discard",
+        "NEXT": "fr_FR Next",
+        "MANAGE_VIEW": "fr_FR Manage View",
+        "REJECT": "fr_FR Reject",
+        "SOURCE_CHANNEL": "fr_FR Source Channel",
+        "SELLING_TERM": "fr_FR Selling Term",
+        "PRICING_FREQUENCY": "fr_FR Pricing Frequency",
         "ATTACHMENT_DETAILS": {
             "TITLE": "fr_FR Attach new file(s)",
             "INPUT_LABEL": "fr_FR Drop files to Attach or",
@@ -488,18 +493,18 @@
             "REMOVE_ATTACHMENT": "fr_FR Remove Attachment",
             "BY": "fr_FR by",
             "MAKE_VISIBILITY_PRIVATE": "fr_FR Make visibility private",
-            "UPLOAD_FILES":"fr_FR Upload files",
-            "ADD_ATTACHMENT":"fr_FR Add attachment",
-            "ADDITIONAL_ATTACHMENT":"fr_FR Additional attachments",
-            "DOCUMENTS":"fr_FR Documents",
-            "NO_DOC_MATCH_MESSAGE":"fr_FR No documents match the search criteria",
-            "AVAILABLE_DOCUMENTS":"fr_FR Available documents",
-            "DOC_SELECTED":"fr_FR Selected documents ({{number}})",
-            "NO_DOC_SELECTED":"fr_FR No documents selected",
-            "REVIEW_AND_SEND":"fr_FR Review and Send",
-            "SEARCH_DOCUMENTS":"fr_FR Search documents",
-            "SEARCH_TEMPLATE_PLACEHOLDER":"fr_FR Type to search email templates",
-            "MAX_FILE_UPLOAD_ERROR":"fr_FR Maximum files allowed {{number}}"
+            "UPLOAD_FILES": "fr_FR Upload files",
+            "ADD_ATTACHMENT": "fr_FR Add attachment",
+            "ADDITIONAL_ATTACHMENT": "fr_FR Additional attachments",
+            "DOCUMENTS": "fr_FR Documents",
+            "NO_DOC_MATCH_MESSAGE": "fr_FR No documents match the search criteria",
+            "AVAILABLE_DOCUMENTS": "fr_FR Available documents",
+            "DOC_SELECTED": "fr_FR Selected documents ({{number}})",
+            "NO_DOC_SELECTED": "fr_FR No documents selected",
+            "REVIEW_AND_SEND": "fr_FR Review and Send",
+            "SEARCH_DOCUMENTS": "fr_FR Search documents",
+            "SEARCH_TEMPLATE_PLACEHOLDER": "fr_FR Type to search email templates",
+            "MAX_FILE_UPLOAD_ERROR": "fr_FR Maximum files allowed {{number}}"
         },
         "ALT_TEXT_IMAGE": "fr_FR Generic placeholder image",
         "NO_LINE_ITEMS_MESSAGE": "fr_FR No line items yet on this {{record}}",
@@ -507,7 +512,9 @@
         "PROCESSING_MESSAGE": "fr_FR Your request is being processed.....",
         "TABLE_ACTION_CONFIRMATION_MESSAGE": "fr_FR Are you sure you want to {{actionType}} all {{recordCount}} {{objectName}}(s)",
         "NO_MATCHING_ORDERS_FOUND": "fr_FR No matching orders found",
-        "NO_MATCHING_QUOTES_FOUND": "fr_FR No matching quotes found"
+        "NO_MATCHING_QUOTES_FOUND": "fr_FR No matching quotes found",
+        "SHOW_MORE": "fr_FR Show more",
+        "SHOW_LESS": "fr_FR Show less"
     },
     "ASSET_ACTIONS": {
         "AMEND": "fr_FR Amend",
@@ -543,7 +550,8 @@
         "SHIP_TO_ACCOUNT": "fr_FR Ship to Account",
         "BILL_TO_ACCOUNT": "fr_FR Bill to Account",
         "SEARCH_CONTACTS": "fr_FR Search Contacts",
-        "FINALIZE_AND_SUBMIT": "fr_FR Finalize & Submit Quote"
+        "FINALIZE_AND_SUBMIT": "fr_FR Finalize & Submit Quote",
+        "REQUESTOR": "fr_FR Requestor"
     },
     "QUOTE_CONFIRMATION_MODAL": {
         "QUOTE_REQUEST": "fr_FR Quote Request",
@@ -690,7 +698,7 @@
         "CHECKOUT": "fr_FR Checkout",
         "LOG_IN": "fr_FR LOG IN",
         "LOGIN_FOR_FASTER_CHECKOUT": "fr_FR for a faster checkout experience and to get access on additional features, or you can continue as a guest.",
-        "BILLING_AND_SHIPPING_INFORMATION": "fr_FR BILLING & SHIPPING INFORMATION",
+        "BILLING_AND_SHIPPING_INFORMATION": "fr_FR Billing and Shipping Information",
         "ENTER_SHIPPING_ADDRESS": "fr_FR Please enter your shipping address.",
         "SUCCESSFUL_ORDER_CREATION_MESSAGE": "fr_FR Your order has been placed. You will be notified the order details to your email address {{emailAddress}}",
         "CREATE_ORDER": "fr_FR Create Order",
@@ -939,7 +947,7 @@
         "FILE_FORMAT": "fr_FR File Format",
         "PRESENT": "fr_FR Present",
         "PRESENT_ORDER": "fr_FR Present",
-        "PRESENT_QUOTE":"fr_FR Present",
+        "PRESENT_QUOTE": "fr_FR Present",
         "SEND_TO": "fr_FR Send Order To",
         "MISSING_REQ_FIELDS": "fr_FR Some mandatory informations are missing in the order details. Please fill to proceed."
     },
@@ -1002,7 +1010,7 @@
         "PER_PAGE": "fr_FR per page",
         "NO_DATA_TO_DISPLAY": "fr_FR No records found",
         "NO_FILTERS_MATCHED": "fr_FR No records match the filter criteria applied",
-        "SEQUENCE":"fr_FR Sequence"
+        "SEQUENCE": "fr_FR Sequence"
     },
     "AOBJECTS": {
         "PROPOSALS": "fr_FR Proposals",
@@ -1049,6 +1057,7 @@
         "ACCOUNT": "fr_FR Account",
         "ORDER_NAME": "fr_FR Order Name",
         "PROPOSAL_NAME": "fr_FR Proposal Name",
-        "CREATED_DATE": "fr_FR Created Date"
+        "CREATED_DATE": "fr_FR Created Date",
+        "CREATED_BY": "fr_FR Created By"
     }
 }

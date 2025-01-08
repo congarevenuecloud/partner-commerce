@@ -2,7 +2,7 @@ import { Component, OnInit, ViewEncapsulation, OnDestroy, ChangeDetectorRef, Aft
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, BehaviorSubject, combineLatest, of } from 'rxjs';
 import { filter, map, switchMap, mergeMap, take } from 'rxjs/operators';
-import { get, set, indexOf, first, sum, cloneDeep, find, defaultTo, isNil, map as _map } from 'lodash';
+import { get, set, indexOf, first, sum, cloneDeep, find, defaultTo, isNil, map as _map, join, split, trim } from 'lodash';
 import {
   Order, OrderLineItem, OrderService, UserService,
   ItemGroup, LineItemService, Note, NoteService, EmailService, AccountService,
@@ -86,6 +86,8 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
   isPrivate: boolean = false;
   maxFileSizeLimit = 29360128;
   cartRecord: Cart = new Cart();
+  // Flag used to toggle the content visibility when the list of fields exceeds two rows of the summary with show more or show less icon
+  isExpanded: boolean = false;
 
   constructor(private activatedRoute: ActivatedRoute,
     private orderService: OrderService,
@@ -114,7 +116,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     this.subscriptions.push(this.attachmentService.getSupportedAttachmentType().pipe(
       take(1)
     ).subscribe((data: string) => {
-      this.supportedFileTypes = data;
+      this.supportedFileTypes = join(_map(split(data, ','), (item) => trim(item)), ', ');
     }))
   }
 
@@ -131,29 +133,34 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
         })
       );
 
-    this.orderSubscription = combineLatest([order$, this.orderService.getMyOrder()])
+    this.orderSubscription = order$
       .pipe(
-        switchMap(([order, confirmOrder]) => {
-          if (isNil(order)) return;
-
-          if (get(confirmOrder, "Id") === get(order, "Id")) {
-            confirmOrder.set("onDetailPage", true);
-            this.orderConfirmation = cloneDeep(confirmOrder);
-          }
-          if (order?.Status === 'Partially Fulfilled' && indexOf(this.orderStatusSteps, 'Fulfilled') > 0)
+        switchMap(order => {
+          if (isNil(order)) return of(null);
+    
+          if (order?.Status === 'Partially Fulfilled' && indexOf(this.orderStatusSteps, 'Fulfilled') > 0) {
             this.orderStatusSteps[indexOf(this.orderStatusSteps, 'Fulfilled')] = 'Partially Fulfilled';
-
-          if (order?.Status === 'Fulfilled' && indexOf(this.orderStatusSteps, 'Partially Fulfilled') > 0)
+          }
+    
+          if (order?.Status === 'Fulfilled' && indexOf(this.orderStatusSteps, 'Partially Fulfilled') > 0) {
             this.orderStatusSteps[indexOf(this.orderStatusSteps, 'Partially Fulfilled')] = 'Fulfilled';
+          }
 
           order.OrderLineItems = get(order, 'OrderLineItems');
           this.orderLineItems$.next(LineItemService.groupItems(order.OrderLineItems));
+    
           set(this.cartRecord, 'Id', get(get(first(this.orderLineItems$.value), 'MainLine.Configuration'), 'Id'));
           this.cartRecord.BusinessObjectType = 'Order';
+    
           return of(order);
-        }), take(1)).subscribe(order => {
-          this.updateOrder(order)
-        });
+        }),
+        take(1)
+      )
+      .subscribe(order => {
+        if (order) {
+          this.updateOrder(order);
+        }
+      });
     this.getAttachments();
   }
 
@@ -328,10 +335,10 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
       ).subscribe((attachments: Array<AttachmentDetails>) => this.ngZone.run(() => this.attachmentList$.next(attachments)));
   }
 
-  uploadAttachments(fileOutput: FileOutput) {
+  uploadAttachments(fileInput: FileOutput) {
     this.attachmentsLoader = true;
-    const fileList = fileOutput.files;
-    this.isPrivate = fileOutput.visibility;
+    const fileList = fileInput.files;
+    this.isPrivate = fileInput.visibility;
     // To control the visibility of files, pass the additional field "IsPrivate_c" as part of the customProperties when calling uploadMultipleAttachments.
     // You must include "IsPrivate_c" or any other custom fields passed as method parameters to the DocumentMetadata object. For more details, please refer to SDK/product documentation.
     this.attachmentService.uploadMultipleAttachments(fileList, this.order.Id, 'Order', {

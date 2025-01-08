@@ -62,7 +62,6 @@ export class CreateQuoteComponent implements OnInit {
       this.quoteService.convertCartToQuote(this.quoteRequestObj).pipe(take(1)).subscribe(res => {
         this.loading = false;
         this.quoteConfirmation = res;
-        this.updateQuote();
         this.confirmationModal = this.modalService.show(this.confirmationTemplate, { class: 'modal-lg' });
       },
         err => {
@@ -71,15 +70,4 @@ export class CreateQuoteComponent implements OnInit {
     }
   }
 
-  updateQuote() {
-    const quotePayload = this.quoteRequestObj.strip(['GrandTotal.Value','Owner','PriceList']);
-    this.quoteService.updateQuote(get(this.quoteConfirmation,"Id"),quotePayload as Quote).pipe(take(1)).
-    subscribe(data => {
-    },err => {
-      this.quoteConfirmation.set("retryUpdate",true);
-      this.quoteConfirmation.set("updatePayload",quotePayload);
-        this.quoteConfirmation = cloneDeep(this.quoteConfirmation)
-        this.quoteService.publish(this.quoteConfirmation);
-    })
-  }
 }

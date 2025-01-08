@@ -12,7 +12,6 @@ import { UserService, Quote, User, Cart, CartService, StorefrontService } from '
 export class DashboardViewComponent implements OnInit {
 
   type = Quote;
-  me$: Observable<User>;
   cart$: Observable<Cart>;
   showFavorites$: Observable<boolean>;
   userInitials: string = null;
@@ -23,11 +22,6 @@ export class DashboardViewComponent implements OnInit {
 
   ngOnInit() {
     this.showFavorites$ = this.storefrontService.isFavoriteEnabled();
-    this.me$ = this.userService.me().pipe(
-      tap((user: User) => {
-        this.userInitials = defaultTo(first(user.FirstName), '') + defaultTo(first(user.LastName), '');
-      })
-    );
   }
 
 }

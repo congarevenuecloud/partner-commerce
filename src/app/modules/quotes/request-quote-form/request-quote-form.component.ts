@@ -2,7 +2,7 @@ import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 import { Observable, of, combineLatest } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { get, set } from 'lodash';
+import { get } from 'lodash';
 import { AccountService, ContactService, UserService, Quote, QuoteService, PriceListService, Cart, Account, Contact, PriceList, StorefrontService } from '@congarevenuecloud/ecommerce';
 import { LookupOptions } from '@congarevenuecloud/elements';
 
@@ -46,7 +46,6 @@ export class RequestQuoteFormComponent implements OnInit {
         this.quote.Account = get(this.cart, 'Account');
         this.quote.PrimaryContact = get(user, 'Contact');
         this.quote.Requestor = account?.Owner || user;
-        this.quote.SourceChannel = get(storefront, 'ChannelType');
         this.contact = this.cart.Proposald ? get(quote[0], 'PrimaryContact.Id') : get(user, 'Contact.Id');
         if (get(this.cart, 'Proposald.Id')) {
           this.quote = get(this.cart, 'Proposal');
