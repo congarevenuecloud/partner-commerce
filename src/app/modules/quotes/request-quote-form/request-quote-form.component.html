@@ -13,21 +13,20 @@
             [errorMsg]="!quote.ProposalName ? 'Quote title cannot be empty' : ''"></apt-input-field>
         </div>
         <div class="form-group">
+          <apt-input-field placeholder="{{'CREATE_QUOTE.SEARCH_CONTACTS' | translate }}" [entity]="quote"
+            [field]="'PrimaryContact'" [lookupOptions]="lookupOptions" [required]="true" [(ngModel)]="contact"
+            (ngModelChange)="primaryContactChange()" [errorMsg]="'Primary contact is mandatory'">
+          </apt-input-field>
+        </div>
+        <div class="form-group">
           <apt-input-field [entity]="quote" [field]="'ShipToAccount'" [(ngModel)]="quote.ShipToAccount"
             (ngModelChange)="shipToChange()"></apt-input-field>
-          <small class="font-italic d-block" *ngIf="shipToAccount$ | async as shipToAccount">
+          <small class="px-1 font-italic d-block" *ngIf="shipToAccount$ | async as shipToAccount">
             <apt-address [ngModel]="quote?.ShipToAccount" [readonly]="true" type="Shipping" [showLabel]="false">
             </apt-address>
           </small>
         </div>
-        <div class="form-group">
-          <apt-input-field [entity]="quote" [field]="'BillToAccount'" [(ngModel)]="quote.BillToAccount"
-            (ngModelChange)="billToChange()"> </apt-input-field>
-          <small class="font-italic d-block" *ngIf="billToAccount$ | async as billToAccount">
-            <apt-address [ngModel]="quote?.BillToAccount" [readonly]="true" type="Billing" [showLabel]="false">
-            </apt-address>
-          </small>
-        </div>
+        
       </div>
       <div class="col-12 col-md-6">
         <div>
@@ -36,23 +35,21 @@
               [showQuickView]="true"></apt-output-field>
           </div>
           <div class="form-group">
-            <apt-output-field [record]="quote.Requestor" field="Name" label="Requestor"
+            <apt-output-field [record]="quote.Requestor" field="Name" [label]="'CREATE_QUOTE.REQUESTOR' | translate"
               [editable]="false"></apt-output-field>
           </div>
-          <div class="form-group">
-            <apt-output-field [record]="quote" field="SourceChannel" label="Source Channel"
-              [editable]="false"></apt-output-field>
-          </div>
-          <div class="form-group">
+          <div class="form-group mt-4">
             <apt-input-field [entity]="quote" [field]="'RFPResponseDueDate'" [(ngModel)]="quote.RFPResponseDueDate"
               (ngModelChange)="quoteChange()">
             </apt-input-field>
           </div>
           <div class="form-group">
-            <apt-input-field placeholder="{{'CREATE_QUOTE.SEARCH_CONTACTS' | translate }}" [entity]="quote"
-              [field]="'PrimaryContact'" [lookupOptions]="lookupOptions" [required]="true" [(ngModel)]="contact"
-              (ngModelChange)="primaryContactChange()" [errorMsg]="'Primary contact is mandatory'">
-            </apt-input-field>
+            <apt-input-field [entity]="quote" [field]="'BillToAccount'" [(ngModel)]="quote.BillToAccount"
+              (ngModelChange)="billToChange()"> </apt-input-field>
+            <small class="px-1 font-italic d-block" *ngIf="billToAccount$ | async as billToAccount">
+              <apt-address [ngModel]="quote?.BillToAccount" [readonly]="true" type="Billing" [showLabel]="false">
+              </apt-address>
+            </small>
           </div>
         </div>
       </div>

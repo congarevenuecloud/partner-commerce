@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { get, set, isEmpty, forEach, map as _map } from 'lodash';
-import { Favorite, FavoriteService, LineItemService, ItemGroup, User, UserService, FavoriteScope, Cart, CartService, CartItem } from '@congarevenuecloud/ecommerce';
+import { Favorite, FavoriteService, LineItemService, ItemGroup, User, UserService, FavoriteScope, Cart } from '@congarevenuecloud/ecommerce';
 import { ExceptionService } from '@congarevenuecloud/elements';
 
 @Component({
@@ -17,7 +17,6 @@ export class FavoriteDetailComponent implements OnInit, OnDestroy {
   constructor(private activatedRoute: ActivatedRoute,
     private favoriteService: FavoriteService,
     private userService: UserService,
-    private cartService: CartService,
     private exceptionService: ExceptionService) { }
 
   favorite$: BehaviorSubject<Favorite> = new BehaviorSubject<Favorite>(null);

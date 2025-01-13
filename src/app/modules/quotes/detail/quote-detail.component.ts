@@ -1,8 +1,9 @@
 import { Component, OnInit, ViewChild, TemplateRef, OnDestroy, ViewEncapsulation, ElementRef, NgZone, ChangeDetectorRef, Inject, Renderer2 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DOCUMENT } from '@angular/common';
 import { Observable, of, BehaviorSubject, Subscription, combineLatest } from 'rxjs';
 import { filter, map, take, mergeMap, switchMap } from 'rxjs/operators';
-import { get, set, find, defaultTo, map as _map, isEmpty, first } from 'lodash';
+import { get, set, find, defaultTo, map as _map, isEmpty, first, join, split, trim } from 'lodash';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import {
@@ -10,7 +11,7 @@ import {
   AttachmentDetails, ProductInformationService, ItemGroup, LineItemService, AccountService, Contact, ContactService
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, LookupOptions, ToasterPosition, FileOutput } from '@congarevenuecloud/elements';
-import { DOCUMENT } from '@angular/common';
+
 @Component({
   selector: 'app-quote-details',
   templateUrl: './quote-detail.component.html',
@@ -39,6 +40,8 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   editLoader = false;
 
   acceptLoader = false;
+
+  rejectLoader = false;
 
   commentsLoader = false;
 
@@ -88,6 +91,8 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   isPrivate: boolean = false;
   maxFileSizeLimit = 29360128;
   cartRecord: Cart = new Cart();
+  // Flag used to toggle the content visibility when the list of fields exceeds two rows of the summary with show more or show less icon
+  isExpanded: boolean = false;
 
   constructor(private activatedRoute: ActivatedRoute,
     private quoteService: QuoteService,
@@ -113,7 +118,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     this.quoteSubscription.push(this.attachmentService.getSupportedAttachmentType().pipe(
       take(1)
     ).subscribe((data: string) => {
-      this.supportedFileTypes = data;
+      this.supportedFileTypes = join(_map(split(data, ','), (item) => trim(item)), ', ');
     }))
   }
 
@@ -156,14 +161,9 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
       this.accountService.getCurrentAccount(),
       get(quote.BillToAccount, 'Id') ? this.accountService.getAccount(get(quote.BillToAccount, 'Id')) : of(null),
       get(quote.ShipToAccount, 'Id') ? this.accountService.getAccount(get(quote.ShipToAccount, 'Id')) : of(null),
-      get(quote.PrimaryContact, 'Id') ? this.contactService.fetch(get(quote.PrimaryContact, 'Id')) : of(null),
-      this.quoteService.getMyQuote()
-    ]).pipe(map(([quote, accounts, billToAccount, shipToAccount, primaryContact, confirmQuote]) => {
+      get(quote.PrimaryContact, 'Id') ? this.contactService.fetch(get(quote.PrimaryContact, 'Id')) : of(null)
 
-      if (get(quote, "Id") === get(confirmQuote, "Id")) {
-        confirmQuote.set("onDetailPage", true);
-        this.quoteConfirmation = confirmQuote;
-      }
+    ]).pipe(map(([quote, accounts, billToAccount, shipToAccount, primaryContact]) => {
 
       quote.Account = defaultTo(find([accounts], acc => get(acc, 'Id') === get(quote.Account, 'Id')), quote.Account);
       quote.BillToAccount = billToAccount;
@@ -175,7 +175,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
       return this.quote;
     }))
   }
-
 
   acceptQuote(quoteId: string, primaryContactId: string) {
     this.acceptLoader = true;
@@ -196,6 +195,19 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
         this.acceptLoader = false;
       }
     );
+  }
+
+  rejectQuote(quoteId: string) {
+    this.rejectLoader = true;
+    this.quoteService.rejectQuote(quoteId).pipe(take(1)).subscribe(
+      {
+        next: () => {
+          this.getQuote();
+        },
+        complete: () => {
+          this.rejectLoader = false;
+        }
+      });
   }
 
   closeModal() {
@@ -254,7 +266,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     if (this.attachmentSection) this.attachmentSection.nativeElement.scrollIntoView({ behavior: 'smooth' });
     let obsv$;
     if (get(this.quote, 'ApprovalStage') == 'Draft') {
-      const payload = { 'ApprovalStage': 'Generated' };
+      const payload = { 'ApprovalStage': 'Generated', 'ProposalName': get(this.quote, 'Name') };
       obsv$ = this.quoteService.updateQuote(this.quote.Id, payload as Quote);
     } else {
       obsv$ = of(null);
@@ -288,10 +300,10 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     return fileType.split('/')[1];
   }
 
-  uploadAttachments(fileOutput: FileOutput) {
+  uploadAttachments(fileInput: FileOutput) {
     this.attachmentsLoader = true;
-    const fileList = fileOutput.files;
-    this.isPrivate = fileOutput.visibility;
+    const fileList = fileInput.files;
+    this.isPrivate = fileInput.visibility;
     // To control the visibility of files, pass the additional field "IsPrivate_c" as part of the customProperties when calling uploadMultipleAttachments.
     // You must include "IsPrivate_c" or any other custom fields passed as method parameters to the DocumentMetadata object. For more details, please refer to SDK/product documentation.
     this.attachmentService.uploadMultipleAttachments(fileList, this.quote.Id, 'Proposal', {

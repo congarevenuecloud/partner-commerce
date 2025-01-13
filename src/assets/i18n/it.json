@@ -123,21 +123,21 @@
         "NO_COMPARABLE_FEATURE": "it_IT {{products }} does not have comparable features to the selected products",
         "OTHER_FEATURES": "it_IT Other Features"
     },
-    "PRESENT":{
-        "ORDER":"it_IT Present Order",
-        "QUOTE":"it_IT Present Quote"
+    "PRESENT": {
+        "ORDER": "it_IT Present Order",
+        "QUOTE": "it_IT Present Quote"
     },
-    "EMAIL":{
-        "FROM":"it_IT From",
-        "TO":"it_IT To",
-        "CC":"it_IT Cc",
-        "BCC":"it_IT Bcc",
-        "SUBJECT":"it_IT Email Subject",
-        "SUBJECT_VALIDATION_MSG":"it_IT Please enter email subject",
-        "MESSAGE":"it_IT Email Message",
-        "TEMPLATE":"it_IT Email Template",
-        "VALID_EMAIL":"it_IT Please enter valid email ids.",
-        "INVALID_TO_FIELD":"it_IT is required"
+    "EMAIL": {
+        "FROM": "it_IT From",
+        "TO": "it_IT To",
+        "CC": "it_IT Cc",
+        "BCC": "it_IT Bcc",
+        "SUBJECT": "it_IT Email Subject",
+        "SUBJECT_VALIDATION_MSG": "it_IT Please enter email subject",
+        "MESSAGE": "it_IT Email Message",
+        "TEMPLATE": "it_IT Email Template",
+        "VALID_EMAIL": "it_IT Please enter valid email ids.",
+        "INVALID_TO_FIELD": "it_IT is required"
     },
     "MY_ACCOUNT": {
         "LAST_LOGIN_DATE": "Last Login:",
@@ -154,8 +154,7 @@
             "RECENT_ORDERS": "Ordini Recenti",
             "ORDER_NAME": "Nome Dell'Ordine",
             "QUOTES_THIS_WEEK": "it_IT Quotes this week",
-            "RECENT_QUOTES": "it_IT Recent Quotes",
-            "SHOW_MORE": "it_IT Show more"
+            "RECENT_QUOTES": "it_IT Recent Quotes"
         },
         "ORDER_LIST": {
             "NUM_OF_ITEMS": "di Elementi"
@@ -173,11 +172,13 @@
             "ORDER_DATE": "Data Ordine",
             "ORDER_STATUS": "Stato Dell'Ordine",
             "PRODUCT_CONFIG": "La Configurazione Del Prodotto",
-            "SHIP_TO_ACCOUNT": "it_IT Ship to Account",
-            "BILL_TO_ACCOUNT": "it_IT Bill to Account",
+            "ORDERS_BY_STATUS": "it_IT Orders By Status",
+            "SHIP_TO_ACCOUNT": "it_IT Ship To Account",
+            "BILL_TO_ACCOUNT": "it_IT Bill To Account",
             "ORDER_TITLE": "it_IT Order Title",
             "ACCOUNT_NAME": "it_IT Account Name",
-            "DESCRIPTION": "it_IT Description"
+            "DESCRIPTION": "it_IT Description",
+            "ORDER_PENDING":"it_IT Orders Pending for Activation"
         },
         "CART_LIST": {
             "CREATE_NEW": "Nuovo Carrello",
@@ -223,6 +224,7 @@
             "CONFIGURATION": "Configurazione",
             "QUOTES_BY_STATUS": "Preventivi Per Stato",
             "QUOTES_BY_DUE_DATE": "Le Citazioni Della Data Di Scadenza",
+            "QUOTES_AMOUNT_BY_STATUS": "it_IT Quote Amount By Status",
             "TOTAL_QUOTES": "Totale Citazioni",
             "FINALIZE": "it_IT Finalize"
         },
@@ -463,10 +465,14 @@
         "PAGES": "it_IT Pages",
         "REPLACE": "it_IT  Product",
         "ACTION": "it_IT Action",
-        "SEND":"it_IT Send",
-        "DISCARD":"it_IT Discard",
-        "NEXT":"it_IT Next",
-        "MANAGE_VIEW":"it_IT Manage View",
+        "SEND": "it_IT Send",
+        "DISCARD": "it_IT Discard",
+        "NEXT": "it_IT Next",
+        "MANAGE_VIEW": "it_IT Manage View",
+        "REJECT": "Rifiutare",
+        "SOURCE_CHANNEL": "it_IT Source Channel",
+        "SELLING_TERM": "it_IT Selling Term",
+        "PRICING_FREQUENCY": "it_IT Pricing Frequency",
         "ATTACHMENT_DETAILS": {
             "TITLE": "Allega nuovo/i file",
             "INPUT_LABEL": "Trascina i file da allegare o",
@@ -478,18 +484,18 @@
             "REMOVE_ATTACHMENT": "Rimuovi allegato",
             "BY": "da",
             "MAKE_VISIBILITY_PRIVATE": "Rendi visibilità privata",
-            "UPLOAD_FILES":"it_IT Upload files",
-            "ADD_ATTACHMENT":"it_IT Add attachment",
-            "ADDITIONAL_ATTACHMENT":"it_IT Additional attachments",
-            "DOCUMENTS":"it_IT Documents",
-            "NO_DOC_MATCH_MESSAGE":"it_IT No documents match the search criteria",
-            "AVAILABLE_DOCUMENTS":"it_IT Available documents",
-            "DOC_SELECTED":"it_IT Selected documents ({{number}})",
-            "NO_DOC_SELECTED":"it_IT No documents selected",
-            "REVIEW_AND_SEND":"it_IT Review and Send",
-            "SEARCH_DOCUMENTS":"it_IT Search documents",
-            "SEARCH_TEMPLATE_PLACEHOLDER":"it_IT Type to search email templates",
-            "MAX_FILE_UPLOAD_ERROR":"it_IT Maximum files allowed {{number}}"
+            "UPLOAD_FILES": "it_IT Upload files",
+            "ADD_ATTACHMENT": "it_IT Add attachment",
+            "ADDITIONAL_ATTACHMENT": "it_IT Additional attachments",
+            "DOCUMENTS": "it_IT Documents",
+            "NO_DOC_MATCH_MESSAGE": "it_IT No documents match the search criteria",
+            "AVAILABLE_DOCUMENTS": "it_IT Available documents",
+            "DOC_SELECTED": "it_IT Selected documents ({{number}})",
+            "NO_DOC_SELECTED": "it_IT No documents selected",
+            "REVIEW_AND_SEND": "it_IT Review and Send",
+            "SEARCH_DOCUMENTS": "it_IT Search documents",
+            "SEARCH_TEMPLATE_PLACEHOLDER": "it_IT Type to search email templates",
+            "MAX_FILE_UPLOAD_ERROR": "it_IT Maximum files allowed {{number}}"
         },
         "ALT_TEXT_IMAGE": "Immagine segnaposto generica",
         "NO_LINE_ITEMS_MESSAGE": "Non ci sono ancora voci di dettaglio su questo {{record}}",
@@ -497,7 +503,9 @@
         "PROCESSING_MESSAGE": "it_IT Your request is being processed.....",
         "TABLE_ACTION_CONFIRMATION_MESSAGE": "it_IT Are you sure you want to {{actionType}} all {{recordCount}} {{objectName}}(s)",
         "NO_MATCHING_ORDERS_FOUND": "it_IT No matching orders found",
-        "NO_MATCHING_QUOTES_FOUND": "it_IT No matching quotes found"
+        "NO_MATCHING_QUOTES_FOUND": "it_IT No matching quotes found",
+        "SHOW_MORE": "it_IT Show more",
+        "SHOW_LESS": "it_IT Show less"
     },
     "ASSET_ACTIONS": {
         "AMEND": "it_IT Amend",
@@ -533,7 +541,8 @@
         "SHIP_TO_ACCOUNT": "Nave per Conto",
         "BILL_TO_ACCOUNT": "Disegno di legge per Conto",
         "SEARCH_CONTACTS": "La Ricerca Dei Contatti",
-        "FINALIZE_AND_SUBMIT": "Finalizzare Invia & Quote"
+        "FINALIZE_AND_SUBMIT": "Finalizzare Invia & Quote",
+        "REQUESTOR": "it_IT Requestor"
     },
     "QUOTE_CONFIRMATION_MODAL": {
         "QUOTE_REQUEST": "Richiesta Di Preventivo",
@@ -682,7 +691,7 @@
         "CHECKOUT": "Checkout",
         "LOG_IN": "LOG IN",
         "LOGIN_FOR_FASTER_CHECKOUT": "per velocizzare l'esperienza e per ottenere l'accesso a funzionalità aggiuntive, o si può continuare come ospite.",
-        "BILLING_AND_SHIPPING_INFORMATION": "FATTURAZIONE E INFORMAZIONI DI SPEDIZIONE",
+        "BILLING_AND_SHIPPING_INFORMATION": "it_IT Billing and Shipping Information",
         "ENTER_SHIPPING_ADDRESS": "Inserisci il tuo indirizzo di spedizione.",
         "SUCCESSFUL_ORDER_CREATION_MESSAGE": "L'ordine è stato effettuato. Vi verrà notificato l'ordine di dettagli al tuo indirizzo e-mail {{emailAddress}}",
         "SUCCESSFUL_ORDER_CREATION_MESSAGE_WITHOUT_EMAIL": "it_IT Your order has been placed",
@@ -934,7 +943,7 @@
         "FILE_FORMAT": "File Format",
         "PRESENT": "Presente",
         "PRESENT_ORDER": "Presente",
-        "PRESENT_QUOTE":"Presente",
+        "PRESENT_QUOTE": "Presente",
         "SEND_TO": "Invia Ordine a"
     },
     "SERVICES": {
@@ -1006,7 +1015,7 @@
         "PER_PAGE": "Per pagina",
         "NO_DATA_TO_DISPLAY": "it_IT No records found",
         "NO_FILTERS_MATCHED": "it_IT No records match the filter criteria applied",
-        "SEQUENCE":"it_IT Sequence"
+        "SEQUENCE": "it_IT Sequence"
     },
     "FAVORITE": {
         "VISIBILITY": "it_IT Visibility",
@@ -1044,6 +1053,7 @@
         "ACCOUNT": "it_IT Account",
         "ORDER_NAME": "it_IT Order Name",
         "PROPOSAL_NAME": "it_IT Proposal Name",
-        "CREATED_DATE": "it_IT Created Date"
+        "CREATED_DATE": "it_IT Created Date",
+        "CREATED_BY": "it_IT Created By"
     }
 }

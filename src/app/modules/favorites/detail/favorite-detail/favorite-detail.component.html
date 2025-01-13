@@ -1,5 +1,5 @@
 <app-detail *ngIf="favorite$ | async as favorite; else loading" [context]="favorite" [route]="'favorites'">
-  <div *ngIf="favorite?.IsActive" class="primary-actions d-lg-block d-md-block d-sm-none d-none py-2">
+  <div *ngIf="favorite?.IsActive" class="primary-actions d-lg-block d-md-block d-sm-none d-none px-3">
     <button type="button" class="btn btn-primary btn-raised px-4 text-nowrap" (click)="addFavoriteToCart(favorite)"
       [ladda]="isLoading" data-style="zoom-in">
       {{ "COMMON.ADD_TO_CART" | translate }}
@@ -25,7 +25,7 @@
     <div class="row pb-3 pt-3">
       <div class="col-12">
         <div class="card">
-          <div class="card-header">
+          <div class="card-header  border-bottom py-2">
             <h5>
               {{ "DETAILS.FAVORITE_SUMMARY" | translate }}
             </h5>
@@ -98,7 +98,7 @@
 
   <app-detail-section [title]="'DETAILS.LINE_ITEMS' | translate" class="mt-4">
     <div class="card">
-      <div class="card-header">
+      <div class="card-header border-bottom py-2">
         <h5>
           {{ "DETAILS.LINE_ITEMS" | translate }}
         </h5>

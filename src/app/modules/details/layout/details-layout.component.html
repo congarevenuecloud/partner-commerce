@@ -7,14 +7,14 @@
 <div>
   <div class="headerContainer">
     <nav class="navbar d-block pb-0 px-0 nav-tabs bg-white" [ngClass]="headerClass" #headerNav>
-      <div class="d-flex border-bottom">
-        <div class="flex-grow-1 px-4 pb-3 justify-content-center d-flex flex-column w-100">
+      <div class="d-flex border-bottom px-2">
+        <div class="flex-grow-1 px-2 pb-3 justify-content-center d-flex flex-column w-100">
           <h3 class="text-truncate" [innerHTML]="title" *ngIf="title"></h3>
           <span [innerHTML]="subtitle" *ngIf="subtitle" class="pb-lg-0 pb-md-0 pb-sm-2 pb-2"></span>
           <ng-content select=".detail-header"></ng-content>
         </div>
         <div class="ml-auto p-0 actions primary-actions d-lg-block d-md-block d-sm-none d-none py-2">
-          <div class="d-flex align-items-center h-100" #primaryActions [hidden]="hidePrimaryActions">
+          <div class="d-flex align-items-start h-100" #primaryActions [hidden]="hidePrimaryActions">
             <ng-content select=".primary-actions"></ng-content>
           </div>
         </div>
@@ -41,7 +41,7 @@
           </ul>
         </div>
 
-        <div class="ml-auto p-2 actions secondary-actions d-lg-block d-md-block d-sm-none d-none py-2">
+        <div class="ml-auto actions secondary-actions d-lg-block d-md-block d-sm-none d-none py-2 pl-2">
           <div class="d-flex align-items-center  pl-4 h-100" #secondaryActions [hidden]="hideSecondaryActions">
             <ng-content select=".secondary-actions"></ng-content>
           </div>
