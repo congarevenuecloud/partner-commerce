@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
-import { first, defaultTo } from 'lodash';
 import { UserService, Quote, User, Cart, CartService, StorefrontService } from '@congarevenuecloud/ecommerce';
 
 @Component({
