@@ -52,7 +52,9 @@
             "CREATION_FAILED_TITLE": "it_IT Favorite creation failed",
             "TRY_AGAIN_MSG": "it_IT Your favorite {{name}} could not be created. Please try again."
         },
-        "GENERATE_DOCUMENT_ERROR": "it_IT Document generation has failed"
+        "GENERATE_DOCUMENT_ERROR": "it_IT Document generation has failed",
+                "PAGE_ERROR":"it_IT Something's not right",
+        "INVALID_STOREFRONT":"it_IT This is an invalid storefront, please contact your System Administrator."
     },
     "SUCCESS": {
         "TITLE": "Successo",

@@ -53,7 +53,9 @@
             "CREATION_FAILED_TITLE": "es_MX Favorite creation failed",
             "TRY_AGAIN_MSG": "es_MX Your favorite {{name}} could not be created. Please try again."
         },
-        "GENERATE_DOCUMENT_ERROR": "es_MX Document generation has failed"
+        "GENERATE_DOCUMENT_ERROR": "es_MX Document generation has failed",
+        "PAGE_ERROR":"es_MX Something's not right",
+        "INVALID_STOREFRONT":"es_MX This is an invalid storefront, please contact your System Administrator."
     },
     "SUCCESS": {
         "TITLE": "es_MX Success",

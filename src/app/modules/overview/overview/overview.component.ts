@@ -3,7 +3,7 @@ import { Observable, of, Subscription } from 'rxjs';
 import { take, map } from 'rxjs/operators';
 import { sumBy, get, defaultTo, isEmpty, filter, mapValues, forEach, some, map as _map, bind, groupBy, mapKeys, omit, includes, size } from 'lodash';
 import { ApiService, FilterOperator } from '@congarevenuecloud/core';
-import { OrderService, Order, UserService, User, FieldFilter, AccountService, LocalCurrencyPipe, QuoteService, Quote, OrderResult, QuoteResult } from '@congarevenuecloud/ecommerce';
+import { OrderService, Order, UserService, User, FieldFilter, AccountService, LocalCurrencyPipe, QuoteService, Quote, OrderResult, QuoteResult, DateFormatPipe } from '@congarevenuecloud/ecommerce';
 import { TableOptions } from '@congarevenuecloud/elements';
 
 import moment from 'moment';
@@ -34,7 +34,7 @@ export class OverViewComponent implements OnInit {
   colorPalette = ['#D22233', '#F2A515', '#6610f2', '#008000', '#17a2b8', '#0079CC', '#CD853F', '#6f42c1', '#20c997', '#fd7e14'];
   totalCount: number;
 
-  constructor(private orderService: OrderService, private currencyPipe: LocalCurrencyPipe, private userService: UserService, private apiService: ApiService, private accountService: AccountService, private quoteService: QuoteService) { }
+  constructor(private orderService: OrderService, private currencyPipe: LocalCurrencyPipe, private userService: UserService, private apiService: ApiService, private accountService: AccountService, private quoteService: QuoteService, private dateFormatPipe: DateFormatPipe) { }
 
   ngOnInit() {
     this.loadView();
@@ -80,7 +80,8 @@ export class OverViewComponent implements OnInit {
               },
               {
                 prop: 'CreatedDate',
-                label: 'CUSTOM_LABELS.CREATED_DATE'
+                label: 'CUSTOM_LABELS.CREATED_DATE',
+                value: (record) => this.getDateFormat(record)
               }
             ],
             filters: this.getQuoteFilters(),
@@ -100,7 +101,8 @@ export class OverViewComponent implements OnInit {
               },
               {
                 prop: 'CreatedDate',
-                label: 'CUSTOM_LABELS.CREATED_DATE'
+                label: 'CUSTOM_LABELS.CREATED_DATE',
+                value: (record) => this.getDateFormat(record)
               }
             ],
             filters: this.getOrderFilters(),
@@ -218,6 +220,10 @@ export class OverViewComponent implements OnInit {
       value: localStorage.getItem('account'),
       filterOperator: FilterOperator.EQUAL
     }] as Array<FieldFilter>;
+  }
+
+  getDateFormat(record: Order | Quote) {
+    return this.dateFormatPipe.transform(get(record, 'CreatedDate'));
   }
 
   ngOnDestroy() {
