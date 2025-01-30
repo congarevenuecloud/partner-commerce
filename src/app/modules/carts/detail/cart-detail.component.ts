@@ -64,7 +64,7 @@ export class CartDetailComponent implements OnInit {
     this.subscription.push(combineLatest([
       this.cartService.getMyCart(),
       this.crService.getRecommendationsForCart(),
-      this.cartService.isCartActive(get(this.activatedRoute.params, "_value.id")) ? of(null) : this.cartService.getCartWithId(get(this.activatedRoute.params, "_value.id")),
+      this.cartService.isCartActive(get(this.activatedRoute.params, "_value.id")) ? of(null) : this.cartService.fetchCartInfo(get(this.activatedRoute.params, "_value.id"), 'summary-groups,price-breakups,line-items,line-items.product,usage-tiers,adjustments'),
       this.revalidateCartService.revalidateFlag,
       this.batchSelectionService.getSelectedLineItems()
     ]).pipe(
@@ -91,12 +91,9 @@ export class CartDetailComponent implements OnInit {
         } else {
           this.businessObject$ = of(null);
         }
-        return combineLatest([of(this.cart), this.businessObject$, of(products), this.readOnly ? this.cartService.addAdjustmentInfoToLineItems(this.cart?.Id) : of(null)]);
+        return combineLatest([of(this.cart), this.businessObject$, of(products)]);
       }),
-      switchMap(([cartInfo, businessObjectInfo, productsInfo, lineItemsWithIncentives]) => {
-        if (this.readOnly && !isNil(lineItemsWithIncentives)) {
-          cartInfo.LineItems = lineItemsWithIncentives;
-        }
+      switchMap(([cartInfo, businessObjectInfo, productsInfo]) => {
         const businessObjectType = get(cartInfo, 'BusinessObjectType');
         const proposalId = get(cartInfo, 'Proposald');
         const orderId = get(cartInfo, 'Order');
@@ -106,10 +103,9 @@ export class CartDetailComponent implements OnInit {
         else if (isNil(orderId) || this.isCartFinalized) {
           set(cartInfo, 'Order', businessObjectInfo);
         }
-        const cartItems = this.readOnly ? plainToClass(CartItem, get(cartInfo, 'LineItems')) : get(cartInfo, 'LineItems');// plainToClass is added as the pricing, which internally does the operation, is not performed for nonactive carts
         return of({
           cart: cartInfo,
-          lineItems: LineItemService.groupItems(cartItems),
+          lineItems: LineItemService.groupItems(get(cartInfo, 'LineItems')),
           orderOrQuote: isNil(get(cartInfo, 'Order')) ? get(cartInfo, 'Proposald') : get(cartInfo, 'Order'),
           productList: productsInfo,
           headerInfo: Object.assign(new Cart(), {
