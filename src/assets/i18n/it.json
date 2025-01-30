@@ -826,7 +826,8 @@
         "PROMOTIONS": "it_IT Promotions",
         "TOTAL_PROMOTION_AMOUNT": "Totale Importo Di Promozione",
         "PROMOTION_APPLIEDTO": "Promozioni Applicate A",
-        "APPLIED_PROMOTION": "applicati i seguenti articoli nel carrello."
+        "APPLIED_PROMOTION": "applicati i seguenti articoli nel carrello.",
+        "AVAILABLE_PROMOTIONS": "it_IT Available Promotions"
     },
     "LOGIN": {
         "PLS_SIGNIN": "Si prega di firmare in",
