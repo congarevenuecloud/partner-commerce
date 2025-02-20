@@ -27,7 +27,7 @@
               </div>
               <div class="card-body">
                 <ng-container *ngIf="assetByPriceType$ | async as assetByPriceType; else loading">
-                  <apt-chart *ngIf="(assetByPriceType | json) != '{}'; else noData" [data]="assetByPriceType"
+                  <apt-chart [data]="assetByPriceType"
                     [amountsByStatus]="assetAmountByPriceType$ | async" [type]="'bar'" [showLegend]="false">
                   </apt-chart>
                 </ng-container>
@@ -43,7 +43,7 @@
               </div>
               <div class="card-body">
                 <ng-container *ngIf="assetAmountByPriceType$ | async as assetAmountByPriceType; else loading">
-                    <apt-chart *ngIf="(assetAmountByPriceType | json) != '{}'; else noData"
+                    <apt-chart
                         [data]="assetAmountByPriceType" [type]="'doughnut'" [legendPosition]="'right'"
                         [colorPalette]="colorPalette" [labelDataTransform]="'currency'">
                     </apt-chart>
