@@ -64,14 +64,18 @@ export class OrderListComponent implements OnInit, OnDestroy {
             tableOptions: {
               stickyColumnCount: 1,
               stickyColumns: [{
-                prop: 'Name',
-                label: 'CUSTOM_LABELS.ORDER_NAME'
+                prop: 'OrderNumber',
+                enableRouteLink: true
               }],
               columns: [
                 {
+                  prop: 'OrderNumber',
+                  enableRouteLink: true
+                },
+                {
                   prop: 'Name',
-                  label: 'CUSTOM_LABELS.ORDER_NAME',
-                  mobileView: true
+                  mobileView: true,
+                  label: 'COMMON.NAME'
                 },
                 {
                   prop: 'Status',
@@ -109,7 +113,8 @@ export class OrderListComponent implements OnInit, OnDestroy {
                 'ShipToAccount.Name',
                 'OrderAmount',
                 'CreatedDate',
-                'ActivatedDate'
+                'ActivatedDate',
+                'OrderNumber'
               ],
               filters: this.filterList$.value.concat(this.getFilters()),
               routingLabel: 'orders'
