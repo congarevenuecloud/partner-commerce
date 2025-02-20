@@ -73,6 +73,10 @@
             <div class="card-body">
               <div class="row">
                 <div class="flex-shrink-1 col-md-4 mb-2">
+                  <apt-output-field [record]="quote" field="ProposalNumber" [editable]="false">
+                  </apt-output-field>
+                </div>
+                <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote" field="Name" [label]="'CREATE_QUOTE.QUOTE_TITLE' | translate"
                     [DisplayName]="ProposalName"
                     [editable]="quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented'"
@@ -83,12 +87,12 @@
                   <apt-output-field [record]="quote" field="CreatedDate" [editable]="false">
                   </apt-output-field>
                 </div>
+              </div>
+              <div class="row">
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote.CreatedBy" field="Name" [label]="'COMMON.CREATED_BY' | translate"
                     [editable]="false"></apt-output-field>
                 </div>
-              </div>
-              <div class="row">
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote" [field]="'PrimaryContact'"
                     [label]="'MY_ACCOUNT.QUOTE_DETAIL.PRIMARY_CONTACT' | translate" [displayValue]="'PrimaryContact'"

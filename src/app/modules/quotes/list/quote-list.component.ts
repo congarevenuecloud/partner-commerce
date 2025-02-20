@@ -87,13 +87,17 @@ export class QuoteListComponent implements OnInit {
             tableOptions: {
               stickyColumnCount: 1,
               stickyColumns: [{
-                prop: 'Name',
-                label: 'CUSTOM_LABELS.PROPOSAL_NAME'
+                prop: 'ProposalNumber',
+                enableRouteLink: true
               }],
               columns: [
                 {
+                  prop: 'ProposalNumber',
+                  enableRouteLink: true
+                },
+                {
                   prop: 'Name',
-                  label: 'CUSTOM_LABELS.PROPOSAL_NAME'
+                  label: 'COMMON.NAME'
                 },
                 {
                   prop: 'ApprovalStage'
