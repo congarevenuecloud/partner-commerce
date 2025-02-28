@@ -74,8 +74,11 @@ export class OverViewComponent implements OnInit {
           tableOptions: {
             columns: [
               {
-                prop: 'Name',
-                label: 'CUSTOM_LABELS.PROPOSAL_NAME'
+                prop: 'ProposalNumber',
+                enableRouteLink: true  
+              },
+              {
+                prop: 'Name'
               },
               {
                 prop: 'GrandTotal',
@@ -99,8 +102,12 @@ export class OverViewComponent implements OnInit {
           tableOptions: {
             columns: [
               {
+                prop: 'OrderNumber',
+                enableRouteLink: true
+              },
+              {
                 prop: 'Name',
-                label: 'CUSTOM_LABELS.ORDER_NAME'
+                label: 'COMMON.NAME'
               },
               {
                 prop: 'OrderAmount'
