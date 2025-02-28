@@ -28,7 +28,7 @@
             {{tab.title}}
           </a>
         </div>
-        <div dropdown class="position-relative d-block" [class.d-xl-none]="sections?.length < 6"
+        <div dropdown class="position-relative" [ngClass]="sections.length > 3 ? 'd-block': 'd-none'" [class.d-xl-none]="sections?.length < 6"
           [class.d-lg-none]="sections?.length < 5" [class.d-md-none]="sections?.length < 4">
           <a class="nav-link dropdown-toggle" dropdownToggle href="javascript:void(0)"><i
               class="fa fa-ellipsis-v"></i></a>
