@@ -217,7 +217,8 @@
             "CLONE": "Clone",
             "DESCRIPTION": "Descrizione",
             "CONTRACT_PRICE": "Prezzo Del Contratto",
-            "PRODUCT_CREATION_FAILED": "Impossibile creare il prodotto. Si prega di contattare l'amministratore"
+            "PRODUCT_CREATION_FAILED": "Impossibile creare il prodotto. Si prega di contattare l'amministratore",
+            "BROWSE_PRODUCTS": "it_IT Browse Products"
         },
         "QUOTE_DETAIL": {
             "PRIMARY_CONTACT": "Contatto Principale",
@@ -284,6 +285,7 @@
         "RELATED_CATEGORIES": "Categorie Correlate",
         "PRODUCT_FAMILY": "Famiglia Di Prodotti",
         "SHOW_COUNT_OF_RECORDS_MESSAGE": "Mostrando {{minVal}}-{{maxVal}} di {{totalVal}} risultati",
+        "SHOW_NO_COUNT_MESSAGE": "it_IT Showing {{totalVal}} results",
         "SHOW": "Mostra",
         "SORT_BY": "Ordina Per",
         "SORT_BY_RELEVANCE": "Rilevanza",
@@ -1022,6 +1024,17 @@
     },
     "FAVORITE": {
         "VISIBILITY": "it_IT Visibility",
+        "PUBLIC": "it_IT Public",
+        "PRIVATE": "it_IT Private",
+        "ALL": "it_IT All",
+        "NO_FAVORITES_FOUND": "it_IT Your favorite list is empty. Start browsing the catalog and adding your favorites",
+        "SEARCH_FAV": "it_IT Search favorites",
+        "QUICK_LINK": "it_IT Quick Link",
+        "BROWSE_FAVORITE": "it_IT Browse favorites",
+        "SCOPE": "it_IT Scope",
+        "NO_SEARCH_RESULTS":"it_IT Sorry, no results were found for your search criteria. Try adjusting your search or filters to find what you are looking for.",
+        "EMPTY_FAVORITE":"it_IT Favorites is empty.",
+        "NO_RESULTS_FOUND":"it_IT No Results Found",
         "FAVORITE_MODAL": {
             "ADD_FAVORITE": "it_IT Add Favorite",
             "SEARCH_OR_ADD_FAV": "it_IT Search or add new favorite",
