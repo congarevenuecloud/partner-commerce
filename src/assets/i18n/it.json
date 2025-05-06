@@ -949,7 +949,8 @@
         "PRESENT": "Presente",
         "PRESENT_ORDER": "Presente",
         "PRESENT_QUOTE": "Presente",
-        "SEND_TO": "Invia Ordine a"
+        "SEND_TO": "Invia Ordine a",
+        "MISSING_REQ_FIELDS": "it_IT Some mandatory informations are missing in the order details. Please fill to proceed."
     },
     "SERVICES": {
         "SELECTION_OF_ASSETS_MUST_TOOLTIP": "È necessario selezionare asset(s) per eseguire le azioni batch.",
