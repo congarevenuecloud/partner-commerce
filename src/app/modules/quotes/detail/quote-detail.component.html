@@ -57,8 +57,8 @@
         </span>
       </div>
     </div>
-    <app-progress class="status-bar" *ngIf="quoteStatusMap[quote.ApprovalStage]" [steps]="quoteStatusSteps"
-      [currentStep]="quoteStatusMap[quote.ApprovalStage]">
+    <app-progress class="status-bar" *ngIf="quoteStatusLabelMap[quote.ApprovalStage]" [steps]="quoteStatusStepsLabels"
+      [currentStep]="quoteStatusLabelMap[quote.ApprovalStage]">
     </app-progress>
   </div>
 

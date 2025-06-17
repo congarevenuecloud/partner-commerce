@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, TemplateRef, OnDestroy, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, Subscription, of } from 'rxjs';
+import { Observable, Subscription, combineLatest, of } from 'rxjs';
 import { switchMap, take } from 'rxjs/operators';
 import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
@@ -80,35 +80,64 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.lookupOptions.page = 10;
     }));
     this.order = new Order();
-    this.subscriptions.push(this.cartService.getMyCart().subscribe(cart => {
-      this.cart = cart;
-      // Setting default values on order record.
-      this.order.Name = 'New Order'
-      this.order.SoldToAccount = get(cart, 'Account');
-      this.order.BillToAccount = get(cart, 'Account');
-      this.order.ShipToAccount = get(cart, 'Account');
-      this.order.PriceList = get(cart, 'PriceList');
-    }));
-    this.subscriptions.push(this.contactService.getMyContact()
-      .pipe(take(1)).subscribe(c => {
-        this.primaryContact = this.order.PrimaryContact = get(c, 'Contact');
-        this.order.PrimaryContact = this.primaryContact
-      }));
-    this.subscriptions.push(this.translate.stream(['PRIMARY_CONTACT', 'AOBJECTS']).subscribe((val: string) => {
-      this.errMessages.requiredFirstName = val['PRIMARY_CONTACT']['INVALID_FIRSTNAME'];
-      this.errMessages.requiredLastName = val['PRIMARY_CONTACT']['INVALID_LASTNAME'];
-      this.errMessages.requiredEmail = val['PRIMARY_CONTACT']['INVALID_EMAIL'];
-      this.errMessages.requiredPrimaryContact = val['PRIMARY_CONTACT']['INVALID_PRIMARY_CONTACT'];
-      this.errMessages.requiredBillToAcc = val['PRIMARY_CONTACT']['INVALID_BILL_TO_ACC'];
-      this.errMessages.requiredShipToAcc = val['PRIMARY_CONTACT']['INVALID_SHIP_TO_ACC'];
-      this.errMessages.requiredOrderTitle = val['PRIMARY_CONTACT']['INVALID_ORDER_TITLE'];
-      this.breadcrumbs = [
-        {
-          label: val['AOBJECTS']['CART'],
-          route: [`/carts/active`]
+    this.subscriptions.push(
+      this.cartService.getMyCart().subscribe((cart) => {
+        this.cart = cart;
+        // Setting default values on order record.
+        this.order.Name = 'New Order';
+        this.order.SoldToAccount = get(cart, 'Account');
+        this.order.BillToAccount = get(cart, 'Account');
+        this.order.ShipToAccount = get(cart, 'Account');
+        this.order.PriceList = get(cart, 'PriceList');
+      })
+    );
+    this.subscriptions.push(
+      this.contactService
+        .getMyContact()
+        .pipe(take(1))
+        .subscribe((c) => {
+          this.primaryContact = this.order.PrimaryContact = get(c, 'Contact');
+          this.order.PrimaryContact = this.primaryContact;
+        })
+    );
+    this.subscriptions.push(
+      combineLatest([
+        this.translate.stream('PRIMARY_CONTACT.INVALID_FIRSTNAME'),
+        this.translate.stream('PRIMARY_CONTACT.INVALID_LASTNAME'),
+        this.translate.stream('PRIMARY_CONTACT.INVALID_EMAIL'),
+        this.translate.stream('PRIMARY_CONTACT.INVALID_PRIMARY_CONTACT'),
+        this.translate.stream('PRIMARY_CONTACT.INVALID_BILL_TO_ACC'),
+        this.translate.stream('PRIMARY_CONTACT.INVALID_SHIP_TO_ACC'),
+        this.translate.stream('PRIMARY_CONTACT.INVALID_ORDER_TITLE'),
+        this.translate.stream('AOBJECTS.CART'),
+      ]).subscribe(
+        ([
+          firstName,
+          lastName,
+          email,
+          primaryContact,
+          billToAcc,
+          shipToAcc,
+          orderTitle,
+          cartLabel,
+        ]) => {
+          this.errMessages.requiredFirstName = firstName;
+          this.errMessages.requiredLastName = lastName;
+          this.errMessages.requiredEmail = email;
+          this.errMessages.requiredPrimaryContact = primaryContact;
+          this.errMessages.requiredBillToAcc = billToAcc;
+          this.errMessages.requiredShipToAcc = shipToAcc;
+          this.errMessages.requiredOrderTitle = orderTitle;
+          this.breadcrumbs = [
+            {
+              label: cartLabel,
+              route: ['/carts/active'],
+            },
+          ];
         }
-      ];
-    }));
+      )
+    );
+
     this.onBillToChange();
     this.onShipToChange();
     this.isButtonDisabled();

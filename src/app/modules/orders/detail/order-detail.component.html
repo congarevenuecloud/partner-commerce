@@ -78,8 +78,8 @@
       <apt-output-field [record]="proposal" field="Name" labelClass="d-none" [editable]="false"
         [showQuickView]="true"></apt-output-field>
     </div>
-    <app-progress *ngIf="orderStatusMap[order.Status]" [steps]="orderStatusSteps"
-      [currentStep]="orderStatusMap[order.Status]"></app-progress>
+    <app-progress *ngIf="orderStatusLabelMap[order.Status]" [steps]="orderStatusStepsLabels"
+      [currentStep]="orderStatusLabelMap[order.Status]"></app-progress>
   </div>
 
   <ng-container *ngIf="!showPresentTemplate;else presentDocumentTemplate">
@@ -117,9 +117,9 @@
                   <apt-output-field [record]="order" field="ShipToAccount" displayValue="ShipToAccount" [label]="
                   'MY_ACCOUNT.ORDER_DETAIL.SHIP_TO_ACCOUNT' | translate
                 " [editable]="
-                  orderStatusMap[order.Status] === 'Draft' ||
-                  orderStatusMap[order.Status] === 'Generated' ||
-                  orderStatusMap[order.Status] === 'Presented'
+                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'draft' ||
+                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'generated' ||
+                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'presented'
                 " [showQuickView]="true" [required]="true" (onChange)="refreshOrder($event, order, 'ShipToAccount')">
                   </apt-output-field>
 
@@ -128,9 +128,9 @@
                   <apt-output-field [record]="order" field="BillToAccount" displayValue="BillToAccount" [label]="
                     'MY_ACCOUNT.ORDER_DETAIL.BILL_TO_ACCOUNT' | translate
                   " [editable]="
-                    orderStatusMap[order.Status] === 'Draft' ||
-                    orderStatusMap[order.Status] === 'Generated' ||
-                    orderStatusMap[order.Status] === 'Presented'
+                    orderStatusMap[order.Status]?.Key?.toLowerCase() === 'draft' ||
+                    orderStatusMap[order.Status]?.Key?.toLowerCase() === 'generated' ||
+                    orderStatusMap[order.Status]?.Key?.toLowerCase() === 'presented'
                   " [showQuickView]="true"
                     (onChange)="refreshOrder($event, order, 'BillToAccount')"></apt-output-field>
                 </div>
@@ -138,18 +138,18 @@
               <div class="row" *ngIf="isExpanded">
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="order" field="PrimaryContact" displayValue="PrimaryContact" [editable]="
-                  orderStatusMap[order.Status] === 'Draft' ||
-                  orderStatusMap[order.Status] === 'Generated' ||
-                  orderStatusMap[order.Status] === 'Presented'
+                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'draft'||
+                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'generated' ||
+                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'presented'
                 " [showQuickView]="true" [lookupOptions]="lookupOptions" [required]="true"
                     (onChange)="refreshOrder($event, order, 'PrimaryContact')"></apt-output-field>
                 </div>
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="order" field="Description"
                     [label]="'MY_ACCOUNT.ORDER_DETAIL.DESCRIPTION' | translate" field="Description" [editable]="
-                    orderStatusMap[order.Status] === 'Draft' ||
-                    orderStatusMap[order.Status] === 'Generated' ||
-                    orderStatusMap[order.Status] === 'Presented'
+                    orderStatusMap[order.Status]?.Key?.toLowerCase() === 'draft' ||
+                    orderStatusMap[order.Status]?.Key?.toLowerCase() === 'generated' ||
+                    orderStatusMap[order.Status]?.Key?.toLowerCase() === 'presented'
                   " [showQuickView]="true" (onChange)="
                     refreshOrder($event.Description, order, 'Description')
                   "></apt-output-field>
