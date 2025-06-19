@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
 import { Observable, of, BehaviorSubject, Subscription, combineLatest } from 'rxjs';
 import { filter, map, take, mergeMap, switchMap } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 import { get, set, find, defaultTo, map as _map, isEmpty, first, join, split, trim } from 'lodash';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
@@ -59,24 +60,25 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   showPresentTemplate = false;
 
-  quoteStatusSteps = [
-    'Draft',
-    'Approved',
-    'Generated',
-    'Presented',
-    'Accepted'
+  quoteStatusSteps: Array<string> = [
+    'STATUS.DRAFT',
+    'STATUS.APPROVED',
+    'STATUS.GENERATED',
+    'STATUS.PRESENTED',
+    'STATUS.ACCEPTED'
   ];
 
-  quoteStatusMap = {
-    'Draft': 'Draft',
-    'Approval Required': 'Approval Required',
-    'In Review': 'In Review',
-    'Approved': 'Approved',
-    'Generated': 'Generated',
-    'Presented': 'Presented',
-    'Accepted': 'Accepted',
-    'Denied': 'Denied'
-  }
+  quoteStatusMap: Record<string, { Key: string; DisplayText: string }> = {
+    'Draft': { 'Key': 'Draft', 'DisplayText': 'STATUS.DRAFT' },
+    'Approval Required': { 'Key': 'Approval Required', 'DisplayText': 'STATUS.APPROVAL_REQUIRED' },
+    'In Review': { 'Key': 'In Review', 'DisplayText': 'STATUS.IN_REVIEW' },
+    'Approved': { 'Key': 'Approved', 'DisplayText': 'STATUS.APPROVED' },
+    'Generated': { 'Key': 'Generated', 'DisplayText': 'STATUS.GENERATED' },
+    'Presented': { 'Key': 'Presented', 'DisplayText': 'STATUS.PRESENTED' },
+    'Accepted': { 'Key': 'Accepted', 'DisplayText': 'STATUS.ACCEPTED' },
+    'Denied': { 'Key': 'Denied', 'DisplayText': 'STATUS.DENIED' }
+  };
+
 
   @ViewChild('intimationTemplate') intimationTemplate: TemplateRef<any>;
   @ViewChild('fileInput') fileInput: ElementRef;
@@ -94,6 +96,9 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   // Flag used to toggle the content visibility when the list of fields exceeds two rows of the summary with show more or show less icon
   isExpanded: boolean = false;
 
+  quoteStatusLabelMap: Record<string, string> = {};
+  quoteStatusStepsLabels: Array<string> = [];
+
   constructor(private activatedRoute: ActivatedRoute,
     private quoteService: QuoteService,
     private modalService: BsModalService,
@@ -109,8 +114,8 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private emailService: EmailService,
     @Inject(DOCUMENT) private document: Document,
-    private renderer: Renderer2
-
+    private renderer: Renderer2,
+    private translateService: TranslateService
   ) { }
 
   ngOnInit() {
@@ -120,6 +125,12 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     ).subscribe((data: string) => {
       this.supportedFileTypes = join(_map(split(data, ','), (item) => trim(item)), ', ');
     }))
+    this.quoteSubscription.push(
+      this.translateService.stream(this.quoteStatusSteps).subscribe(translations => {
+        this.quoteStatusStepsLabels = this.quoteStatusSteps.map(key => translations[key]);
+      })
+    );
+    this.translateQuoteStatusLabels(this.quoteStatusMap);
   }
 
   getQuote() {
@@ -357,6 +368,21 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
       this.renderer.removeChild(document.body, customElement);
       this.exceptionService.clearToast();
     }
+  }
+
+  private translateQuoteStatusLabels(statusMap: Record<string, { Key: string; DisplayText: string }>): void {
+    this.quoteSubscription.push(
+      this.translateService.stream(
+        Object.values(statusMap).map(status => status.DisplayText)
+      ).subscribe(translations => {
+        this.quoteStatusLabelMap = Object.fromEntries(
+          Object.entries(statusMap).map(([statusKey, status]) => [
+            statusKey,
+            translations[status.DisplayText]
+          ])
+        );
+      })
+    );
   }
 
   ngOnDestroy() {

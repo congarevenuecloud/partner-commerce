@@ -2,6 +2,7 @@ import { Component, OnInit, ViewEncapsulation, OnDestroy, ChangeDetectorRef, Aft
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, BehaviorSubject, combineLatest, of } from 'rxjs';
 import { filter, map, switchMap, mergeMap, take } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 import { get, set, indexOf, first, sum, cloneDeep, find, defaultTo, isNil, map as _map, join, split, trim } from 'lodash';
 import {
   Order, OrderLineItem, OrderService, UserService,
@@ -33,29 +34,29 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
   isLoggedIn$: Observable<boolean>;
   order: Order;
 
-  orderStatusSteps = [
-    'Draft',
-    'Generated',
-    'Presented',
-    'Confirmed',
-    'In Fulfillment',
-    'Fulfilled',
-    'Activated'
+  orderStatusSteps: Array<string> = [
+    'STATUS.DRAFT',
+    'STATUS.GENERATED',
+    'STATUS.PRESENTED',
+    'STATUS.CONFIRMED',
+    'STATUS.IN_FULFILLMENT',
+    'STATUS.FULFILLED',
+    'STATUS.ACTIVATED'
   ];
 
-  orderStatusMap = {
-    'Draft': 'Draft',
-    'Confirmed': 'Confirmed',
-    'Processing': 'Generated',
-    'In Fulfillment': 'In Fulfillment',
-    'Partially Fulfilled': 'Partially Fulfilled',
-    'Fulfilled': 'Fulfilled',
-    'Activated': 'Activated',
-    'In Amendment': 'Draft',
-    'Being Amended': 'Draft',
-    'Superseded': 'Draft',
-    'Generated': 'Generated',
-    'Presented': 'Presented'
+  orderStatusMap: Record<string, { Key: string; DisplayText: string }> = {
+    'Draft': { 'Key': 'Draft', 'DisplayText': 'STATUS.DRAFT' },
+    'Confirmed': { 'Key': 'Confirmed', 'DisplayText': 'STATUS.CONFIRMED' },
+    'Processing': { 'Key': 'Processing', 'DisplayText': 'STATUS.GENERATED' },
+    'In Fulfillment': { 'Key': 'In Fulfillment', 'DisplayText': 'STATUS.IN_FULFILLMENT' },
+    'Partially Fulfilled': { 'Key': 'Partially Fulfilled', 'DisplayText': 'STATUS.PARTIALLY_FULFILLED' },
+    'Fulfilled': { 'Key': 'Fulfilled', 'DisplayText': 'STATUS.FULFILLED' },
+    'Activated': { 'Key': 'Activated', 'DisplayText': 'STATUS.ACTIVATED' },
+    'In Amendment': { 'Key': 'In Amendment', 'DisplayText': 'STATUS.DRAFT' },
+    'Being Amended': { 'Key': 'Being Amended', 'DisplayText': 'STATUS.DRAFT' },
+    'Superseded': { 'Key': 'Superseded', 'DisplayText': 'STATUS.DRAFT' },
+    'Generated': { 'Key': 'Generated', 'DisplayText': 'STATUS.GENERATED' },
+    'Presented': { 'Key': 'Presented', 'DisplayText': 'STATUS.PRESENTED' }
   };
 
   isLoading: boolean = false;
@@ -89,6 +90,9 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
   // Flag used to toggle the content visibility when the list of fields exceeds two rows of the summary with show more or show less icon
   isExpanded: boolean = false;
 
+  orderStatusLabelMap: Record<string, string> = {};
+  orderStatusStepsLabels: Array<string> = [];
+
   constructor(private activatedRoute: ActivatedRoute,
     private orderService: OrderService,
     private userService: UserService,
@@ -102,7 +106,8 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     private contactService: ContactService,
     private attachmentService: AttachmentService,
     private productInformationService: ProductInformationService,
-    private ngZone: NgZone) { }
+    private ngZone: NgZone,
+    private translateService: TranslateService) { }
 
   ngOnInit() {
     this.isLoggedIn$ = this.userService.isLoggedIn();
@@ -118,6 +123,14 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     ).subscribe((data: string) => {
       this.supportedFileTypes = join(_map(split(data, ','), (item) => trim(item)), ', ');
     }))
+    this.subscriptions.push(
+      this.translateService.stream(this.orderStatusSteps).subscribe((translations) => {
+        this.orderStatusStepsLabels = this.orderStatusSteps.map(
+          (key) => translations[key]
+        );
+      })
+    );
+    this.translateOrderStatusLabels(this.orderStatusMap);
   }
 
   getOrder() {
@@ -138,12 +151,12 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
         switchMap(order => {
           if (isNil(order)) return of(null);
     
-          if (order?.Status === 'Partially Fulfilled' && indexOf(this.orderStatusSteps, 'Fulfilled') > 0) {
-            this.orderStatusSteps[indexOf(this.orderStatusSteps, 'Fulfilled')] = 'Partially Fulfilled';
+          if (order?.Status === 'Partially Fulfilled' && indexOf(this.orderStatusSteps, 'STATUS.FULFILLED') > 0) {
+            this.orderStatusSteps[indexOf(this.orderStatusSteps, 'STATUS.FULFILLED')] = 'STATUS.PARTIALLY_FULFILLED';
           }
     
-          if (order?.Status === 'Fulfilled' && indexOf(this.orderStatusSteps, 'Partially Fulfilled') > 0) {
-            this.orderStatusSteps[indexOf(this.orderStatusSteps, 'Partially Fulfilled')] = 'Fulfilled';
+          if (order?.Status === 'Fulfilled' && indexOf(this.orderStatusSteps, 'STATUS.PARTIALLY_FULFILLED') > 0) {
+            this.orderStatusSteps[indexOf(this.orderStatusSteps, 'STATUS.PARTIALLY_FULFILLED')] = 'Fulfilled';
           }
 
           order.OrderLineItems = get(order, 'OrderLineItems');
@@ -356,5 +369,20 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     this.productInformationService.getAttachmentUrl(attachmentId).pipe(take(1)).subscribe((url: string) => {
       window.open(url, '_blank');
     });
+  }
+
+  private translateOrderStatusLabels(statusMap: Record<string, { Key: string; DisplayText: string }>): void {
+    this.subscriptions.push(
+      this.translateService.stream(
+        Object.values(statusMap).map(status => status.DisplayText)
+      ).subscribe(translations => {
+        this.orderStatusLabelMap = Object.fromEntries(
+          Object.entries(statusMap).map(([statusKey, status]) => [
+            statusKey,
+            translations[status.DisplayText]
+          ])
+        );
+      })
+    );
   }
 }
