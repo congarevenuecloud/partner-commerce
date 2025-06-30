@@ -438,6 +438,7 @@
 "DETAILS.VIEW_YOUR_ORDER": "View Your Order",
 "EMAIL.BCC": "Bcc",
 "EMAIL.CC": "Cc",
+"EMAIL.ERROR.TO_FIELD_MISSING":"You must provide either a contactId or specify the 'To' field in EmailParameters.",
 "EMAIL.FROM": "From",
 "EMAIL.INVALID_TO_FIELD": "To is required",
 "EMAIL.MESSAGE": "Email Message",
