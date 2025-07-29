@@ -82,15 +82,15 @@ export class OrderListComponent implements OnInit, OnDestroy {
                   mobileView: true
                 },
                 {
-                  prop: 'PriceList.Name',
+                  prop: 'PriceList',
                   label: 'CUSTOM_LABELS.PRICELIST'
                 },
                 {
-                  prop: 'BillToAccount.Name',
+                  prop: 'BillToAccount',
                   label: 'CUSTOM_LABELS.BILL_TO'
                 },
                 {
-                  prop: 'ShipToAccount.Name',
+                  prop: 'ShipToAccount',
                   label: 'CUSTOM_LABELS.SHIP_TO'
                 },
                 {
