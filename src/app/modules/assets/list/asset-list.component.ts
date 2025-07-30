@@ -353,7 +353,8 @@ export class AssetListComponent implements OnInit, OnDestroy {
             <Array<AssetLineItem>>recordList
           );
           return of(null);
-        }
+        },
+        disableReload: true
       },
       {
         icon: 'fa-wrench',
@@ -369,7 +370,8 @@ export class AssetListComponent implements OnInit, OnDestroy {
             <Array<AssetLineItem>>recordList
           );
           return of(null);
-        }
+        },
+        disableReload: true
       },
       {
         icon: 'fa-dollar-sign',
@@ -386,7 +388,8 @@ export class AssetListComponent implements OnInit, OnDestroy {
             <Array<AssetLineItem>>recordList
           );
           return of(null);
-        }
+        },
+        disableReload: true
       },
       {
         icon: 'fa-ban',
@@ -403,7 +406,8 @@ export class AssetListComponent implements OnInit, OnDestroy {
             <Array<AssetLineItem>>recordList
           );
           return of(null);
-        }
+        },
+        disableReload: true
       },
     ];
   }

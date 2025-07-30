@@ -1,8 +1,9 @@
 import { Component, OnInit, ViewChild, OnDestroy, TemplateRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { first, get, isNil, find, forEach, maxBy, filter, last, defaultTo, set } from 'lodash';
 import { combineLatest, Observable, Subscription, of, BehaviorSubject, take } from 'rxjs';
 import { switchMap, map as rmap, distinctUntilChanged } from 'rxjs/operators';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first, get, isNil, find, forEach, maxBy, filter, last, defaultTo, set } from 'lodash';
 import {
   CartService,
   CartItem,
@@ -17,7 +18,6 @@ import {
   ItemRequest
 } from '@congarevenuecloud/ecommerce';
 import { ProductConfigurationComponent, ProductConfigurationSummaryComponent, ProductConfigurationService, RevalidateCartService } from '@congarevenuecloud/elements';
-import { BsModalRef } from 'ngx-bootstrap/modal';
 @Component({
   selector: 'app-product-detail',
   templateUrl: './product-detail.component.html',
@@ -26,6 +26,8 @@ import { BsModalRef } from 'ngx-bootstrap/modal';
 
 export class ProductDetailComponent implements OnInit, OnDestroy {
   @ViewChild('confirmationTemplate') confirmationTemplate: TemplateRef<any>;
+  @ViewChild('productDescriptionModal') productDescriptionModal: TemplateRef<any>;
+
   viewState$: BehaviorSubject<ProductDetailsState> = new BehaviorSubject<ProductDetailsState>(null);
   recommendedProducts$: Observable<Array<ItemRequest>>;
   attachments$: Observable<Array<ProductInformation>>;
@@ -49,6 +51,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   configSummaryModal: ProductConfigurationSummaryComponent;
   @ViewChild(ProductConfigurationComponent, { static: false })
   productConfigComponent: ProductConfigurationComponent;
+  productDescriptionModalRef: BsModalRef;
+
   constructor(private cartService: CartService,
     private router: Router,
     private route: ActivatedRoute,
@@ -56,7 +60,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private revalidateCartService: RevalidateCartService,
     private storefrontService: StorefrontService,
     private productConfigurationService: ProductConfigurationService,
-    private crService: ConstraintRuleService) {
+    private crService: ConstraintRuleService,
+    private modalService: BsModalService) {
   }
 
   ngOnInit() {
@@ -151,8 +156,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   changeProductQuantity(newQty: any) {
-    if (this.cartItemList && this.cartItemList.length > 0 && !isNil(get(this.viewState$,'value.relatedTo'))){
-      let item  = find(this.cartItemList, c => c.LineType === 'Product/Service');
+    if (this.cartItemList && this.cartItemList.length > 0 && !isNil(get(this.viewState$, 'value.relatedTo'))) {
+      let item = find(this.cartItemList, c => c.LineType === 'Product/Service');
       item.Quantity = newQty;
       this.subscriptions.push(this.productConfigurationService.changeProductQuantity(newQty, item).subscribe(() => { }));
     }
@@ -163,7 +168,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       forEach(this.cartItemList, c => {
         c.IsOptional = event;
       });
-    this.productConfigurationService.changeItemToOptional(this.cartItemList).pipe(take(1)).subscribe(()=>{});
+    this.productConfigurationService.changeItemToOptional(this.cartItemList).pipe(take(1)).subscribe(() => { });
   }
 
   handleEndDateChange(cartItem: CartItem) {
@@ -183,6 +188,34 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       primaryItem = find(cartItems, i => get(i, 'LineType') === 'Product/Service' && i.PrimaryLineNumber === get(this, 'relatedTo.PrimaryLineNumber') && isNil(get(i, 'Option')));
     }
     return primaryItem;
+  }
+
+  isTextOverflowing(text: string): boolean {
+    if (!text) return false;
+
+    // Check for HTML formatting likely to take up multiple lines
+    const hasFormattingTags = /<\/?(ul|ol|li|br|p|div|h[1-6])[^>]*>/i.test(text);
+
+    // Count text line breaks or <br> tags
+    const lineBreaks = (text.match(/\n/g) || []).length;
+    const brTags = (text.match(/<br\s*\/?>/gi) || []).length;
+
+    // Enforce 200 character limit
+    const isOverCharLimit = text.length > 200;
+
+    // Clamp if there's formatting OR line breaks OR it's too long
+    return hasFormattingTags || (lineBreaks + brTags) >= 2 || isOverCharLimit;
+  }
+
+  openProductDescriptionModal() {
+    this.productDescriptionModalRef = this.modalService.show(this.productDescriptionModal, { class: 'modal-lg', backdrop: 'static', keyboard: false });
+  }
+
+  closeProductDescriptionModal() {
+    if (this.productDescriptionModalRef) {
+      this.productDescriptionModalRef.hide();
+      this.productDescriptionModalRef = null;
+    }
   }
 
   ngOnDestroy() {

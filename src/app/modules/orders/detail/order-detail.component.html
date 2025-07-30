@@ -10,8 +10,15 @@
       <span tooltip="{{order?.Name}}" class="page-header d-lg-none d-md-none d-sm-block d-block">{{ order?.Name |
         truncate:13 }}</span>
 
-      <span class="badge badge-light ml-1 px-2 py-1" *ngIf="order?.Status">{{ order?.Status }}</span>
-
+      <div class="badge badge-light ml-1 px-2 py-0" *ngIf="order?.Status">
+        <apt-output-field
+          [record]="order"
+          field="Status"
+          [editable]="false"
+          [valueOnly]="true"
+          [valueClass]="'pt-0'"
+        ></apt-output-field>
+      </div>
       <div *ngIf="!showPresentTemplate" class="btn-group secondary-actions ml-auto align-self-stretch" role="group"
         [ngSwitch]="order?.Status" [tooltip]="
             order.hasErrors ? ('DETAILS.MISSING_REQ_FIELDS' | translate) : ''">

@@ -47,26 +47,25 @@ export class FavoriteListComponent implements OnInit {
               stickyColumnCount: 1,
               stickyColumns: [{
                 prop: 'Name',
-                label: 'Favorite Name'
+                label: 'FAVORITE.NAME'
               }],
               columns: [
                 {
                   prop: 'Name',
-                  label: 'Favorite Name'
+                  label: 'FAVORITE.NAME'
                 },
                 {
                   prop: 'Description',
-                  label: 'Description',
                   showPopover: true
                 },
                 {
                   prop: 'Scope',
-                  label: 'Visibility'
+                  label: 'FAVORITE.VISIBILITY'
                 },
                 {
                   prop: 'IsActive',
                   value: (record: Favorite) => record.IsActive ? of('Yes') : of('No'),
-                  label: 'Active'
+                  label: 'COMMON.ACTIVE'
                 },
                 {
                   prop: 'CreatedDate',
@@ -82,17 +81,17 @@ export class FavoriteListComponent implements OnInit {
                   enabled: true,
                   icon: 'fa-check',
                   massAction: false,
-                  label: 'Add to Cart',
+                  label: 'COMMON.ADD_TO_CART',
                   theme: 'primary',
                   validate: (record: Favorite) => this.isActiveFavorite(record),
                   action: (recordList: Array<Favorite>) => this.addFavoriteToCart(first(recordList)),
-                  disableReload: false
+                  disableReload: true
                 } as TableAction,
                 {
                   enabled: true,
                   icon: 'fa-pencil',
                   massAction: false,
-                  label: 'Edit',
+                  label: 'COMMON.EDIT',
                   theme: 'primary',
                   validate: (record: Favorite) => this.canEdit(record),
                   action: (recordList: Array<Favorite>) => this.editFavorite(first(recordList)),
@@ -102,7 +101,7 @@ export class FavoriteListComponent implements OnInit {
                   enabled: true,
                   icon: 'fa-trash',
                   massAction: true,
-                  label: 'Delete',
+                  label: 'COMMON.DELETE',
                   theme: 'danger',
                   validate: (record: Favorite) => this.canDelete(record),
                   action: (recordList: Array<Favorite>) => this.favoriteService.removeFavorites(recordList)

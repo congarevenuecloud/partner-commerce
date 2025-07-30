@@ -106,7 +106,7 @@ export class QuoteListComponent implements OnInit {
                   prop: 'RFPResponseDueDate'
                 },
                 {
-                  prop: 'PriceList.Name',
+                  prop: 'PriceList',
                   label: 'CUSTOM_LABELS.PRICELIST'
                 },
                 {
@@ -117,7 +117,7 @@ export class QuoteListComponent implements OnInit {
                   }
                 },
                 {
-                  prop: 'Account.Name',
+                  prop: 'Account',
                   label: 'CUSTOM_LABELS.ACCOUNT'
                 },
                 {

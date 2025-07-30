@@ -10,12 +10,12 @@
         <div class="form-group">
           <apt-input-field [entity]="quote" [field]="'ProposalName'" [(ngModel)]="quote.ProposalName"
             (ngModelChange)="quoteChange()" [label]="'CREATE_QUOTE.QUOTE_TITLE' | translate" [required]="true"
-            [errorMsg]="!quote.ProposalName ? 'Quote title cannot be empty' : ''"></apt-input-field>
+            [errorMsg]="!quote.ProposalName ? ('CREATE_QUOTE.TITLE_REQUIRED' | translate) : ''"></apt-input-field>
         </div>
         <div class="form-group">
           <apt-input-field placeholder="{{'CREATE_QUOTE.SEARCH_CONTACTS' | translate }}" [entity]="quote"
             [field]="'PrimaryContact'" [lookupOptions]="lookupOptions" [required]="true" [(ngModel)]="contact"
-            (ngModelChange)="primaryContactChange()" [errorMsg]="'Primary contact is mandatory'">
+            (ngModelChange)="primaryContactChange()" [errorMsg]="('CREATE_QUOTE.PRIMARY_CONTACT_REQUIRED' | translate)">
           </apt-input-field>
         </div>
         <div class="form-group">
