@@ -1,6 +1,12 @@
-import { Component, OnInit, HostListener, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  HostListener,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
-import { map, switchMap, take, tap } from 'rxjs/operators';
+import { map, switchMap, take, tap, catchError } from 'rxjs/operators';
 import { first, defaultTo, get, cloneDeep, isEqual, upperFirst } from 'lodash';
 import {
   UserService,
@@ -17,14 +23,14 @@ import { ExceptionService } from '@congarevenuecloud/elements';
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent implements OnInit {
-
   pageTop: boolean = true;
   user$: Observable<User>;
   userInitials: string = null;
   storefront$: Observable<Storefront>;
+  storeLogo$: Observable<string>;
   myAccount$: Observable<Account>;
   showFavorites$: Observable<boolean>;
   cartView$: BehaviorSubject<Cart> = new BehaviorSubject(null);
@@ -40,17 +46,37 @@ export class HeaderComponent implements OnInit {
     private accountService: AccountService,
     private exceptionService: ExceptionService,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.updateCartView();
     this.storefront$ = this.storefrontService.getStorefront();
+    this.storeLogo$ = this.storefront$.pipe(
+      switchMap((storefront: Storefront) => {
+        if (storefront?.Logo) {
+          return of(storefront as Storefront);
+        } else {
+          // Fallback to org-level logo
+          return this.storefrontService.getConfigManagementSetting(
+            'uithemes',
+            'headersettings'
+          );
+        }
+      }),
+      map((response) =>
+        get(response, response instanceof Storefront ? 'Logo' : 'logo', null)
+      )
+    );
     this.showFavorites$ = this.storefrontService.isFavoriteEnabled();
     this.user$ = this.userService.me().pipe(
       tap((user: User) => {
-        this.userInitials = defaultTo(upperFirst(first(user.FirstName)), '') as string + defaultTo(upperFirst(first(user.LastName)), '') as string;
-        user.FirstName= upperFirst(user.FirstName);
-        user.LastName= upperFirst(user.LastName);
+        this.userInitials = ((defaultTo(
+          upperFirst(first(user.FirstName)),
+          ''
+        ) as string) +
+          defaultTo(upperFirst(first(user.LastName)), '')) as string;
+        user.FirstName = upperFirst(user.FirstName);
+        user.LastName = upperFirst(user.LastName);
       })
     );
   }
@@ -60,14 +86,19 @@ export class HeaderComponent implements OnInit {
   }
 
   updateCartView() {
-    combineLatest([this.cartService.getMyCart(), this.accountService.getCurrentAccount()]).pipe(
-      take(1),
-      map(([cart, account]) => {
-        cart.Account = account;
-        this.cart = cart;
-        this.cartView$.next(cloneDeep(cart));
-      })
-    ).subscribe();
+    combineLatest([
+      this.cartService.getMyCart(),
+      this.accountService.getCurrentAccount(),
+    ])
+      .pipe(
+        take(1),
+        map(([cart, account]) => {
+          cart.Account = account;
+          this.cart = cart;
+          this.cartView$.next(cloneDeep(cart));
+        })
+      )
+      .subscribe();
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -78,16 +109,19 @@ export class HeaderComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const clickedElement = event?.target as HTMLElement;
-    const isArrowLeftOrUpdateAccount = clickedElement.closest('.back-icon') ||
+    const isArrowLeftOrUpdateAccount =
+      clickedElement.closest('.back-icon') ||
       clickedElement.classList.contains('update-account');
 
     if (isArrowLeftOrUpdateAccount) this.showAccountInfo = false;
-
     else if (
       clickedElement.parentElement?.classList.contains('account-section') ||
       clickedElement.closest('.account-info') ||
-      ['basicOption', 'ng-option'].some(className => clickedElement.classList.contains(className))) return;
-
+      ['basicOption', 'ng-option'].some((className) =>
+        clickedElement.classList.contains(className)
+      )
+    )
+      return;
     else {
       this.showAccountHome = false;
       this.showAccountInfo = false;
@@ -112,7 +146,12 @@ export class HeaderComponent implements OnInit {
   }
 
   resetAccountSelection(): void {
-    if (!isEqual(get(this.cartView$, 'value.Account.Id'), get(this.cart, 'Account.Id')))
+    if (
+      !isEqual(
+        get(this.cartView$, 'value.Account.Id'),
+        get(this.cart, 'Account.Id')
+      )
+    )
       this.cartView$.value.Account = this.cart.Account;
   }
 
@@ -131,10 +170,16 @@ export class HeaderComponent implements OnInit {
   }
 
   saveAccountDetails(account: Account): void {
-    this.accountService.setAccount(account).pipe(take(1)).subscribe(() => {
-      this.cart.Account = account;
-      this.cdr.markForCheck();
-      this.exceptionService.showSuccess('HEADER.CHANGE_ACCOUNT_MESSAGE', 'ACTION_BAR.CHANGE_ACCOUNT_TITLE');
-    });
+    this.accountService
+      .setAccount(account)
+      .pipe(take(1))
+      .subscribe(() => {
+        this.cart.Account = account;
+        this.cdr.markForCheck();
+        this.exceptionService.showSuccess(
+          'HEADER.CHANGE_ACCOUNT_MESSAGE',
+          'ACTION_BAR.CHANGE_ACCOUNT_TITLE'
+        );
+      });
   }
 }

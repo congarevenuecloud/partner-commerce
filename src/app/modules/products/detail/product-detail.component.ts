@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, OnDestroy, TemplateRef } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, TemplateRef, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, Observable, Subscription, of, BehaviorSubject, take } from 'rxjs';
 import { switchMap, map as rmap, distinctUntilChanged } from 'rxjs/operators';
@@ -52,6 +52,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   @ViewChild(ProductConfigurationComponent, { static: false })
   productConfigComponent: ProductConfigurationComponent;
   productDescriptionModalRef: BsModalRef;
+  // Screen size detection
+  isMediumOrLargeScreen: boolean = true;
 
   constructor(private cartService: CartService,
     private router: Router,
@@ -64,7 +66,14 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private modalService: BsModalService) {
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    this.checkScreenSize();
+  }
+
   ngOnInit() {
+    // Initialize screen size
+    this.checkScreenSize();
     this.subscriptions.push(this.route.params.pipe(
       switchMap(params => {
         this.productConfigurationService.onChangeConfiguration(null);
@@ -216,6 +225,10 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       this.productDescriptionModalRef.hide();
       this.productDescriptionModalRef = null;
     }
+  }
+
+  private checkScreenSize() {
+    this.isMediumOrLargeScreen = window.innerWidth >= 576;
   }
 
   ngOnDestroy() {
