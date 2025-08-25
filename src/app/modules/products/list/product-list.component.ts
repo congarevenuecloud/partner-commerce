@@ -5,8 +5,8 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { Observable, of, BehaviorSubject, Subscription, combineLatest } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
-import { get, isNil, isEmpty, toString, toNumber, set, remove, isEqual, debounce } from 'lodash';
-import { FilterOperator, PlatformConstants } from '@congarevenuecloud/core';
+import { get, isNil, isEmpty, toString, toNumber, set, isEqual } from 'lodash';
+import { FilterOperator, PlatformConstants, ConfigurationService } from '@congarevenuecloud/core';
 import { Category, ProductService, ProductResult, PreviousState, FieldFilter, AccountService, CategoryService, Product, FacetFilter, FacetFilterPayload, CartService, StorefrontService, FavoriteService, Favorite, FavoriteResult } from '@congarevenuecloud/ecommerce';
 import { BatchSelectionService, ExceptionService } from '@congarevenuecloud/elements';
 
@@ -57,9 +57,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
   isFavoriteCatalog: boolean = false;
   // Object to hold the loading state of the favorite records being added to the cart.
   isLoading: Object = {};
+
+  private searchDebounceTimer: any;
+
   constructor(private activatedRoute: ActivatedRoute, private sanitizer: DomSanitizer, private router: Router, private categoryService: CategoryService, public batchSelectionService: BatchSelectionService,
     public productService: ProductService, private translateService: TranslateService, private accountService: AccountService,
-    private storefrontService: StorefrontService, private favoriteService: FavoriteService, private exceptionService: ExceptionService) { }
+    private storefrontService: StorefrontService, private favoriteService: FavoriteService, private exceptionService: ExceptionService, private configurationService: ConfigurationService) { }
 
   ngOnInit() {
     this.subscriptions.push(
@@ -102,6 +105,9 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
   }
 
   getResults(type: 'product' | 'favorite' = 'product') {
@@ -180,10 +186,20 @@ export class ProductListComponent implements OnInit, OnDestroy {
   searchFavorites(evt: string) {
     this.favoriteSearchString = evt.trim();
     this.page = 1;
+
     if (!this.favoriteSearchString) {
       this.favorites$.next(null);
     }
-    debounce(() => this.getResults('favorite'), 1000)();
+
+    // Clear previous timeout
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    // Set new timeout
+    this.searchDebounceTimer = setTimeout(() => {
+      this.getResults('favorite');
+    }, this.configurationService.get('debounceTime', 1000));
   }
 
   scrollTop() {

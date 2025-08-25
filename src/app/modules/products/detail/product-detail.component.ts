@@ -4,6 +4,7 @@ import { combineLatest, Observable, Subscription, of, BehaviorSubject, take } fr
 import { switchMap, map as rmap, distinctUntilChanged } from 'rxjs/operators';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, get, isNil, find, forEach, maxBy, filter, last, defaultTo, set } from 'lodash';
+import { ConfigurationService } from '@congarevenuecloud/core';
 import {
   CartService,
   CartItem,
@@ -54,6 +55,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   productDescriptionModalRef: BsModalRef;
   // Screen size detection
   isMediumOrLargeScreen: boolean = true;
+  private quantityUpdateTimer: any;
 
   constructor(private cartService: CartService,
     private router: Router,
@@ -63,7 +65,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private storefrontService: StorefrontService,
     private productConfigurationService: ProductConfigurationService,
     private crService: ConstraintRuleService,
-    private modalService: BsModalService) {
+    private modalService: BsModalService,
+    private configurationService: ConfigurationService) {
   }
 
   @HostListener('window:resize', ['$event'])
@@ -165,11 +168,17 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   changeProductQuantity(newQty: any) {
-    if (this.cartItemList && this.cartItemList.length > 0 && !isNil(get(this.viewState$, 'value.relatedTo'))) {
-      let item = find(this.cartItemList, c => c.LineType === 'Product/Service');
-      item.Quantity = newQty;
-      this.subscriptions.push(this.productConfigurationService.changeProductQuantity(newQty, item).subscribe(() => { }));
+    if (this.quantityUpdateTimer) {
+      clearTimeout(this.quantityUpdateTimer);
     }
+
+    this.quantityUpdateTimer = setTimeout(() => {
+      if (this.cartItemList && this.cartItemList.length > 0 && !isNil(get(this.viewState$, 'value.relatedTo'))) {
+        let item = find(this.cartItemList, c => c.LineType === 'Product/Service');
+        item.Quantity = newQty;
+        this.subscriptions.push(this.productConfigurationService.changeProductQuantity(newQty, item).subscribe(() => { }));
+      }
+    }, this.configurationService.get('debounceTime', 500));
   }
 
   changeProductToOptional(event: boolean) {
@@ -235,6 +244,9 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     forEach(this.subscriptions, item => {
       if (item) item.unsubscribe();
     });
+    if (this.quantityUpdateTimer) {
+      clearTimeout(this.quantityUpdateTimer);
+    }
   }
 }
 
