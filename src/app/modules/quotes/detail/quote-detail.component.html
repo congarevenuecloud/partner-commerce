@@ -10,47 +10,88 @@
         <span class="page-header d-lg-block d-md-block d-sm-none d-none">{{quote?.Name}}</span>
         <span tooltip="{{quote?.Name}}" class="page-header d-block d-sm-block d-md-none d-lg-none">{{quote?.Name |
           truncate:13}}</span>
-        <div
-          class="badge badge-light ml-1 px-2 py-0 text-uppercase"
-          *ngIf="quote?.ApprovalStage"
-        >
-          <apt-output-field
-            [record]="quote"
-            [field]="'ApprovalStage'"
-            [valueOnly]="true"
-            [valueClass]="'p-0'"
-            [editable]="false"
-          >
+        <div class="badge badge-light ml-1 px-2 py-0 text-uppercase" *ngIf="quote?.ApprovalStage">
+          <apt-output-field [record]="quote" [field]="'ApprovalStage'" [valueOnly]="true" [valueClass]="'p-0'"
+            [editable]="false">
           </apt-output-field>
         </div>
       </div>
-      <button
-        *ngIf="!showPresentTemplate && (quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented')"
-        type="button" class="btn btn-outline-primary ml-auto px-2 d-lg-block d-md-block d-sm-none d-none"
-        (click)="showPresentTemplateFun()">
-        {{'DETAILS.PRESENT_QUOTE' | translate}}
-      </button>
-      <apt-generate-document
-        *ngIf="quote.ApprovalStage !== 'Accepted' && quote.ApprovalStage !== 'Denied' && !showPresentTemplate"
-        [record]="quote"
-        [ngClass]="quote.ApprovalStage === 'Draft' ?  'pr-2 ml-auto d-lg-block d-md-block d-sm-none d-none ' :' px-3 d-lg-block d-md-block d-sm-none d-none'"
-        (onStatusUpdate)="onGenerateQuote()">
-      </apt-generate-document>
-      <button type="button" [ladda]="rejectLoader"
-        class="btn btn-outline-primary mr-3 d-lg-block d-md-block d-sm-none d-none"
-        *ngIf="quote?.ApprovalStage === 'Presented' && !showPresentTemplate"
-        (click)="rejectQuote(quote?.Id)">{{'COMMON.REJECT' | translate}}
-      </button>
-      <div *ngIf="quote?.Items?.length > 0 && !showPresentTemplate" class="d-lg-block d-md-block d-sm-none d-none">
-        <button type="button"
-          [ngClass]="quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' ?  'btn btn-primary btn-raised' :'btn btn-primary btn-raised'"
-          [ladda]="acceptLoader"
-          *ngIf="quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented'"
-          (click)="acceptQuote(quote?.Id, quote?.PrimaryContact?.Id)">{{'COMMON.ACCEPT_QUOTE'
-          |translate}}</button>
+
+      <div class="d-flex align-items-center" *ngIf="!showPresentTemplate && !showSendForSignatureTemplate">
+        <apt-generate-document *ngIf="quote.ApprovalStage !== 'Accepted' && quote.ApprovalStage !== 'Denied'"
+          [record]="quote" [ngClass]="'d-lg-block d-md-block d-sm-none d-none mr-2'"
+          (onStatusUpdate)="onGenerateQuote()">
+        </apt-generate-document>
+
+        <!-- Primary action buttons -->
+        <ng-container *ngFor="let button of primaryButtons">
+          <!-- Present Quote Button -->
+          <button *ngIf="button.id === 'present'" type="button"
+            class="btn btn-outline-primary mr-2 px-2 d-lg-block d-md-block d-sm-none d-none"
+            (click)="showPresentTemplateFun()">
+            {{'DETAILS.PRESENT_QUOTE' | translate}}
+          </button>
+
+          <!-- Send for Signature Button -->
+          <button *ngIf="button.id === 'sendForSignature'" type="button"
+            class="btn btn-outline-primary mr-2 px-2 d-lg-block d-md-block d-sm-none d-none"
+            (click)="openSendForSignatureModal()" data-style="zoom-in">
+            {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
+          </button>
+
+          <!-- Accept Quote Button -->
+          <button *ngIf="button.id === 'accept'" type="button"
+            [ngClass]="quote?.ApprovalStage === 'Approved' ? 'btn btn-primary btn-raised mr-2 d-lg-block d-md-block d-sm-none d-none' : 'btn btn-primary btn-raised mr-2 d-lg-block d-md-block d-sm-none d-none'"
+            [ladda]="acceptLoader" (click)="acceptQuote(quote?.Id, quote?.PrimaryContact?.Id)">
+            {{'COMMON.ACCEPT_QUOTE' | translate}}
+          </button>
+
+          <!-- Reject Button -->
+          <button *ngIf="button.id === 'reject'" type="button" [ladda]="rejectLoader"
+            class="btn btn-outline-primary mr-2 px-2 d-lg-block d-md-block d-sm-none d-none"
+            (click)="rejectQuote(quote?.Id)">
+            {{'COMMON.REJECT' | translate}}
+          </button>
+
+        </ng-container>
+
+        <!-- Ellipses dropdown for buttons -->
+        <div *ngIf="hasDropdown" class="dropdown d-lg-inline-block d-md-inline-block d-sm-none d-none">
+          <a class="fa fa-ellipsis-v dropdown-toggle ml-2" href="#" role="button" id="desktopDropdownMenuLink"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          </a>
+          <div class="dropdown-menu dropdown-menu-right px-3" aria-labelledby="desktopDropdownMenuLink">
+
+            <ng-container *ngFor="let button of dropdownButtons">
+              <!-- Present Quote in dropdown -->
+              <button *ngIf="button.id === 'present'" type="button" class="btn btn-raised dropdown-item"
+                (click)="showPresentTemplateFun()">
+                {{'DETAILS.PRESENT_QUOTE' | translate}}
+              </button>
+
+              <!-- Send for Signature in dropdown -->
+              <button *ngIf="button.id === 'sendForSignature'" type="button" class="btn btn-raised dropdown-item"
+                (click)="openSendForSignatureModal()" data-style="zoom-in">
+                {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
+              </button>
+
+              <!-- Accept Quote in dropdown -->
+              <button *ngIf="button.id === 'accept'" type="button" class="btn btn-raised dropdown-item"
+                [ladda]="acceptLoader" (click)="acceptQuote(quote?.Id, quote?.PrimaryContact?.Id)">
+                {{'COMMON.ACCEPT_QUOTE' | translate}}
+              </button>
+
+              <!-- Reject in dropdown -->
+              <button *ngIf="button.id === 'reject'" type="button" [ladda]="rejectLoader"
+                class="btn btn-raised dropdown-item" (click)="rejectQuote(quote?.Id)">
+                {{'COMMON.REJECT' | translate}}
+              </button>
+            </ng-container>
+          </div>
+        </div>
       </div>
       <div class="d-sm-block d-block ml-auto d-md-none d-lg-none pt-2"
-        *ngIf="quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented' || quote?.ApprovalStage === 'Approved'">
+        *ngIf="!showPresentTemplate && !showSendForSignatureTemplate && (quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented' || quote?.ApprovalStage === 'Approved')">
         <div class="dropdown">
           <a class="fa fa-ellipsis-v dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -65,13 +106,8 @@
           <apt-output-field [record]="order" field="Name" [label]="'MY_ACCOUNT.ORDER_DETAIL.ORDER_ID' | translate"
             layout="inline" [editable]="false" [showQuickView]="true"></apt-output-field>
           <div class="badge badge-light ml-1 py-0">
-            <apt-output-field
-              [record]="order"
-              [field]="'Status'"
-              [valueOnly]="true"
-              [valueClass]="'p-0'"
-              [editable]="false"
-            >
+            <apt-output-field [record]="order" [field]="'Status'" [valueOnly]="true" [valueClass]="'p-0'"
+              [editable]="false">
             </apt-output-field>
           </div>
         </span>
@@ -82,7 +118,7 @@
     </app-progress>
   </div>
 
-  <ng-container *ngIf="!showPresentTemplate;else presentDocumentTemplate">
+  <ng-container *ngIf="!showPresentTemplate && !showSendForSignatureTemplate;else templateSelector">
     <app-detail-section [title]="'DETAILS.QUOTE_SUMMARY' | translate">
       <div class="row pt-3">
         <div class="col-12 col-md-8 pl-lg-3 pl-md-3">
@@ -133,14 +169,14 @@
                     [editable]="quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented'"
                     [label]="'MY_ACCOUNT.ORDER_DETAIL.SHIP_TO_ACCOUNT' | translate" [showQuickView]="true"
                     (onChange)="refreshQuote($event, quote, 'ShipToAccount')"></apt-output-field>
-                  
+
                 </div>
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote" field="BillToAccount" [displayValue]="'BillToAccount'"
                     [editable]="quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented'"
                     [label]="'MY_ACCOUNT.ORDER_DETAIL.BILL_TO_ACCOUNT' | translate" [showQuickView]="true"
                     (onChange)="refreshQuote($event, quote, 'BillToAccount')"></apt-output-field>
-                 
+
                 </div>
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote" field="Requestor" [displayValue]="'Requestor'" [editable]="false"
@@ -296,11 +332,31 @@
   </ng-container>
 
 
+  <ng-template #templateSelector>
+    <div *ngIf="showPresentTemplate && !showSendForSignatureTemplate">
+      <apt-present-document *ngIf="attachmentList$ | async as attachmentList" [record]="quote"
+        (onPresentDoc)="onPresentDoc($event)" [attachmentList]="attachmentList">
+      </apt-present-document>
+    </div>
+    <div *ngIf="showSendForSignatureTemplate && !showPresentTemplate">
+      <ng-container *ngTemplateOutlet="sendForSignatureDocumentTemplate"></ng-container>
+    </div>
+  </ng-template>
+
   <ng-template #presentDocumentTemplate>
     <div *ngIf="attachmentList$ | async as attachmentList">
       <apt-present-document *ngIf="showPresentTemplate" [record]="quote" (onPresentDoc)="onPresentDoc($event)"
         [attachmentList]="attachmentList">
       </apt-present-document>
+    </div>
+  </ng-template>
+
+  <ng-template #sendForSignatureDocumentTemplate>
+    <div *ngIf="attachmentList$ | async as attachmentList">
+      <apt-send-for-signature [record]="quote" [attachmentList]="attachmentList"
+        [signProviderType]="selectedSignatureOption" (signatureAction)="onSignatureAction($event)"
+        (onSendForSignature)="onSendForSignature($event)">
+      </apt-send-for-signature>
     </div>
   </ng-template>
   <ng-template #intimationTemplate>
@@ -329,9 +385,17 @@
     *ngIf="quote.ApprovalStage !== 'Accepted' && quote.ApprovalStage !== 'Denied' && !showPresentTemplate"
     [record]="quote" (onStatusUpdate)="onGenerateQuote()">
   </apt-generate-document>
+  <button type="button" class="btn btn-raised" *ngIf="quote?.ApprovalStage === 'Generated' && !showPresentTemplate"
+    (click)="openSendForSignatureModal()" data-style="zoom-in">
+    {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
+  </button>
+  <button type="button" class="btn btn-raised" *ngIf="quote?.ApprovalStage === 'Presented' && !showPresentTemplate"
+    (click)="openSendForSignatureModal()" data-style="zoom-in">
+    {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
+  </button>
   <div *ngIf="quote?.Items?.length > 0">
     <button type="button" [ladda]="acceptLoader" class="btn btn-raised"
-      *ngIf="quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented'"
+      *ngIf="quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Presented'"
       (click)="acceptQuote(quote?.Id, quote?.PrimaryContact?.Id)">{{'COMMON.ACCEPT_QUOTE'
       |translate}}</button>
   </div>
@@ -357,4 +421,67 @@
     [fileUploadLabel]="'COMMON.ATTACHMENT_DETAILS.TITLE' | translate" [supportedFileTypes]="supportedFileTypes"
     [maxFileSize]="maxFileSizeLimit" (onFileUpload)="uploadAttachments($event)">
   </apt-file-uploader>
+</ng-template>
+
+<!-- Send for Signature Modal -->
+<ng-template #sendForSignatureTemplate>
+  <div class="modal-header d-flex flex-row-reverse px-0 pb-1">
+    <div class="btn-wrapper d-flex align-items-center">
+      <button type="button" class="close pull-right close-button" aria-label="Close"
+        (click)="sendForSignatureModal.hide()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  </div>
+  <div class="modal-body bg-white flex-column justify-content-center signature-modal rounded-0">
+    <h4 class="modal-title font-weight-bold pb-3">
+      {{'SEND_FOR_SIGNATURE.CHOOSE_SENDING_OPTION' | translate}}
+    </h4>
+    <div class="row justify-content-center py-4">
+      <div class="col-12 col-md-5 mb-3 mx-2">
+        <div class="card h-100 position-relative signature-card"
+          [ngClass]="{'text-white selected': selectedSignatureOption === 'CongaSign'}"
+          (click)="selectSignatureOption('CongaSign')">
+          <div class="card-body d-flex flex-column justify-content-center align-items-center text-center py-3">
+            <img src="assets/images/congasign.svg" alt="Conga Sign" class="img-fluid mb-3 signature-logo">
+            <h5 class="mb-2 font-weight-bold signature-title"
+              [ngClass]="selectedSignatureOption === 'CongaSign' ? 'text-white' : 'text-secondary'">
+              {{'SEND_FOR_SIGNATURE.CONGA_SIGN' |
+              translate}}</h5>
+            <p class="small" [ngClass]="selectedSignatureOption === 'CongaSign' ? 'text-white' : 'text-muted'">
+              {{'SEND_FOR_SIGNATURE.CONGA_SIGN_DESCRIPTION' | translate}}</p>
+          </div>
+          <div class="position-absolute signature-tick" *ngIf="selectedSignatureOption === 'CongaSign'">
+            <i class="fas fa-check fa-sm text-white"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-5 mb-3 mx-2">
+        <div class="card h-100 position-relative signature-card"
+          [ngClass]="{'text-white selected': selectedSignatureOption === 'WetSign'}"
+          (click)="selectSignatureOption('WetSign')">
+          <div class="card-body d-flex flex-column justify-content-center align-items-center text-center py-3">
+            <img src="assets/images/wetsignature.svg" alt="Wet Signature" class="img-fluid mb-3 signature-logo">
+            <h5 class="mb-2 font-weight-bold signature-title"
+              [ngClass]="selectedSignatureOption === 'WetSign' ? 'text-white' : 'text-secondary'">
+              {{'SEND_FOR_SIGNATURE.WET_SIGNATURE'
+              | translate}}</h5>
+            <p class="small" [ngClass]="selectedSignatureOption === 'WetSign' ? 'text-white' : 'text-muted'">
+              {{'SEND_FOR_SIGNATURE.WET_SIGNATURE_DESCRIPTION' | translate}}</p>
+          </div>
+          <div class="position-absolute signature-tick" *ngIf="selectedSignatureOption === 'WetSign'">
+            <i class="fas fa-check fa-sm text-white"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer bg-white border-top">
+    <button class="btn btn-link m-0" (click)="sendForSignatureModal.hide()">{{'COMMON.CANCEL' | translate}}</button>
+    <button class="btn btn-primary btn-raised m-0" type="button"
+      (click)="selectSignatureOption(selectedSignatureOption)" [ladda]="sendingForSignature"
+      [disabled]="!selectedSignatureOption" data-style="zoom-in">
+      {{'COMMON.NEXT' | translate}}
+    </button>
+  </div>
 </ng-template>

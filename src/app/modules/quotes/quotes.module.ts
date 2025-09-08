@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LaddaModule } from 'angular2-ladda';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { ModalModule } from 'ngx-bootstrap/modal';
 import { TranslateModule } from '@ngx-translate/core';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -24,7 +25,10 @@ import {
   OutputFieldModule,
   AlertModule,
   QuickAddModule,
-  FileUploaderModule
+  FileUploaderModule,
+  DocumentSelectorModule,
+  EmailComposerModule,
+  SendForSignatureModule
 } from '@congarevenuecloud/elements';
 import { DetailsModule } from '../details/details.module';
 import { QuotesRoutingModule } from './quotes-routing.module';
@@ -33,11 +37,11 @@ import { QuoteListComponent } from './list/quote-list.component';
 import { QuoteDetailComponent } from './detail/quote-detail.component';
 import { CreateQuoteComponent } from './quote-create/create-quote.component';
 import { RequestQuoteFormComponent } from './request-quote-form/request-quote-form.component';
-
 @NgModule({
   imports: [
     CommonModule,
     TooltipModule,
+    ModalModule.forRoot(),
     QuotesRoutingModule,
     FormsModule,
     PriceModule,
@@ -65,8 +69,16 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
     CongaModule,
     AlertModule,
     QuickAddModule,
-    FileUploaderModule
+    FileUploaderModule,
+    DocumentSelectorModule,
+    EmailComposerModule,
+    SendForSignatureModule
   ],
-  declarations: [QuoteListComponent, QuoteDetailComponent, CreateQuoteComponent, RequestQuoteFormComponent]
+  declarations: [
+    QuoteListComponent,
+    QuoteDetailComponent,
+    CreateQuoteComponent,
+    RequestQuoteFormComponent
+  ]
 })
 export class QuotesModule { }

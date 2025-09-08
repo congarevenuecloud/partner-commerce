@@ -70,6 +70,32 @@ app-quote-details {
   width: 100%;
   height: 100%;
   background: $gray-700;
-  opacity:0.5;
+  opacity: 0.5;
   z-index: 9999;
+}
+
+// Send for Signature Modal Styles
+.signature-modal {
+  .signature-card {
+    cursor: pointer;
+
+    &.selected {
+      background-color: rgb(0, 61, 188);
+      color: white;
+    }
+
+    .signature-logo {
+      max-height: 3.75rem;
+    }
+
+    .signature-title {
+      font-size: 1.125rem;
+    }
+
+    .signature-tick {
+      top: 0.625rem;
+      right: 0.625rem;
+    }
+  }
+
 }

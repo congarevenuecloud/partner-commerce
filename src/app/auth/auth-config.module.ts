@@ -22,7 +22,7 @@ export const httpLoaderFactory = () => {
         redirectUrl: redirectUri,
         postLogoutRedirectUri: redirectUri,
         clientId: authOptions.spaClientId,
-        scope: 'openid profile offline_access',
+        scope: 'openid profile offline_access sign',
         responseType: 'code',
         secureRoutes: [authOptions.apiEndpoint, authOptions.authEndpoint, 'https://conga.mxlab.io'],
         silentRenew: true,
