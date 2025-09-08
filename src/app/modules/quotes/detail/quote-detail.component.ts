@@ -1,34 +1,93 @@
-import { Component, OnInit, ViewChild, TemplateRef, OnDestroy, ViewEncapsulation, ElementRef, NgZone, ChangeDetectorRef, Inject, Renderer2 } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  TemplateRef,
+  OnDestroy,
+  ViewEncapsulation,
+  ElementRef,
+  NgZone,
+  ChangeDetectorRef,
+  Inject,
+  Renderer2,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
-import { Observable, of, BehaviorSubject, Subscription, combineLatest } from 'rxjs';
+import {
+  Observable,
+  of,
+  BehaviorSubject,
+  Subscription,
+  combineLatest,
+} from 'rxjs';
 import { filter, map, take, mergeMap, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
-import { get, set, map as _map, isEmpty, first, join, split, trim } from 'lodash';
+import {
+  get,
+  set,
+  map as _map,
+  isEmpty,
+  first,
+  join,
+  split,
+  trim,
+} from 'lodash';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import {
-  QuoteService, Quote, Order, OrderService, Note, AttachmentService, CartService, EmailService, Cart,
-  AttachmentDetails, ProductInformationService, ItemGroup, LineItemService
+  QuoteService,
+  Quote,
+  Order,
+  OrderService,
+  Note,
+  AttachmentService,
+  CartService,
+  EmailService,
+  Cart,
+  AttachmentDetails,
+  ProductInformationService,
+  ItemGroup,
+  LineItemService,
 } from '@congarevenuecloud/ecommerce';
-import { ExceptionService, LookupOptions, ToasterPosition, FileOutput } from '@congarevenuecloud/elements';
+import {
+  ExceptionService,
+  LookupOptions,
+  ToasterPosition,
+  FileOutput,
+  SendForSignatureService,
+  SignProvider,
+} from '@congarevenuecloud/elements';
 
 @Component({
   selector: 'app-quote-details',
   templateUrl: './quote-detail.component.html',
   styleUrls: ['./quote-detail.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class QuoteDetailComponent implements OnInit, OnDestroy {
-
   quote$: BehaviorSubject<Quote> = new BehaviorSubject<Quote>(null);
-  quoteLineItems$: BehaviorSubject<Array<ItemGroup>> = new BehaviorSubject<Array<ItemGroup>>(null);
-  attachmentList$: BehaviorSubject<Array<AttachmentDetails>> = new BehaviorSubject<Array<AttachmentDetails>>(null);
-  noteList$: BehaviorSubject<Array<Note>> = new BehaviorSubject<Array<Note>>(null);
+  quoteLineItems$: BehaviorSubject<Array<ItemGroup>> = new BehaviorSubject<
+    Array<ItemGroup>
+  >(null);
+  attachmentList$: BehaviorSubject<Array<AttachmentDetails>> =
+    new BehaviorSubject<Array<AttachmentDetails>>(null);
+  noteList$: BehaviorSubject<Array<Note>> = new BehaviorSubject<Array<Note>>(
+    null
+  );
   order$: Observable<Order>;
   quote: Quote;
 
   @ViewChild('attachmentSection') attachmentSection: ElementRef;
+  @ViewChild('sendForSignatureTemplate', { static: false })
+  sendForSignatureTemplate: TemplateRef<any>;
+
+  // Send for signature modal properties
+  sendForSignatureModal: BsModalRef;
+  sendingForSignature: boolean = false;
+  selectedSignatureOption: string = '';
+  showSendForSignatureTemplate: boolean = false;
+  signProviders: SignProvider[] = [];
+  loadingProviders: boolean = false;
 
   note: Note = new Note();
 
@@ -65,29 +124,30 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     'STATUS.APPROVED',
     'STATUS.GENERATED',
     'STATUS.PRESENTED',
-    'STATUS.ACCEPTED'
+    'STATUS.ACCEPTED',
   ];
 
   quoteStatusMap: Record<string, { Key: string; DisplayText: string }> = {
-    'Draft': { 'Key': 'Draft', 'DisplayText': 'STATUS.DRAFT' },
-    'Approval Required': { 'Key': 'Approval Required', 'DisplayText': 'STATUS.APPROVAL_REQUIRED' },
-    'In Review': { 'Key': 'In Review', 'DisplayText': 'STATUS.IN_REVIEW' },
-    'Approved': { 'Key': 'Approved', 'DisplayText': 'STATUS.APPROVED' },
-    'Generated': { 'Key': 'Generated', 'DisplayText': 'STATUS.GENERATED' },
-    'Presented': { 'Key': 'Presented', 'DisplayText': 'STATUS.PRESENTED' },
-    'Accepted': { 'Key': 'Accepted', 'DisplayText': 'STATUS.ACCEPTED' },
-    'Denied': { 'Key': 'Denied', 'DisplayText': 'STATUS.DENIED' }
+    Draft: { Key: 'Draft', DisplayText: 'STATUS.DRAFT' },
+    'Approval Required': {
+      Key: 'Approval Required',
+      DisplayText: 'STATUS.APPROVAL_REQUIRED',
+    },
+    'In Review': { Key: 'In Review', DisplayText: 'STATUS.IN_REVIEW' },
+    Approved: { Key: 'Approved', DisplayText: 'STATUS.APPROVED' },
+    Generated: { Key: 'Generated', DisplayText: 'STATUS.GENERATED' },
+    Presented: { Key: 'Presented', DisplayText: 'STATUS.PRESENTED' },
+    Accepted: { Key: 'Accepted', DisplayText: 'STATUS.ACCEPTED' },
+    Denied: { Key: 'Denied', DisplayText: 'STATUS.DENIED' },
   };
-
 
   @ViewChild('intimationTemplate') intimationTemplate: TemplateRef<any>;
   @ViewChild('fileInput') fileInput: ElementRef;
 
-
   lookupOptions: LookupOptions = {
     primaryTextField: 'Name',
     secondaryTextField: 'Email',
-    fieldList: ['Id', 'Name', 'Email']
+    fieldList: ['Id', 'Name', 'Email'],
   };
 
   isPrivate: boolean = false;
@@ -99,7 +159,13 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   quoteStatusLabelMap: Record<string, string> = {};
   quoteStatusStepsLabels: Array<string> = [];
 
-  constructor(private activatedRoute: ActivatedRoute,
+  // Button configuration variables for template
+  primaryButtons: Array<{ id: string; priority: number }> = [];
+  dropdownButtons: Array<{ id: string; priority: number }> = [];
+  hasDropdown: boolean = false;
+
+  constructor(
+    private activatedRoute: ActivatedRoute,
     private quoteService: QuoteService,
     private modalService: BsModalService,
     private orderService: OrderService,
@@ -113,63 +179,112 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     private emailService: EmailService,
     @Inject(DOCUMENT) private document: Document,
     private renderer: Renderer2,
-    private translateService: TranslateService
-  ) { }
+    private translateService: TranslateService,
+    private sendForSignatureService: SendForSignatureService
+  ) {}
 
   ngOnInit() {
     this.getQuote();
-    this.quoteSubscription.push(this.attachmentService.getSupportedAttachmentType().pipe(
-      take(1)
-    ).subscribe((data: string) => {
-      this.supportedFileTypes = join(_map(split(data, ','), (item) => trim(item)), ', ');
-    }))
     this.quoteSubscription.push(
-      this.translateService.stream(this.quoteStatusSteps).subscribe(translations => {
-        this.quoteStatusStepsLabels = this.quoteStatusSteps.map(key => translations[key]);
-      })
+      this.attachmentService
+        .getSupportedAttachmentType()
+        .pipe(take(1))
+        .subscribe((data: string) => {
+          this.supportedFileTypes = join(
+            _map(split(data, ','), (item) => trim(item)),
+            ', '
+          );
+        })
+    );
+    this.quoteSubscription.push(
+      this.translateService
+        .stream(this.quoteStatusSteps)
+        .subscribe((translations) => {
+          this.quoteStatusStepsLabels = this.quoteStatusSteps.map(
+            (key) => translations[key]
+          );
+        })
     );
     this.translateQuoteStatusLabels(this.quoteStatusMap);
   }
 
   getQuote() {
     this.ngOnDestroy();
-    this.quoteSubscription.push(this.activatedRoute.params
-      .pipe(
-        filter(params => get(params, 'id') != null),
-        map(params => get(params, 'id')),
-        mergeMap(quoteId => this.quoteService.getQuoteById(quoteId)),
-        switchMap((quote: Quote) => {
-          const quoteLineItems = LineItemService.groupItems(get(quote, 'Items'));
-          this.quoteLineItems$.next(quoteLineItems);
-          set(this.cartRecord, 'Id', get(get(first(this.quoteLineItems$.value), 'MainLine.Configuration'), 'Id'))
-          return combineLatest([isEmpty(quoteLineItems) ? of(null) : (this.cartService.addAdjustmentInfoToLineItems(this.cartRecord?.Id)), of(quote)])
-        }),
-        take(1),
-        switchMap(([lineItems, quote]) => {
-          this.cartRecord.LineItems = lineItems;
-          this.cartRecord.BusinessObjectType = 'Proposal';
-          return this.updateQuoteValue(quote);
-        })
-      ).subscribe());
+    this.quoteSubscription.push(
+      this.activatedRoute.params
+        .pipe(
+          filter((params) => get(params, 'id') != null),
+          map((params) => get(params, 'id')),
+          mergeMap((quoteId) => this.quoteService.getQuoteById(quoteId)),
+          switchMap((quote: Quote) => {
+            const quoteLineItems = LineItemService.groupItems(
+              get(quote, 'Items')
+            );
+            this.quoteLineItems$.next(quoteLineItems);
+            set(
+              this.cartRecord,
+              'Id',
+              get(
+                get(
+                  first(this.quoteLineItems$.value),
+                  'MainLine.Configuration'
+                ),
+                'Id'
+              )
+            );
+            return combineLatest([
+              isEmpty(quoteLineItems)
+                ? of(null)
+                : this.cartService.addAdjustmentInfoToLineItems(
+                    this.cartRecord?.Id
+                  ),
+              of(quote),
+            ]);
+          }),
+          take(1),
+          switchMap((result) => {
+            const [lineItems = null, quote = null] = Array.isArray(result)
+              ? result
+              : [result, null];
+            this.cartRecord.LineItems = lineItems;
+            this.cartRecord.BusinessObjectType = 'Proposal';
+            return this.updateQuoteValue(quote);
+          })
+        )
+        .subscribe()
+    );
     this.getAttachments();
   }
 
   refreshQuote(fieldValue, quote, fieldName) {
     set(quote, fieldName, fieldValue);
     const quoteItems = get(quote, 'Items');
-    const payload = quote.strip(['Owner', 'Items', 'TotalCount', 'ResponseStatus']);
-    this.quoteSubscription.push(this.quoteService.updateQuote(quote.Id, payload).pipe(switchMap(c => this.updateQuoteValue(c))).subscribe(r => {
-      this.quote = r;
-      set(this.quote, 'Items', quoteItems);
-    }))
+    const payload = quote.strip([
+      'Owner',
+      'Items',
+      'TotalCount',
+      'ResponseStatus',
+    ]);
+    this.quoteSubscription.push(
+      this.quoteService
+        .updateQuote(quote.Id, payload)
+        .pipe(switchMap((c) => this.updateQuoteValue(c)))
+        .subscribe((r) => {
+          this.quote = r;
+          set(this.quote, 'Items', quoteItems);
+        })
+    );
   }
 
   updateQuoteValue(quote: Quote): Observable<Quote> {
     return this.quoteService.updateQuoteValue(quote).pipe(
       take(1),
       map((updatedQuote: Quote) => {
-        this.order$ = this.orderService.getOrderByQuote(get(updatedQuote, 'Id'));
+        this.order$ = this.orderService.getOrderByQuote(
+          get(updatedQuote, 'Id')
+        );
         this.quote = updatedQuote;
+        this.updateButtonConfig(); // Update button configuration when quote updates
         return updatedQuote;
       })
     );
@@ -177,36 +292,145 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   acceptQuote(quoteId: string, primaryContactId: string) {
     this.acceptLoader = true;
-    this.quoteService.acceptQuote(quoteId).pipe(take(1)).subscribe(
-      res => {
-        if (res) {
+    this.quoteService
+      .acceptQuote(quoteId)
+      .pipe(take(1))
+      .subscribe(
+        (res) => {
+          if (res) {
+            this.acceptLoader = false;
+            const ngbModalOptions: ModalOptions = {
+              backdrop: 'static',
+              keyboard: false,
+            };
+            this.ngZone.run(() => {
+              this.intimationModal = this.modalService.show(
+                this.intimationTemplate,
+                ngbModalOptions
+              );
+            });
+          }
+        },
+        (err) => {
           this.acceptLoader = false;
-          const ngbModalOptions: ModalOptions = {
-            backdrop: 'static',
-            keyboard: false
-          };
-          this.ngZone.run(() => {
-            this.intimationModal = this.modalService.show(this.intimationTemplate, ngbModalOptions);
-          });
         }
-      },
-      err => {
-        this.acceptLoader = false;
-      }
-    );
+      );
   }
 
   rejectQuote(quoteId: string) {
     this.rejectLoader = true;
-    this.quoteService.rejectQuote(quoteId).pipe(take(1)).subscribe(
-      {
+    this.quoteService
+      .rejectQuote(quoteId)
+      .pipe(take(1))
+      .subscribe({
         next: () => {
           this.getQuote();
         },
         complete: () => {
           this.rejectLoader = false;
-        }
+        },
       });
+  }
+
+  openSendForSignatureModal() {
+    this.sendingForSignature = false;
+    this.selectedSignatureOption = ''; // Will be set based on API response
+    this.showSendForSignatureTemplate = false; // Reset to show option selection
+    this.loadingProviders = true;
+
+    // Load eSign configuration
+    this.sendForSignatureService
+      .getConfiguration()
+      .pipe(take(1))
+      .subscribe({
+        next: (providers) => {
+          this.signProviders = providers;
+          this.loadingProviders = false;
+
+          if (providers && providers.length > 0) {
+            // Set default selection based on active and default provider
+            const defaultProvider = providers.find(
+              (p) => p.Default === true && p.Active === true
+            );
+            const selectedProvider = defaultProvider;
+
+            if (selectedProvider) {
+              this.selectedSignatureOption =
+                selectedProvider.SignProvider?.toLowerCase() === 'congasign'
+                  ? 'CongaSign'
+                  : 'WetSign';
+            }
+          } else {
+            // Fallback to hardcoded option if no providers available
+            this.selectedSignatureOption = 'CongaSign';
+          }
+        },
+        error: (error) => {
+          this.loadingProviders = false;
+          this.translateService
+            .get('SEND_FOR_SIGNATURE.LOAD_PROVIDERS_ERROR')
+            .subscribe((message) => {
+              this.exceptionService.showError(message);
+            });
+          // Fallback to hardcoded option if API fails
+          this.selectedSignatureOption = 'CongaSign';
+        },
+      });
+
+    this.sendForSignatureModal = this.modalService.show(
+      this.sendForSignatureTemplate,
+      {
+        backdrop: 'static',
+        keyboard: false,
+      }
+    );
+  }
+
+  selectSignatureOption(option: string) {
+    if (option === this.selectedSignatureOption) {
+      this.showSendForSignatureTemplate = true;
+      this.sendForSignatureModal.hide();
+    } else {
+      // Just selecting an option
+      this.selectedSignatureOption =
+        option?.toLowerCase() === 'congasign' ? 'CongaSign' : option;
+    }
+  }
+
+  showSendForSignatureTemplateFun() {
+    this.showSendForSignatureTemplate = true;
+    this.updateButtonConfig();
+  }
+
+  onSignatureAction(action: string) {
+    // Handle signature actions here
+    if (action === 'document-sent' || action === 'discard') {
+      // Go back to quote detail view and show success message or handle discard action
+      this.showSendForSignatureTemplate = false;
+      this.updateButtonConfig();
+    }
+  }
+
+  onSendForSignature(event: any) {
+    // Handle send for signature completion
+    this.showSendForSignatureTemplate = false;
+
+    if (
+      event?.isSendForSignatureCompleted &&
+      this.quote?.ApprovalStage?.toLowerCase() === 'generated'
+    ) {
+      let obsv$;
+      if (get(this.quote, 'ApprovalStage') != 'Presented') {
+        const payload = { ApprovalStage: 'Presented' };
+        obsv$ = this.quoteService.updateQuote(this.quote.Id, payload as Quote);
+      } else {
+        obsv$ = of(null);
+      }
+      obsv$.pipe(take(1)).subscribe(() => {
+        this.getQuote();
+      });
+    }
+    this.updateButtonConfig();
   }
 
   closeModal() {
@@ -218,16 +442,21 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     this.editLoader = true;
     if (!isEmpty(get(quote, 'Items'))) {
       this.showProcessingOverlay();
-      this.quoteService.convertQuoteToCart(quote).pipe(take(1)).subscribe(value => {
-        set(value, 'Proposald', this.quote);
-        this.hideProcessingOverlay();
-        this.ngZone.run(() => this.router.navigate(['/carts', 'active']));
-      },
-        err => {
-          this.hideProcessingOverlay();
-          this.exceptionService.showError(err);
-          this.editLoader = false;
-        })
+      this.quoteService
+        .convertQuoteToCart(quote)
+        .pipe(take(1))
+        .subscribe(
+          (value) => {
+            set(value, 'Proposald', this.quote);
+            this.hideProcessingOverlay();
+            this.ngZone.run(() => this.router.navigate(['/carts', 'active']));
+          },
+          (err) => {
+            this.hideProcessingOverlay();
+            this.exceptionService.showError(err);
+            this.editLoader = false;
+          }
+        );
     } else {
       this.addLineItemsToQuote(quote);
     }
@@ -235,64 +464,99 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   addLineItemsToQuote(quote: Quote) {
     this.editLoader = true;
-    this.cartService.createCartFromQuote(quote.Id).pipe(take(1)).subscribe(value => {
-      set(value, 'Proposald', this.quote);
-      this.ngZone.run(() => this.router.navigate(['/carts', 'active']));
-    },
-      err => {
-        this.exceptionService.showError(err);
-        this.editLoader = false;
-      })
+    this.cartService
+      .createCartFromQuote(quote.Id)
+      .pipe(take(1))
+      .subscribe(
+        (value) => {
+          set(value, 'Proposald', this.quote);
+          this.ngZone.run(() => this.router.navigate(['/carts', 'active']));
+        },
+        (err) => {
+          this.exceptionService.showError(err);
+          this.editLoader = false;
+        }
+      );
   }
-
 
   finalizeQuote(quoteId: string) {
     this.finalizeLoader = true;
-    this.quoteService.finalizeQuote(quoteId).pipe(take(1)).subscribe(
-      res => {
-        if (res) {
+    this.quoteService
+      .finalizeQuote(quoteId)
+      .pipe(take(1))
+      .subscribe(
+        (res) => {
+          if (res) {
+            this.finalizeLoader = false;
+            this.getQuote();
+          }
+        },
+        (err) => {
           this.finalizeLoader = false;
-          this.getQuote();
         }
-      },
-      err => {
-        this.finalizeLoader = false;
-      }
-    );
+      );
   }
 
   onGenerateQuote() {
-    if (this.attachmentSection) this.attachmentSection.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    if (this.attachmentSection)
+      this.attachmentSection.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+      });
     let obsv$;
     if (get(this.quote, 'ApprovalStage') == 'Draft') {
-      const payload = { 'ApprovalStage': 'Generated', 'ProposalName': get(this.quote, 'Name') };
+      const payload = {
+        ApprovalStage: 'Generated',
+        ProposalName: get(this.quote, 'Name'),
+      };
       obsv$ = this.quoteService.updateQuote(this.quote.Id, payload as Quote);
     } else {
       obsv$ = of(null);
     }
-    combineLatest([this.emailService.getEmailTemplateByName('DC Quote generate-document Template'), obsv$]).pipe(
-      switchMap(result => {
-        return first(result) ? this.emailService.sendEmailNotificationWithTemplate(get(first(result), 'Id'), this.quote, get(this.quote.PrimaryContact, 'Id')) : of(null)
-      }), take(1)).subscribe(() => {
+    combineLatest([
+      this.emailService.getEmailTemplateByName(
+        'DC Quote generate-document Template'
+      ),
+      obsv$,
+    ])
+      .pipe(
+        switchMap((result) => {
+          return first(result)
+            ? this.emailService.sendEmailNotificationWithTemplate(
+                get(first(result), 'Id'),
+                this.quote,
+                get(this.quote.PrimaryContact, 'Id')
+              )
+            : of(null);
+        }),
+        take(1)
+      )
+      .subscribe(() => {
         this.getQuote();
       });
   }
-
 
   getAttachments() {
     if (this.attachemntSubscription) this.attachemntSubscription.unsubscribe();
     this.attachemntSubscription = this.activatedRoute.params
       .pipe(
-        switchMap(params => this.attachmentService.getAttachments(get(params, 'id'), 'proposal'))
-      ).subscribe((attachments: Array<AttachmentDetails>) => this.ngZone.run(() => this.attachmentList$.next(attachments)));
+        switchMap((params) =>
+          this.attachmentService.getAttachments(get(params, 'id'), 'proposal')
+        )
+      )
+      .subscribe((attachments: Array<AttachmentDetails>) =>
+        this.ngZone.run(() => this.attachmentList$.next(attachments))
+      );
   }
 
   deleteAttachment(attachment: AttachmentDetails) {
     attachment.DocumentMetadata.set('deleting', true);
-    this.attachmentService.deleteAttachment(attachment.DocumentMetadata.DocumentId).pipe(take(1)).subscribe(() => {
-      attachment.DocumentMetadata.set('deleting', false);
-      this.getAttachments();
-    })
+    this.attachmentService
+      .deleteAttachment(attachment.DocumentMetadata.DocumentId)
+      .pipe(take(1))
+      .subscribe(() => {
+        attachment.DocumentMetadata.set('deleting', false);
+        this.getAttachments();
+      });
   }
 
   getFileType(fileType: string): string {
@@ -305,49 +569,70 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     this.isPrivate = fileInput.visibility;
     // To control the visibility of files, pass the additional field "IsPrivate_c" as part of the customProperties when calling uploadMultipleAttachments.
     // You must include "IsPrivate_c" or any other custom fields passed as method parameters to the DocumentMetadata object. For more details, please refer to SDK/product documentation.
-    this.attachmentService.uploadMultipleAttachments(fileList, this.quote.Id, 'Proposal', {
-      IsPrivate_c: this.isPrivate
-    }).pipe(take(1)).subscribe(res => {
-      this.getAttachments();
-      this.attachmentsLoader = false;
-      this.cdr.detectChanges();
-    }, err => {
-      this.exceptionService.showError(err);
-    });
+    this.attachmentService
+      .uploadMultipleAttachments(fileList, this.quote.Id, 'Proposal', {
+        IsPrivate_c: this.isPrivate,
+      })
+      .pipe(take(1))
+      .subscribe(
+        (res) => {
+          this.getAttachments();
+          this.attachmentsLoader = false;
+          this.cdr.detectChanges();
+        },
+        (err) => {
+          this.exceptionService.showError(err);
+        }
+      );
   }
 
   showPresentTemplateFun() {
     this.showPresentTemplate = true;
+    this.updateButtonConfig();
   }
 
   onPresentDoc(obj: any) {
-    this.showPresentTemplate = !(obj.onDocumentPage);
+    this.showPresentTemplate = !obj.onDocumentPage;
 
     if (obj.isPresentDocCompleted) {
       let obsv$;
       if (get(this.quote, 'ApprovalStage') != 'Presented') {
-        const payload = { 'ApprovalStage': 'Presented' };
+        const payload = { ApprovalStage: 'Presented' };
         obsv$ = this.quoteService.updateQuote(this.quote.Id, payload as Quote);
       } else {
         obsv$ = of(null);
       }
       obsv$.pipe(take(1)).subscribe(() => {
         this.getQuote();
-      })
+      });
     }
+    this.updateButtonConfig();
   }
 
   downloadAttachment(attachmentId: string) {
-    this.productInformationService.getAttachmentUrl(attachmentId).pipe(take(1)).subscribe((url: string) => {
-      window.open(url, '_blank');
-    });
+    this.productInformationService
+      .getAttachmentUrl(attachmentId)
+      .pipe(take(1))
+      .subscribe((url: string) => {
+        window.open(url, '_blank');
+      });
   }
 
   showProcessingOverlay() {
     const customElement = this.renderer.createElement('div');
     this.renderer.addClass(customElement, 'custom-overlay');
     this.renderer.appendChild(document.body, customElement);
-    this.exceptionService.showInfo('COMMON.PROCESSING_MESSAGE', 'COMMON.PROCESSING_TITLE', null, ToasterPosition.BOTTOM_LEFT, 15000, false, false, true, false);
+    this.exceptionService.showInfo(
+      'COMMON.PROCESSING_MESSAGE',
+      'COMMON.PROCESSING_TITLE',
+      null,
+      ToasterPosition.BOTTOM_LEFT,
+      15000,
+      false,
+      false,
+      true,
+      false
+    );
   }
 
   hideProcessingOverlay() {
@@ -358,27 +643,79 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  private translateQuoteStatusLabels(statusMap: Record<string, { Key: string; DisplayText: string }>): void {
+  private translateQuoteStatusLabels(
+    statusMap: Record<string, { Key: string; DisplayText: string }>
+  ): void {
     this.quoteSubscription.push(
-      this.translateService.stream(
-        Object.values(statusMap).map(status => status.DisplayText)
-      ).subscribe(translations => {
-        this.quoteStatusLabelMap = Object.fromEntries(
-          Object.entries(statusMap).map(([statusKey, status]) => [
-            statusKey,
-            translations[status.DisplayText]
-          ])
-        );
-      })
+      this.translateService
+        .stream(Object.values(statusMap).map((status) => status.DisplayText))
+        .subscribe((translations) => {
+          this.quoteStatusLabelMap = Object.fromEntries(
+            Object.entries(statusMap).map(([statusKey, status]) => [
+              statusKey,
+              translations[status.DisplayText],
+            ])
+          );
+        })
     );
   }
 
+  // Update button configuration and set variables
+  private updateButtonConfig(): void {
+    const buttons = [];
+    const isTemplateShown =
+      this.showPresentTemplate || this.showSendForSignatureTemplate;
+
+    if (!isTemplateShown) {
+      const { ApprovalStage } = this.quote || {};
+      const hasItems = (this.quote as any)?.Items?.length > 0;
+      const approvalStage = ApprovalStage?.toLowerCase() || '';
+
+      // Define button conditions with priorities
+      const buttonConditions = [
+        {
+          condition:
+            approvalStage === 'generated' || approvalStage === 'presented',
+          id: 'present',
+          priority: 1,
+        },
+        {
+          condition:
+            approvalStage === 'generated' || approvalStage === 'presented',
+          id: 'sendForSignature',
+          priority: 2,
+        },
+        {
+          condition:
+            hasItems &&
+            (approvalStage === 'approved' || approvalStage === 'presented'),
+          id: 'accept',
+          priority: 3,
+        },
+        {
+          condition: approvalStage === 'presented',
+          id: 'reject',
+          priority: 4,
+        },
+      ];
+
+      buttons?.push(
+        ...buttonConditions
+          .filter((btn) => btn.condition)
+          .map(({ id, priority }) => ({ id, priority }))
+      );
+    }
+
+    this.primaryButtons = buttons?.slice(0, 2);
+    this.dropdownButtons = buttons?.slice(2);
+    this.hasDropdown = this.dropdownButtons.length > 0;
+  }
+
   ngOnDestroy() {
-    if (this.notesSubscription)
-      this.notesSubscription.unsubscribe();
-    if (this.attachemntSubscription)
-      this.attachemntSubscription.unsubscribe();
-    this.quoteSubscription.forEach(subscription => subscription.unsubscribe());
+    if (this.notesSubscription) this.notesSubscription.unsubscribe();
+    if (this.attachemntSubscription) this.attachemntSubscription.unsubscribe();
+    this.quoteSubscription.forEach((subscription) =>
+      subscription.unsubscribe()
+    );
   }
 }
-
