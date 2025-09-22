@@ -55,7 +55,7 @@ import {
   ToasterPosition,
   FileOutput,
   SendForSignatureService,
-  SignProvider,
+  SignatureProvider,
 } from '@congarevenuecloud/elements';
 
 @Component({
@@ -86,7 +86,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   sendingForSignature: boolean = false;
   selectedSignatureOption: string = '';
   showSendForSignatureTemplate: boolean = false;
-  signProviders: SignProvider[] = [];
+  signProviders: Array<SignatureProvider> = [];
   loadingProviders: boolean = false;
 
   note: Note = new Note();
