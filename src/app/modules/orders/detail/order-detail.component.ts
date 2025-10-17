@@ -6,8 +6,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { get, set, indexOf, first, sum, cloneDeep, isNil, map as _map, join, split, trim } from 'lodash';
 import {
   Order, OrderLineItem, OrderService, UserService,
-  ItemGroup, LineItemService, Note, NoteService, EmailService, AccountService,
-  Contact, Cart, Account, ContactService, QuoteService, AttachmentDetails, AttachmentService, ProductInformationService
+  ItemGroup, LineItemService, EmailService, AccountService,
+  Contact, Cart, Account, AttachmentDetails, AttachmentService, ProductInformationService
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, LookupOptions, FileOutput } from '@congarevenuecloud/elements';
 @Component({
@@ -20,10 +20,8 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   order$: BehaviorSubject<Order> = new BehaviorSubject<Order>(null);
   orderLineItems$: BehaviorSubject<Array<ItemGroup>> = new BehaviorSubject<Array<ItemGroup>>(null);
-  noteList$: BehaviorSubject<Array<Note>> = new BehaviorSubject<Array<Note>>(null);
   attachmentList$: BehaviorSubject<Array<AttachmentDetails>> = new BehaviorSubject<Array<AttachmentDetails>>(null);
 
-  noteSubscription: Subscription;
   orderSubscription: Subscription;
   attachemntSubscription: Subscription;
 
@@ -61,10 +59,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   isLoading: boolean = false;
 
-  note: Note = new Note();
-
-  commentsLoader: boolean = false;
-
   lineItemLoader: boolean = false;
 
   attachmentsLoader = false;
@@ -97,13 +91,10 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     private orderService: OrderService,
     private userService: UserService,
     private exceptionService: ExceptionService,
-    private noteService: NoteService,
     private router: Router,
     private emailService: EmailService,
     private accountService: AccountService,
     private cdr: ChangeDetectorRef,
-    private quoteService: QuoteService,
-    private contactService: ContactService,
     private attachmentService: AttachmentService,
     private productInformationService: ProductInformationService,
     private ngZone: NgZone,
@@ -150,21 +141,21 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
       .pipe(
         switchMap(order => {
           if (isNil(order)) return of(null);
-    
+
           if (order?.Status === 'Partially Fulfilled' && indexOf(this.orderStatusSteps, 'STATUS.FULFILLED') > 0) {
             this.orderStatusSteps[indexOf(this.orderStatusSteps, 'STATUS.FULFILLED')] = 'STATUS.PARTIALLY_FULFILLED';
           }
-    
+
           if (order?.Status === 'Fulfilled' && indexOf(this.orderStatusSteps, 'STATUS.PARTIALLY_FULFILLED') > 0) {
             this.orderStatusSteps[indexOf(this.orderStatusSteps, 'STATUS.PARTIALLY_FULFILLED')] = 'Fulfilled';
           }
 
           order.OrderLineItems = get(order, 'OrderLineItems');
           this.orderLineItems$.next(LineItemService.groupItems(order.OrderLineItems));
-    
+
           set(this.cartRecord, 'Id', get(get(first(this.orderLineItems$.value), 'MainLine.Configuration'), 'Id'));
           this.cartRecord.BusinessObjectType = 'Order';
-    
+
           return of(order);
         }),
         take(1)
@@ -281,23 +272,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     }
   }
 
-  addComment(orderId: string) {
-    this.commentsLoader = true;
-    set(this.note, 'ParentId', orderId);
-    set(this.note, 'OwnerId', get(this.userService.me(), 'Id'));
-    if (!this.note.Name) {
-      set(this.note, 'Name', 'Notes Title');
-    }
-    this.noteService.create([this.note])
-      .subscribe(r => {
-        this.clear();
-        this.commentsLoader = false;
-      },
-        err => {
-          this.exceptionService.showError(err);
-          this.commentsLoader = false;
-        });
-  }
 
   deleteAttachment(attachment: AttachmentDetails) {
     attachment.DocumentMetadata.set('deleting', true);
@@ -307,21 +281,12 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     })
   }
 
-  clear() {
-    set(this.note, 'Body', null);
-    set(this.note, 'Title', null);
-    set(this.note, 'Id', null);
-  }
 
   ngOnDestroy() {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
 
     if (this.orderSubscription) {
       this.orderSubscription.unsubscribe();
-    }
-
-    if (this.noteSubscription) {
-      this.noteSubscription.unsubscribe();
     }
   }
 

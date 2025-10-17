@@ -39,7 +39,6 @@ import {
   Quote,
   Order,
   OrderService,
-  Note,
   AttachmentService,
   CartService,
   EmailService,
@@ -48,6 +47,7 @@ import {
   ProductInformationService,
   ItemGroup,
   LineItemService,
+  DateFormat
 } from '@congarevenuecloud/ecommerce';
 import {
   ExceptionService,
@@ -56,6 +56,8 @@ import {
   FileOutput,
   SendForSignatureService,
   SignatureProvider,
+  AddCommentsConfig,
+  ViewCommentsConfig
 } from '@congarevenuecloud/elements';
 
 @Component({
@@ -71,9 +73,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   >(null);
   attachmentList$: BehaviorSubject<Array<AttachmentDetails>> =
     new BehaviorSubject<Array<AttachmentDetails>>(null);
-  noteList$: BehaviorSubject<Array<Note>> = new BehaviorSubject<Array<Note>>(
-    null
-  );
   order$: Observable<Order>;
   quote: Quote;
 
@@ -88,8 +87,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   showSendForSignatureTemplate: boolean = false;
   signProviders: Array<SignatureProvider> = [];
   loadingProviders: boolean = false;
-
-  note: Note = new Note();
 
   newlyGeneratedOrder: Order;
 
@@ -111,13 +108,29 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   quoteConfirmation: Quote;
 
-  notesSubscription: Subscription;
-
   attachemntSubscription: Subscription;
 
   quoteSubscription: Subscription[] = [];
 
   showPresentTemplate = false;
+
+  showReqChangesModal = false;
+
+  showViewCommentsComponent = true;
+
+  viewCommentsConfig: ViewCommentsConfig = {
+    modalOptions: { 'class': 'modal-lg', 'backdrop': 'static', 'keyboard': true },
+    showTypeFilter: true,
+    pageSize: 10,
+    enablePagination: true,
+    dateFormat: DateFormat.Medium
+  };
+
+  requestChangesConfig: AddCommentsConfig;
+
+  addCommentsConfig: AddCommentsConfig = {
+    showCommentType: true,
+  };
 
   quoteStatusSteps: Array<string> = [
     'STATUS.DRAFT',
@@ -159,11 +172,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   quoteStatusLabelMap: Record<string, string> = {};
   quoteStatusStepsLabels: Array<string> = [];
 
-  // Button configuration variables for template
-  primaryButtons: Array<{ id: string; priority: number }> = [];
-  dropdownButtons: Array<{ id: string; priority: number }> = [];
-  hasDropdown: boolean = false;
-
   constructor(
     private activatedRoute: ActivatedRoute,
     private quoteService: QuoteService,
@@ -181,9 +189,10 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     private renderer: Renderer2,
     private translateService: TranslateService,
     private sendForSignatureService: SendForSignatureService
-  ) {}
+  ) { }
 
   ngOnInit() {
+    this.initializeTranslationsComments();
     this.getQuote();
     this.quoteSubscription.push(
       this.attachmentService
@@ -206,6 +215,26 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
         })
     );
     this.translateQuoteStatusLabels(this.quoteStatusMap);
+  }
+
+  private initializeTranslationsComments(): void {
+    const commentTranslationKeys = [
+      'COMMENTS.SEND_REQUEST',
+      'COMMENTS.ENTER_COMMENTS',
+      'COMMON.CANCEL'
+    ];
+
+    this.quoteSubscription.push(
+      this.translateService.stream(commentTranslationKeys).subscribe(translations => {
+        this.requestChangesConfig = {
+          modalOptions: { 'class': 'modal-md', 'backdrop': 'static', 'keyboard': true },
+          showCommentType: true,
+          submitButtonText: translations['COMMENTS.SEND_REQUEST'],
+          cancelButtonText: translations['COMMON.CANCEL'],
+          placeholder: translations['COMMENTS.ENTER_COMMENTS']
+        };
+      })
+    );
   }
 
   getQuote() {
@@ -236,8 +265,8 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
               isEmpty(quoteLineItems)
                 ? of(null)
                 : this.cartService.addAdjustmentInfoToLineItems(
-                    this.cartRecord?.Id
-                  ),
+                  this.cartRecord?.Id
+                ),
               of(quote),
             ]);
           }),
@@ -284,7 +313,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
           get(updatedQuote, 'Id')
         );
         this.quote = updatedQuote;
-        this.updateButtonConfig(); // Update button configuration when quote updates
         return updatedQuote;
       })
     );
@@ -399,7 +427,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   showSendForSignatureTemplateFun() {
     this.showSendForSignatureTemplate = true;
-    this.updateButtonConfig();
   }
 
   onSignatureAction(action: string) {
@@ -407,7 +434,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     if (action === 'document-sent' || action === 'discard') {
       // Go back to quote detail view and show success message or handle discard action
       this.showSendForSignatureTemplate = false;
-      this.updateButtonConfig();
     }
   }
 
@@ -430,7 +456,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
         this.getQuote();
       });
     }
-    this.updateButtonConfig();
   }
 
   closeModal() {
@@ -522,10 +547,10 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
         switchMap((result) => {
           return first(result)
             ? this.emailService.sendEmailNotificationWithTemplate(
-                get(first(result), 'Id'),
-                this.quote,
-                get(this.quote.PrimaryContact, 'Id')
-              )
+              get(first(result), 'Id'),
+              this.quote,
+              get(this.quote.PrimaryContact, 'Id')
+            )
             : of(null);
         }),
         take(1)
@@ -588,7 +613,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   showPresentTemplateFun() {
     this.showPresentTemplate = true;
-    this.updateButtonConfig();
   }
 
   onPresentDoc(obj: any) {
@@ -606,7 +630,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
         this.getQuote();
       });
     }
-    this.updateButtonConfig();
   }
 
   downloadAttachment(attachmentId: string) {
@@ -660,59 +683,44 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     );
   }
 
-  // Update button configuration and set variables
-  private updateButtonConfig(): void {
-    const buttons = [];
-    const isTemplateShown =
-      this.showPresentTemplate || this.showSendForSignatureTemplate;
+  openRequestChangesModal() {
+    this.showReqChangesModal = false;
 
-    if (!isTemplateShown) {
-      const { ApprovalStage } = this.quote || {};
-      const hasItems = (this.quote as any)?.Items?.length > 0;
-      const approvalStage = ApprovalStage?.toLowerCase() || '';
+    setTimeout(() => {
+      this.showReqChangesModal = true;
+    }, 10);
+  }
 
-      // Define button conditions with priorities
-      const buttonConditions = [
-        {
-          condition:
-            approvalStage === 'generated' || approvalStage === 'presented',
-          id: 'present',
-          priority: 1,
-        },
-        {
-          condition:
-            approvalStage === 'generated' || approvalStage === 'presented',
-          id: 'sendForSignature',
-          priority: 2,
-        },
-        {
-          condition:
-            hasItems &&
-            (approvalStage === 'approved' || approvalStage === 'presented'),
-          id: 'accept',
-          priority: 3,
-        },
-        {
-          condition: approvalStage === 'presented',
-          id: 'reject',
-          priority: 4,
-        },
-      ];
-
-      buttons?.push(
-        ...buttonConditions
-          .filter((btn) => btn.condition)
-          .map(({ id, priority }) => ({ id, priority }))
-      );
+  handleRequestChangesAction(event: any) {
+    if (event && event.action === 'close') {
+      this.showReqChangesModal = false;
     }
+    if (event && event.action === 'submit') {
+      this.showReqChangesModal = false;
 
-    this.primaryButtons = buttons?.slice(0, 2);
-    this.dropdownButtons = buttons?.slice(2);
-    this.hasDropdown = this.dropdownButtons.length > 0;
+      this.showViewCommentsComponent = false;
+      setTimeout(() => {
+        this.showViewCommentsComponent = true;
+      }, 100);
+    }
+  }
+
+  handleAddCommentsChanges(event: any) {
+    if (event && event.action === 'submit') {
+      this.showViewCommentsComponent = false;
+      setTimeout(() => {
+        this.showViewCommentsComponent = true;
+      }, 100);
+    }
+  }
+
+  handleViewCommentsAction(event: any) {
+    if (event && event.action === 'close') {
+      this.showReqChangesModal = false;
+    }
   }
 
   ngOnDestroy() {
-    if (this.notesSubscription) this.notesSubscription.unsubscribe();
     if (this.attachemntSubscription) this.attachemntSubscription.unsubscribe();
     this.quoteSubscription.forEach((subscription) =>
       subscription.unsubscribe()

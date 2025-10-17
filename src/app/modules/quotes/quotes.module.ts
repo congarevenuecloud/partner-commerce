@@ -28,7 +28,8 @@ import {
   FileUploaderModule,
   DocumentSelectorModule,
   EmailComposerModule,
-  SendForSignatureModule
+  SendForSignatureModule,
+  CommentsModule
 } from '@congarevenuecloud/elements';
 import { DetailsModule } from '../details/details.module';
 import { QuotesRoutingModule } from './quotes-routing.module';
@@ -72,7 +73,8 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
     FileUploaderModule,
     DocumentSelectorModule,
     EmailComposerModule,
-    SendForSignatureModule
+    SendForSignatureModule,
+    CommentsModule
   ],
   declarations: [
     QuoteListComponent,
