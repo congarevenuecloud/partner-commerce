@@ -18,8 +18,7 @@
       </div>
 
       <!-- Desktop Button Layout -->
-      <div class="align-items-center d-lg-flex d-md-flex d-sm-none d-none"
-        *ngIf="!showPresentTemplate && !showSendForSignatureTemplate">
+      <div class="align-items-center d-lg-flex d-md-flex d-sm-none d-none" *ngIf="!showPresentTemplate && !showSendForSignatureTemplate">
         <!-- Draft Stage: Show Generate Button -->
         <apt-generate-document *ngIf="quote.ApprovalStage === 'Draft'" [record]="quote" class="ml-auto"
           (onStatusUpdate)="onGenerateQuote()">
@@ -27,8 +26,8 @@
 
         <!-- Generated Stage: Show Send for Signature and Present as Primary, Generate in kebab menu -->
         <ng-container *ngIf="quote.ApprovalStage === 'Generated'">
-          <button type="button" class="btn btn-outline-primary mr-3 ml-auto px-2" (click)="openSendForSignatureModal()"
-            data-style="zoom-in">
+          <button type="button" class="btn btn-outline-primary mr-3 ml-auto px-2"
+            (click)="openSendForSignatureModal()" data-style="zoom-in">
             {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
           </button>
           <button type="button" class="btn btn-primary btn-raised px-3" (click)="showPresentTemplateFun()">
@@ -38,8 +37,8 @@
 
         <!-- Presented Stage: Show Reject and Accept as Primary Buttons -->
         <ng-container *ngIf="quote.ApprovalStage === 'Presented'">
-          <button type="button" [ladda]="rejectLoader" class="btn btn-outline-primary mr-3 ml-auto" data-style="zoom-in"
-            (click)="rejectQuote(quote?.Id)">
+          <button type="button" [ladda]="rejectLoader" class="btn btn-outline-primary mr-3 ml-auto"
+            data-style="zoom-in" (click)="rejectQuote(quote?.Id)">
             {{'COMMON.REJECT' | translate}}
           </button>
           <button type="button" *ngIf="quote?.Items?.length > 0" class="btn btn-primary btn-raised mr-3"
