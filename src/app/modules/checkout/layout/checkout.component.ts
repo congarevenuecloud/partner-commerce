@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, TemplateRef, OnDestroy, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, Subscription, combineLatest, of } from 'rxjs';
+import { Observable, Subscription, combineLatest, of, forkJoin } from 'rxjs';
 import { switchMap, take } from 'rxjs/operators';
 import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
@@ -71,6 +71,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     private emailService: EmailService) {
     this.uniqueId = uniqueId();
   }
+
   ngOnInit() {
     this.subscriptions.push(this.userService.isLoggedIn().subscribe(isLoggedIn => this.isLoggedIn = isLoggedIn));
     this.subscriptions.push(this.accountService.getCurrentAccount().subscribe(() => {
@@ -80,17 +81,26 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.lookupOptions.page = 10;
     }));
     this.order = new Order();
+
     this.subscriptions.push(
-      this.cartService.getMyCart().subscribe((cart) => {
+      forkJoin({
+        account: this.accountService.getCurrentAccount().pipe(take(1)),
+        cart: this.cartService.getMyCart().pipe(take(1))
+      }).subscribe(({ account, cart }) => {
         this.cart = cart;
         // Setting default values on order record.
         this.order.Name = 'New Order';
-        this.order.SoldToAccount = get(cart, 'Account');
-        this.order.BillToAccount = get(cart, 'Account');
-        this.order.ShipToAccount = get(cart, 'Account');
+        this.order.SoldToAccount = account;
+        this.order.BillToAccount = account;
+        this.order.ShipToAccount = account;
         this.order.PriceList = get(cart, 'PriceList');
+
+        this.onBillToChange();
+        this.onShipToChange();
+        this.isButtonDisabled();
       })
     );
+
     this.subscriptions.push(
       this.contactService
         .getMyContact()
@@ -137,10 +147,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         }
       )
     );
-
-    this.onBillToChange();
-    this.onShipToChange();
-    this.isButtonDisabled();
   }
 
   isButtonDisabled() {
