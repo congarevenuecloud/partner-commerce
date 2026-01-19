@@ -61,6 +61,10 @@ import { environment } from '../environments/environment';
           {
             path: 'favorites',
             loadChildren: () => import('./modules/favorites/favorites.module').then(m => m.FavoritesModule),
+          },
+          {
+            path: 'collaborative',
+            loadChildren: () => import('./modules/collaborative/collaborative.module').then(m => m.CollaborativeModule)
           }
         ]
       },

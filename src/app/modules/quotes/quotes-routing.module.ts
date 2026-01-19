@@ -4,6 +4,7 @@ import { DashboardViewComponent } from '../dashboard/view/dashboard-view.compone
 import { QuoteDetailComponent } from './detail/quote-detail.component';
 import { QuoteListComponent } from './list/quote-list.component';
 import { CreateQuoteComponent } from './quote-create/create-quote.component';
+import { CollaborationAuthGuard } from '../collaborative/guards/collaboration-auth.guard';
 
 const routes: Routes = [
   {
@@ -23,6 +24,7 @@ const routes: Routes = [
   {
     path: ':id',
     component: QuoteDetailComponent,
+    canActivate: [CollaborationAuthGuard]
   }
 ];
 
