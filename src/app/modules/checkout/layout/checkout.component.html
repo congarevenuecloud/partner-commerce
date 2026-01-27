@@ -16,79 +16,81 @@
         </button>
         <div class="d-flex" *ngIf="!showCaptcha">
           <ng-content select=".cancel-button"></ng-content>
-          <button class="btn btn-primary btn-block btn-raised" [ladda]="loading" data-style="zoom-in" [disabled]="(disableSubmit || (cart?.LineItems?.length < 1))"
-            (click)="orderPlacement()">
+          <button class="btn btn-primary btn-block btn-raised" [ladda]="loading" data-style="zoom-in"
+            [disabled]="isCheckoutDisabled()" (click)="orderPlacement()">
             <span>{{ 'COMMON.PLACE_ORDER' | translate }}</span>
           </button>
         </div>
       </div>
     </div>
- 
-  <div *ngIf="!isPayForOrderEnabled; else paymentForm" class="row pt-2">
-    <div class="col-md-4 order-md-2 mb-4 pl-md-0">
-      <apt-price-summary [paymentState]="paymentState" [record]="cart" [form]="form" [page]="pricingSummaryType"
-      [showCaptcha]="false" [loading]="loading" (onShowCaptcha)="loadCaptcha()" (onSubmitOrder)="submitOrder()"
-        #priceSummary>
-      </apt-price-summary>
-      <cart-summary [cart]="cart"></cart-summary>
-    </div>
-    <div class="col-md-8 order-md-1">
-      <form class="needs-validation" novalidate #form="ngForm">
-        <div class="card p-3">
-          <div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <apt-output-field [record]="order" field="SoldToAccount" displayValue="SoldToAccount"
-                  [labelClass]="'font-weight-normal'" [editable]="false" [showQuickView]="true">
-                </apt-output-field>
-              </div>
-              <div class="col-md-6 mb-3">
-                <apt-output-field [record]="order" field="PriceList" [labelClass]="'font-weight-normal'"
-                  [editable]="false" [showQuickView]="true">
-                </apt-output-field>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <apt-input-field name="description" [labelClass]="'font-weight-normal'" [entity]="order" (change)="isButtonDisabled()"
-                  [required]="true" [errorMsg]="!order.Name ? errMessages.requiredOrderTitle : '' " [field]="'Name'"
-                  [(ngModel)]="order.Name" [label]="'COMMON.ORDER_TITLE' | translate">
-                </apt-input-field>
-              </div>
-              <div class="col-md-6 mb-3">
-                <apt-input-field name="primaryContact" [labelClass]="'font-weight-normal'" [entity]="order"
-                  [field]="'PrimaryContact'" [(ngModel)]="order.PrimaryContact"
-                  (ngModelChange)="onPrimaryContactChange()" [lookupOptions]="lookupOptions" [required]="true"
-                  [errorMsg]="errMessages.requiredPrimaryContact">
-                </apt-input-field>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <apt-input-field name="billTo" [labelClass]="'font-weight-normal'" [entity]="order" [required]="true"
-                  [errorMsg]="errMessages.requiredBillToAcc" [field]="'BillToAccount'" [(ngModel)]="order.BillToAccount"
-                  (ngModelChange)="onBillToChange()">
-                </apt-input-field>
-                <div *ngIf="billToAccount$ | async as billAccount">
-                  <apt-address [ngModel]="order?.BillToAccount" [type]="'Billing'" [readonly]="true"
-                    name="billTo"></apt-address>
+
+    <div *ngIf="!isPayForOrderEnabled; else paymentForm" class="row pt-2">
+      <div class="col-md-4 order-md-2 mb-4 pl-md-0">
+        <apt-price-summary [paymentState]="paymentState" [record]="cart" [form]="form" [page]="pricingSummaryType"
+          [showCaptcha]="false" [loading]="loading" [enableTaxCalculation]="true" [taxAddress]="taxAddress"
+          (onShowCaptcha)="loadCaptcha()" (onSubmitOrder)="submitOrder()" (taxStatusChange)="onTaxStatusChange($event)"
+          #priceSummary>
+        </apt-price-summary>
+        <cart-summary [cart]="cart"></cart-summary>
+      </div>
+      <div class="col-md-8 order-md-1">
+        <form class="needs-validation" novalidate #form="ngForm">
+          <div class="card p-3">
+            <div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <apt-output-field [record]="order" field="SoldToAccount" displayValue="SoldToAccount"
+                    [labelClass]="'font-weight-normal'" [editable]="false" [showQuickView]="true">
+                  </apt-output-field>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <apt-output-field [record]="order" field="PriceList" [labelClass]="'font-weight-normal'"
+                    [editable]="false" [showQuickView]="true">
+                  </apt-output-field>
                 </div>
               </div>
-              <div class="col-md-6 mb-3">
-                <apt-input-field name="shipTo" [labelClass]="'font-weight-normal'" [entity]="order"
-                  [field]="'ShipToAccount'" [(ngModel)]="order.ShipToAccount" (ngModelChange)="onShipToChange()"
-                  [required]="true" [errorMsg]="errMessages.requiredShipToAcc">
-                </apt-input-field>
-                <div *ngIf="shipToAccount$ | async as shipAccount">
-                  <apt-address [ngModel]="order?.ShipToAccount" [type]="'Shipping'" [readonly]="true"
-                    name="shipTo"></apt-address>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <apt-input-field name="description" [labelClass]="'font-weight-normal'" [entity]="order"
+                    (change)="isButtonDisabled()" [required]="true"
+                    [errorMsg]="!order.Name ? errMessages.requiredOrderTitle : '' " [field]="'Name'"
+                    [(ngModel)]="order.Name" [label]="'COMMON.ORDER_TITLE' | translate">
+                  </apt-input-field>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <apt-input-field name="primaryContact" [labelClass]="'font-weight-normal'" [entity]="order"
+                    [field]="'PrimaryContact'" [(ngModel)]="order.PrimaryContact"
+                    (ngModelChange)="onPrimaryContactChange()" [lookupOptions]="lookupOptions" [required]="true"
+                    [errorMsg]="errMessages.requiredPrimaryContact">
+                  </apt-input-field>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <apt-input-field name="billTo" [labelClass]="'font-weight-normal'" [entity]="order" [required]="true"
+                    [errorMsg]="errMessages.requiredBillToAcc" [field]="'BillToAccount'"
+                    [(ngModel)]="order.BillToAccount" (ngModelChange)="onBillToChange()">
+                  </apt-input-field>
+                  <div *ngIf="billToAccount$ | async as billAccount">
+                    <apt-address [ngModel]="order?.BillToAccount" [type]="'Billing'" [readonly]="true"
+                      name="billTo"></apt-address>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <apt-input-field name="shipTo" [labelClass]="'font-weight-normal'" [entity]="order"
+                    [field]="'ShipToAccount'" [(ngModel)]="order.ShipToAccount" (ngModelChange)="onShipToChange()"
+                    [required]="true" [errorMsg]="errMessages.requiredShipToAcc">
+                  </apt-input-field>
+                  <div *ngIf="shipToAccount$ | async as shipAccount">
+                    <apt-address [ngModel]="order?.ShipToAccount" [type]="'Shipping'" [readonly]="true"
+                      name="shipTo"></apt-address>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </form>
-     </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -110,10 +112,12 @@
         [translateParams]="{emailAddress: order?.PrimaryContact?.Email}"></small>
       <h5 class="text-center my-3" [translate]="'DETAILS.GENERATED_ORDER_NUMBER'"
         [translateParams]="{orderName: orderConfirmation?.Name}"></h5>
-      <button class="d-lg-block d-md-block d-sm-none d-none btn btn-outline-primary w-25 mx-auto" (click)="closeModal()">{{ 'DETAILS.VIEW_YOUR_ORDER' |
+      <button class="d-lg-block d-md-block d-sm-none d-none btn btn-outline-primary w-25 mx-auto"
+        (click)="closeModal()">{{ 'DETAILS.VIEW_YOUR_ORDER' |
         translate }}</button>
-      <button class="d-lg-none d-md-none d-sm-block d-block btn btn-outline-primary w-50 mx-auto" (click)="closeModal()">{{ 'DETAILS.VIEW_YOUR_ORDER' |
-          translate }}</button>
+      <button class="d-lg-none d-md-none d-sm-block d-block btn btn-outline-primary w-50 mx-auto"
+        (click)="closeModal()">{{ 'DETAILS.VIEW_YOUR_ORDER' |
+        translate }}</button>
     </div>
   </ng-template>
   <ng-template #noEmail>
