@@ -6,11 +6,11 @@ import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { TranslateService } from '@ngx-translate/core';
-import { get, uniqueId, set, cloneDeep, isNil, isEmpty } from 'lodash';
+import { get, uniqueId, set, isNil } from 'lodash';
 import { ConfigurationService } from '@congarevenuecloud/core';
 import {
   Account, Cart, CartService, Order, OrderService, Contact, ContactService,
-  UserService, AccountService, AccountInfo, EmailService, EmailTemplate
+  UserService, AccountService, AccountInfo, EmailService, EmailTemplate, TaxAddress
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, PriceSummaryComponent, LookupOptions } from '@congarevenuecloud/elements';
 @Component({
@@ -55,6 +55,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   showCaptcha: boolean = false;
   displayCaptcha: boolean;
 
+  // Tax calculation properties
+  taxAddress: TaxAddress;
+  taxCalculated: boolean = false;
+  taxCalculationEnabled: boolean = false;
+
   private subscriptions: Subscription[] = [];
 
   constructor(private cartService: CartService,
@@ -83,17 +88,17 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.order = new Order();
 
     this.subscriptions.push(
-      forkJoin({
-        account: this.accountService.getCurrentAccount().pipe(take(1)),
-        cart: this.cartService.getMyCart().pipe(take(1))
-      }).subscribe(({ account, cart }) => {
+      combineLatest([
+        this.accountService.getCurrentAccount(),
+        this.cartService.getMyCart()
+      ]).subscribe(([account, cart]) => {
         this.cart = cart;
-        // Setting default values on order record.
-        this.order.Name = 'New Order';
-        this.order.SoldToAccount = account;
-        this.order.BillToAccount = account;
-        this.order.ShipToAccount = account;
-        this.order.PriceList = get(cart, 'PriceList');
+
+        if (!this.order.Name) this.order.Name = 'New Order';
+        if (!this.order.SoldToAccount?.Id && account) this.order.SoldToAccount = account;
+        if (!this.order.BillToAccount?.Id && account) this.order.BillToAccount = account;
+        if (!this.order.ShipToAccount?.Id && account) this.order.ShipToAccount = account;
+        if (!this.order.PriceList?.Id && get(cart, 'PriceList')) this.order.PriceList = get(cart, 'PriceList');
 
         this.onBillToChange();
         this.onShipToChange();
@@ -163,9 +168,46 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   onShipToChange() {
-    if (get(this.order.ShipToAccount, 'Id'))
+    if (get(this.order.ShipToAccount, 'Id')) {
       this.shipToAccount$ = this.accountService.getAccount(get(this.order.ShipToAccount, 'Id'));
+      // Update tax address when shipping account changes
+      this.subscriptions.push(
+        this.shipToAccount$.subscribe(account => {
+          this.updateTaxAddress(account);
+        })
+      );
+    }
     this.isButtonDisabled()
+  }
+
+  // Update tax address based on shipping account
+  updateTaxAddress(account?: Account): void {
+    if (!account) return;
+
+    this.taxAddress = {
+      Line1: account.ShippingStreet || '',
+      Line2: '',
+      City: account.ShippingCity || '',
+      Region: account.ShippingState || '',
+      Country: account.ShippingCountry || '',
+      PostalCode: account.ShippingPostalCode || ''
+    };
+  }
+
+  // Handle tax status changes from price summary component
+  onTaxStatusChange(status: { calculated: boolean, enabled: boolean, amount: number }): void {
+    this.taxCalculated = status.calculated;
+    this.taxCalculationEnabled = status.enabled;
+  }
+
+  // Check if tax calculation is blocking checkout
+  isTaxCalculationBlocking(): boolean {
+    return this.taxCalculationEnabled && !this.taxCalculated;
+  }
+
+  // Check if checkout button should be disabled
+  isCheckoutDisabled(): boolean {
+    return this.disableSubmit || (this.cart?.LineItems?.length < 1) || this.loading || this.isTaxCalculationBlocking();
   }
 
   onPrimaryContactChange() {
@@ -193,7 +235,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       });
   }
 
-  
+
   redirectOrderPage() {
     this.ngZone.run(() => {
       this.router.navigate(['/orders', this.orderConfirmation.Id]);

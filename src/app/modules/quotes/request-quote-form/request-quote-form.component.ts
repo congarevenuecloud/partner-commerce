@@ -60,14 +60,23 @@ export class RequestQuoteFormComponent implements OnInit {
   }
 
   shipToChange() {
-    if (get(this.quote.ShipToAccount, 'Id'))
-      this.shipToAccount$ = this.accountService.getAccount(this.quote.ShipToAccount.Id);
+    if (get(this.quote.ShipToAccount, 'Id')) {
+      this.shipToAccount$ = this.accountService.getAccount(get(this.quote.ShipToAccount, 'Id'));
+      this.shipToAccount$.pipe(take(1)).subscribe((newShippingAccount) => {
+        this.quote.ShipToAccount = newShippingAccount;
+        this.onQuoteUpdate.emit(this.quote);
+      });
+    }
   }
 
   billToChange() {
-    if (get(this.quote.BillToAccount, 'Id'))
-      this.billToAccount$ = this.accountService.getAccount(this.quote.BillToAccount.Id);
-
+    if (get(this.quote.BillToAccount, 'Id')) {
+      this.billToAccount$ = this.accountService.getAccount(get(this.quote.BillToAccount, 'Id'));
+      this.billToAccount$.pipe(take(1)).subscribe((newBillingAccount) => {
+        this.quote.BillToAccount = newBillingAccount;
+        this.onQuoteUpdate.emit(this.quote);
+      });
+    }
   }
   getPriceList() {
     this.priceList$ = this.plservice.getPriceList();
