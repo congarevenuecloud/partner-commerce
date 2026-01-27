@@ -56,6 +56,11 @@ export class AssetListComponent implements OnInit, OnDestroy {
   advancedFilters: Array<FieldFilter> = [];
 
   /**
+   * Filter for active assets.
+   */
+  isActiveFilter: FieldFilter;
+
+  /**
    * Labels for asset actions
    */
   labels:AssetActionLabels;
@@ -219,6 +224,11 @@ export class AssetListComponent implements OnInit, OnDestroy {
       }
       this.advancedFilters = filterConditions;
     }
+    this.isActiveFilter = {
+      field: 'IsInactive',
+      value: false,
+      filterOperator: FilterOperator.EQUAL
+    };
     this.loadView();
   }
 
@@ -331,7 +341,8 @@ export class AssetListComponent implements OnInit, OnDestroy {
       this.advancedFilters,
       this.renewFilter,
       this.priceTypeFilter,
-      this.assetActionFilter
+      this.assetActionFilter,
+      this.isActiveFilter
     );
   }
 

@@ -5,8 +5,9 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
-import { map, switchMap, take, tap, catchError } from 'rxjs/operators';
+import { map, switchMap, take, tap, filter, startWith } from 'rxjs/operators';
 import { first, defaultTo, get, cloneDeep, isEqual, upperFirst } from 'lodash';
 import {
   UserService,
@@ -39,16 +40,36 @@ export class HeaderComponent implements OnInit {
   cart: Cart;
   loading: boolean = true;
 
+  isReadOnlyCollaborationMode$: Observable<boolean>;
+
   constructor(
     private userService: UserService,
     private storefrontService: StorefrontService,
     private cartService: CartService,
     private accountService: AccountService,
     private exceptionService: ExceptionService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit() {
+    const currentUrl$: Observable<string> = this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(() => this.router.url),
+      startWith(this.router.url)
+    );
+
+    this.isReadOnlyCollaborationMode$ = currentUrl$.pipe(
+      switchMap(url => {
+        // For collaborative cart route - always hide header
+        if (url.includes('/collaborative/cart')) {
+          return of(true);
+        }
+
+        return of(false);
+      })
+    );
+
     this.updateCartView();
     this.storefront$ = this.storefrontService.getStorefront();
     this.storeLogo$ = this.storefront$.pipe(
