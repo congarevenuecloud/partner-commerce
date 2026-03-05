@@ -22,7 +22,7 @@ export class CreateQuoteComponent implements OnInit {
   quoteRequestObj: Quote;
   quoteBreadCrumbObj$: Observable<Quote>;
   disableSubmit: boolean = true;
-  showCaptcha: boolean=false;
+  showCaptcha: boolean = false;
   displayCaptcha: boolean;
 
   // Tax calculation properties

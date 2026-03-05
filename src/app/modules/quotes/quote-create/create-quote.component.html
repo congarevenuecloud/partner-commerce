@@ -22,8 +22,10 @@
                     </button>
                 </div>
             </div>
-            <div class="d-lg-none d-md-none d-sm-flex d-flex justify-content-between align-items-center flex-row flex-wrap">
-                <h5 class="mb-0 d-lg-none d-md-none d-sm-block d-block col-12" *ngIf="!cart?.Proposald?.Id">{{'COMMON.REQUEST_QUOTE' | translate }}</h5>
+            <div
+                class="d-lg-none d-md-none d-sm-flex d-flex justify-content-between align-items-center flex-row flex-wrap">
+                <h5 class="mb-0 d-lg-none d-md-none d-sm-block d-block col-12" *ngIf="!cart?.Proposald?.Id">
+                    {{'COMMON.REQUEST_QUOTE' | translate }}</h5>
                 <div class="d-flex justify-content-end w-100 px-2">
                     <apt-captcha *ngIf="showCaptcha" (onCaptchaSuccess)="captchaSuccess(cart)"></apt-captcha>
                     <button class="btn btn-link btn-sm" [routerLink]="['/carts/active']">
@@ -72,10 +74,10 @@
                 [translateParams]="{Sellername: quoteConfirmation?.CreatedBy?.Name}"></small>
             <small class="text-center" *ngIf="quoteConfirmation?.RFPResponseDueDate"
                 [translate]="'QUOTE_CONFIRMATION_MODAL.QUOTE_CONFIRMATION_MSG_WITH_RFP'"
-                [translateParams]="{RFP_value: quoteConfirmation.RFPResponseDueDate | date: 'yyyy-MM-dd'}"></small>
+                [translateParams]="{RFP_value: quoteConfirmation.RFPResponseDueDate | dateFormat : 'ShortDatePattern' | async}"></small>
             <small class="text-center" *ngIf="cart?.Proposald?.Id"
                 [translate]="'QUOTE_CONFIRMATION_MODAL.QUOTE_CONFIRMATION_Update_MSG'"
-                [translateParams]="{Sellername: quoteConfirmation?.CreatedBy?.Name, RFP_value: quoteConfirmation.RFPResponseDueDate | date: 'yyyy-MM-dd'}"></small>
+                [translateParams]="{Sellername: quoteConfirmation?.CreatedBy?.Name, RFP_value: quoteConfirmation.RFPResponseDueDate | dateFormat : 'ShortDatePattern' | async}"></small>
             <h5 class="text-center my-3">{{ 'QUOTE_CONFIRMATION_MODAL.QUOTE_CONFIRMATION_NO' | translate }}
                 {{quoteConfirmation.Name}}</h5>
             <button class="btn btn-outline-primary w-35 mx-auto" (click)="confirmationModal.hide()"

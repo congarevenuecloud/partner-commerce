@@ -288,10 +288,9 @@
                         </td>
 
                         <td>
-                          {{
-                          attachment?.DocumentMetadata?.CreatedDate
-                          | date : "short"
-                          }}
+                          <apt-output-field [record]="attachment.DocumentMetadata" field="CreatedDate"
+                            [editable]="false" [valueOnly]="true" [valueClass]="'pt-0'">
+                          </apt-output-field>
                         </td>
                         <td><button class="btn btn-link p-0 m-0" (click)="deleteAttachment(attachment)"
                             [ladda]="attachment?.DocumentMetadata?._metadata?.deleting" data-style="zoom-in"
