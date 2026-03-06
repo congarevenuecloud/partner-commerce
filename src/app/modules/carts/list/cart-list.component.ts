@@ -63,7 +63,7 @@ export class CartListComponent implements OnInit {
                 {
                   prop: 'CreatedDate',
                   label: 'CUSTOM_LABELS.CREATED_DATE',
-                  value: (record: Cart) => this.getDateFormat(record)
+                  value: (record: Cart) => this.getDateFormat(record, 'CreatedDate')
                 },
                 {
                   prop: 'CreatedBy.Name',
@@ -167,8 +167,10 @@ export class CartListComponent implements OnInit {
     return this.cartAggregate$ = this.cartService.getCartList(this.getFilters()).pipe(take(1), map(res => res));
   }
 
-  getDateFormat(record: Cart) {
-    return this.dateFormatPipe.transform(get(record, 'CreatedDate'));
+  getDateFormat(record: Cart, field: string, dateTimeFormat: string = 'ShortDatePattern'): Observable<string> {
+    const dateValue = get(record, field);
+    if (!dateValue) return of('');
+    return this.dateFormatPipe.transform(dateValue, dateTimeFormat);
   }
 
   showEffectiveDateModal(cart: Cart, template: TemplateRef<any>) {
@@ -224,7 +226,7 @@ export class CartListComponent implements OnInit {
     );
   }
 
-  getCartTotal(currentCart: Cart): Observable<SummaryGroup> {
+  getCartTotal(currentCart: Cart): Observable<string> {
     return this.currencyPipe.transform(get(find(get(currentCart, 'SummaryGroups', []), r => r.LineType === 'Grand Total'), 'NetPrice'));
   }
 
