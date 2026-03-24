@@ -36,7 +36,7 @@ import {
 } from 'lodash';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
-import { FilterOperator } from '@congarevenuecloud/core';
+import { FilterOperator, PlatformConstants } from '@congarevenuecloud/core';
 import {
   QuoteService,
   Quote,
@@ -69,6 +69,7 @@ import {
   AddCommentsConfig,
   ViewCommentsConfig
 } from '@congarevenuecloud/elements';
+import { DsrService } from '../../../services/dsr.service';
 
 @Component({
   selector: 'app-quote-details',
@@ -184,14 +185,13 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   acceptQuoteEmailTemplateName = 'DC Accept Quote Default email template';
   rejectQuoteEmailTemplateName = 'DC Reject Quote Default email template';
 
-  isLoggedIn: boolean;
   collaborationRequest: CollaborationRequest = null;
   isRecordOwner: boolean = false;
   currentUserId: string;
-  isAnonymous: boolean = false;
   canManageLineItems: boolean = true;
   canEditQuoteFields: boolean = true;
   canShowCollaborationActions: boolean = true;
+  isDsrMode: boolean = false;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -212,11 +212,21 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     private sendForSignatureService: SendForSignatureService,
     private userService: UserService,
     private contactService: ContactService,
-    private collaborationService: CollaborationRequestService
+    private collaborationService: CollaborationRequestService,
+    private dsrService: DsrService
   ) { }
 
   ngOnInit() {
     this.initializeTranslationsComments();
+    
+    // Initialize DSR mode state
+    this.isDsrMode = this.dsrService.isDsrMode();
+    
+    // Clear editing flag if coming back to quote details from cart
+    if (this.isDsrMode && this.dsrService.hasEditedLineItems()) {
+      this.dsrService.clearEditingLineItems();
+    }
+    
     this.getQuote();
     this.quoteSubscription.push(
       this.attachmentService
@@ -610,6 +620,19 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   private navigateToCartBasedOnAccessType(): void {
     const accessType = get(this.collaborationRequest, 'AccessType');
+    
+    // DSR Mode: Set pricelist and editing flag for FullEdit and RestrictedEdit access types
+    if (this.dsrService.isDsrMode() &&
+      (accessType === CollaborationAccessType.FullEdit || accessType === CollaborationAccessType.RestrictedEdit)) {
+      const priceListId = get(this.quote, 'PriceList.Id');
+      if (priceListId) {
+        localStorage.setItem(PlatformConstants.PRICELIST_ID, priceListId);
+      }
+      // Mark that user is editing line items in DSR mode
+      this.dsrService.setEditingLineItems();
+    }
+
+    // Use existing collaboration logic for navigation
     if (accessType === CollaborationAccessType.RestrictedEdit) {
       this.ngZone.run(() => this.router.navigate(['/collaborative/cart']));
     } else {
@@ -836,42 +859,38 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   private loadCollaborationRequestFromState(quoteId: string): void {
     // Get collaboration request from cached state (already fetched by CollaborationAuthGuard)
-    this.userService.me().pipe(
-      take(1),
-      switchMap(user => {
-        return this.collaborationService.getMyCollaborationRequest('Proposal', quoteId).pipe(
-          take(1),
-          map((request: CollaborationRequest) => ({ user, request }))
-        );
-      })
-    ).subscribe(({ user, request }) => {
+    combineLatest([
+      this.userService.me(),
+      this.collaborationService.getMyCollaborationRequest('Proposal', quoteId)
+    ]).pipe(
+      take(1)
+    ).subscribe(([user, request]) => {
       if (request) {
         this.collaborationRequest = request;
         this.currentUserId = get(user, 'Id');
-        this.isAnonymous = request.AuthenticationType === CollaborationAuthenticationType.Anonymous;
-
-        // For authenticated collaboration, check against RecordOwner
-        if (!this.isAnonymous) {
-          const recordOwnerId = get(request, 'RecordOwner.Id');
-          this.isRecordOwner = recordOwnerId === this.currentUserId;
-        }
+        
+        // Partner-commerce only supports AuthenticatedWithLogin - always check record owner
+        const recordOwnerId = get(request, 'RecordOwner.Id');
+        this.isRecordOwner = recordOwnerId === this.currentUserId;
       } else {
         this.collaborationRequest = null;
         this.isRecordOwner = true;
-        this.isAnonymous = false;
       }
 
-      this.updateComputedProperties();
+      // Note: updateComputedProperties() is now called after line items are loaded in getQuote()
       this.cdr.detectChanges();
     });
   }
 
   private updateComputedProperties(): void {
-    // No collaboration request means full access for the user
+    // DSR Mode: Check collaboration access for determining permissions
+    const isDsrMode = this.dsrService.isDsrMode();
+    
+    // No collaboration request means full access for the user (only in normal mode)
     if (!this.collaborationRequest) {
-      this.canManageLineItems = true;
-      this.canEditQuoteFields = true;
-      this.canShowCollaborationActions = true;
+      this.canManageLineItems = !isDsrMode; // Disable in DSR mode if no collaboration
+      this.canEditQuoteFields = !isDsrMode; // Disable in DSR mode if no collaboration
+      this.canShowCollaborationActions = !isDsrMode; // Disable in DSR mode if no collaboration
       return;
     }
 
@@ -879,26 +898,34 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     const authType = get(this.collaborationRequest, 'AuthenticationType');
     const hasLineItems = this.quoteLineItems$?.value && this.quoteLineItems$.value.length > 0;
 
-    // Edit existing items: Record owner can edit unless access is AcceptReject
-    const canEditExistingItems = this.isRecordOwner && accessType !== CollaborationAccessType.AcceptReject;
-    // Add new items: Only record owner with full authenticated login access.
-    const canAddNewItems = this.isRecordOwner && authType === CollaborationAuthenticationType.AuthenticatedWithLogin && accessType === CollaborationAccessType.FullEdit;
-    this.canManageLineItems = hasLineItems ? canEditExistingItems : canAddNewItems;
-
-    // Quote fields: editable by record owners, but not for anonymous auth or restricted access types
-    const isRestrictedAccess = accessType === CollaborationAccessType.RestrictedEdit || accessType === CollaborationAccessType.AcceptReject;
-    this.canEditQuoteFields = this.isRecordOwner && !this.isAnonymous && !isRestrictedAccess;
-
-    // For Anonymous auth: Always hide actions and show banner
-    if (authType === CollaborationAuthenticationType.Anonymous) {
-      this.canShowCollaborationActions = false;
-      // For AuthenticatedWithLogin: Only show for record owner
-    } else if (authType === CollaborationAuthenticationType.AuthenticatedWithLogin && !this.isRecordOwner) {
-      this.canShowCollaborationActions = false;
-      // For other auth types: Show for all users
+    // Edit existing items: FullEdit or RestrictedEdit access can edit existing items
+    const canEditExistingItems = accessType === CollaborationAccessType.FullEdit || accessType === CollaborationAccessType.RestrictedEdit;
+    // Add new items: Only FullEdit with authenticated login access can add new items
+    const canAddNewItems = accessType === CollaborationAccessType.FullEdit && authType === CollaborationAuthenticationType.AuthenticatedWithLogin;
+    
+    // Manage line items logic:
+    // - DSR mode: Check collaboration permissions (can edit existing OR can add new based on line items presence)
+    // - Normal mode: Read-only when collaboration is active (must use DSR mode to edit)
+    if (isDsrMode) {
+      this.canManageLineItems = hasLineItems ? canEditExistingItems : canAddNewItems;
     } else {
-      this.canShowCollaborationActions = true;
+      this.canManageLineItems = false; // Read-only in normal mode when collaboration is active
     }
+
+    // Quote fields: Only FullEdit access can edit quote fields (not RestrictedEdit or AcceptReject)
+    // - DSR mode: Check collaboration access type
+    // - Normal mode: Read-only when collaboration is active (must use DSR mode to edit)
+    if (isDsrMode) {
+      this.canEditQuoteFields = accessType === CollaborationAccessType.FullEdit;
+    } else {
+      this.canEditQuoteFields = false; // Read-only in normal mode when collaboration is active
+    }
+
+    // Collaboration actions visibility (Accept/Reject buttons):
+    // - Partner-commerce only supports AuthenticatedWithLogin (no Anonymous access)
+    // - Show actions for collaborators (non-record-owners) in DSR mode
+    // - Record owners don't see collaboration actions (they own the quote)
+    this.canShowCollaborationActions = isDsrMode && !this.isRecordOwner;
   }
 
   ngOnDestroy() {

@@ -1,8 +1,10 @@
 import { Component, AfterContentInit, ElementRef, QueryList, HostListener, Input, ContentChildren, ViewChild, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { get, set, findIndex } from 'lodash';
 import { AObject } from '@congarevenuecloud/core';
 import { DetailSectionComponent } from '../detail-section/detail-section.component';
+import { DsrService } from '../../../services/dsr.service';
 
 @Component({
   selector: 'app-detail',
@@ -15,6 +17,7 @@ export class DetailsLayoutComponent implements AfterContentInit, OnDestroy, OnCh
 
   filteredSections: DetailSectionComponent[] = [];
   private sectionsSubscription: Subscription;
+  private dsrSubscription: Subscription;
   
   @ViewChild('primaryActions', { static: true }) primaryActions: any;
   @ViewChild('secondaryActions', { static: true }) secondaryActions: any;
@@ -25,12 +28,17 @@ export class DetailsLayoutComponent implements AfterContentInit, OnDestroy, OnCh
   @Input() context: AObject;
   @Input() route: string;
   @Input() hideLink: boolean = false;
+  @Input() hideHome: boolean = false;
+  @Input() readOnly: boolean = false;
+  isDsrMode: boolean = false;
 
   private activeTabIndex = 0;
   private cachedHeaderHeight: number | null = null; // Cache header height
 
   hidePrimaryActions: boolean = false;
   hideSecondaryActions: boolean = false;
+
+  constructor(private dsrService: DsrService) {}
 
   ngOnChanges(changes: SimpleChanges) {
     // If hideLink input property changes, update filtered sections
@@ -40,6 +48,12 @@ export class DetailsLayoutComponent implements AfterContentInit, OnDestroy, OnCh
   }
 
   ngAfterContentInit() {
+    this.dsrSubscription = this.dsrService.getDsrState().pipe(
+      map(state => state.isDsrMode)
+    ).subscribe(isDsrMode => {
+      this.isDsrMode = isDsrMode;
+    });
+
     this.updateFilteredSections();
 
     // Subscribe to changes in the sections QueryList
@@ -196,6 +210,9 @@ export class DetailsLayoutComponent implements AfterContentInit, OnDestroy, OnCh
   ngOnDestroy() {
     if (this.sectionsSubscription) {
       this.sectionsSubscription.unsubscribe();
+    }
+    if (this.dsrSubscription) {
+      this.dsrSubscription.unsubscribe();
     }
   }
 }

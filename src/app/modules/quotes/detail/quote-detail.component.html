@@ -1,4 +1,4 @@
-<app-detail *ngIf="quote; else loading" [context]="quote" [route]="'proposals'" [hideLink]="isAnonymous">
+<app-detail *ngIf="quote; else loading" [context]="quote" [route]="'proposals'" [readOnly]="isDsrMode">
 
   <apt-alert [record]="quote" message="ERROR.UPDATE_QUOTE_FAILED_ON_DETAILS_PAGE" [showOnlyMessage]="false">
   </apt-alert>
@@ -24,15 +24,15 @@
 
       <!-- Desktop Button Layout -->
       <div class="align-items-center d-lg-flex d-md-flex d-sm-none d-none" *ngIf="!showPresentTemplate && !showSendForSignatureTemplate">
-        <!-- Draft Stage: Show Generate Button (visible when no collaboration OR FullEdit access) -->
+        <!-- Draft Stage: Show Generate Button (normal mode only, no collaboration) -->
         <apt-generate-document
-          *ngIf="quote.ApprovalStage === 'Draft' && (!collaborationRequest || collaborationRequest?.AccessType === 'FullEdit')"
+          *ngIf="quote.ApprovalStage === 'Draft' && !isDsrMode && !collaborationRequest"
           [record]="quote" class="ml-auto" (onStatusUpdate)="onGenerateQuote()">
         </apt-generate-document>
 
-        <!-- Generated Stage: Show Send for Signature and Present as Primary (visible when no collaboration OR FullEdit access) -->
+        <!-- Generated Stage: Show Send for Signature and Present (normal mode only, no collaboration) -->
         <ng-container
-          *ngIf="quote.ApprovalStage === 'Generated' && (!collaborationRequest || collaborationRequest?.AccessType === 'FullEdit')">
+          *ngIf="quote.ApprovalStage === 'Generated' && !isDsrMode && !collaborationRequest">
           <button type="button" class="btn btn-outline-primary mr-3 ml-auto px-2"
             (click)="openSendForSignatureModal()" data-style="zoom-in">
             {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
@@ -42,8 +42,8 @@
           </button>
         </ng-container>
 
-        <!-- Presented Stage: Show Accept/Reject buttons -->
-        <ng-container *ngIf="quote.ApprovalStage === 'Presented' && canShowCollaborationActions">
+        <!-- Presented Stage: Show Accept/Reject buttons (visible in DSR mode or collaboration scenarios) -->
+        <ng-container *ngIf="quote.ApprovalStage === 'Presented' && (isDsrMode || canShowCollaborationActions)">
           <button type="button" [ladda]="rejectLoader" class="btn btn-outline-primary mr-3 ml-auto" data-style="zoom-in"
             (click)="rejectQuote(quote?.Id)">
             {{'COMMON.REJECT' | translate}}
@@ -56,7 +56,7 @@
 
         <!-- Desktop Kebab Menu for Secondary Actions -->
         <div class="dropdown ml-3 d-lg-block d-md-block d-sm-none d-none"
-          *ngIf="(quote?.ApprovalStage === 'Generated') || (quote?.ApprovalStage === 'Presented' && canShowCollaborationActions)">
+          *ngIf="(quote?.ApprovalStage === 'Generated') || (quote?.ApprovalStage === 'Presented' && (isDsrMode || canShowCollaborationActions))">
           <a class="fa fa-ellipsis-v dropdown-toggle" href="#" role="button" id="desktopDropdownMenuLink"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           </a>
@@ -66,7 +66,7 @@
         </div>
       </div>
       <div class="d-sm-block d-block ml-auto d-md-none d-lg-none pt-2"
-        *ngIf="['Draft', 'Generated', 'Presented', 'Approved'].includes(quote?.ApprovalStage) && (quote?.ApprovalStage !== 'Presented' || canShowCollaborationActions)">
+        *ngIf="['Draft', 'Generated', 'Presented', 'Approved'].includes(quote?.ApprovalStage) && (quote?.ApprovalStage !== 'Presented' || isDsrMode || canShowCollaborationActions)">
         <div class="dropdown pr-4">
           <a class="fa fa-ellipsis-v dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -79,7 +79,7 @@
       <div *ngIf="quote?.ApprovalStage === 'Accepted' && order$ | async as order">
         <span class="pr-4 d-flex align-items-baseline">
           <apt-output-field [record]="order" field="Name" [label]="'MY_ACCOUNT.ORDER_DETAIL.ORDER_ID' | translate"
-            layout="inline" [editable]="false" [showQuickView]="true"></apt-output-field>
+            layout="inline" [editable]="false" [showQuickView]="!isDsrMode"></apt-output-field>
           <div class="badge badge-light ml-1 py-0">
             <apt-output-field [record]="order" [field]="'Status'" [valueOnly]="true" [valueClass]="'p-0'"
               [editable]="false">
@@ -88,13 +88,23 @@
         </span>
       </div>
     </div>
-    <!-- Collaboration In Progress Banner for non-record owners and anonymous auth type -->
+    <!-- ==================== COLLABORATION IN PROGRESS BANNER ==================== -->
+    <!-- Show warning when: Presented stage, collaboration active, NOT in DSR mode -->
+    <!-- This tells users they can't act on quote directly - must use collaboration link -->
     <div class="alert alert-warning d-flex align-items-center my-2 py-2" role="alert"
-      *ngIf="collaborationRequest && (!isRecordOwner || isAnonymous) && quote?.ApprovalStage === 'Presented'">
+      *ngIf="collaborationRequest && quote?.ApprovalStage === 'Presented' && !isDsrMode">
       <i class="fa fa-exclamation-triangle mr-3"></i>
-      <div class="mb-0">{{ 'COLLABORATION.IN_PROGRESS_MESSAGE' | translate }}</div>
+      <div class="mb-0">
+        <ng-container *ngIf="isRecordOwner; else genericMessage">
+          {{ 'COLLABORATION.USE_COLLABORATION_LINK' | translate }}
+        </ng-container>
+        <ng-template #genericMessage>
+          {{ 'COLLABORATION.IN_PROGRESS_MESSAGE' | translate }}
+        </ng-template>
+      </div>
     </div>
-    <app-progress class="status-bar" *ngIf="quoteStatusLabelMap[quote.ApprovalStage]"
+    <!-- Hide progress bar in DSR mode -->
+    <app-progress class="status-bar" *ngIf="quoteStatusLabelMap[quote.ApprovalStage] && !isDsrMode"
       [steps]="quoteStatusStepsLabels" [currentStep]="quoteStatusLabelMap[quote.ApprovalStage]">
     </app-progress>
   </div>
@@ -126,6 +136,10 @@
                 </div>
               </div>
               <div class="row">
+                <!-- TODO: Uncomment below when source channel picklist value 'Partner' is added to Storefront object. Ref PR - https://github.com/congaengr/Conga-ROC-Schema/pull/2190 -->
+                <!-- <div class="flex-shrink-1 col-md-4 mb-2">
+                  <apt-output-field [record]="quote" field="SourceChannel" [editable]="false"></apt-output-field>
+                </div> -->
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote.CreatedBy" field="Name" [label]="'COMMON.CREATED_BY' | translate"
                     [editable]="false"></apt-output-field>
@@ -193,7 +207,7 @@
           <h5>
             {{'DETAILS.LINE_ITEMS' | translate}}
             <!-- Show Edit/Add button -->
-            <button class="btn text-primary px-2 ml-1 py-0" *ngIf="(quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Presented') && 
+            <button class="btn text-primary px-2 ml-1 py-0" *ngIf="(isDsrMode || quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Presented') && 
                     canManageLineItems" [ladda]="editLoader" data-style="zoom-in" data-spinner-color="black"
               (click)="editQuoteItems(quote)">
               <i *ngIf="quote?.Items?.length > 0" class="fa fa-edit"></i>
@@ -239,7 +253,7 @@
         <div class="card-body">
           <div class="row d-flex justify-content-between">
             <div
-              [ngClass]="quote?.ApprovalStage !== 'Denied' && (!collaborationRequest || (collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner)) ? 'col-lg-6 col-md-6' :'col-lg-12 col-md-12'">
+              [ngClass]="quote?.ApprovalStage !== 'Denied' && (isDsrMode || !collaborationRequest || (collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner)) ? 'col-lg-6 col-md-6' :'col-lg-12 col-md-12'">
               <ng-container *ngIf="attachmentList?.length > 0; else emptyAttachments">
                 <div class="overflow-auto table-container">
                   <table class="table table-sm">
@@ -289,7 +303,7 @@
                           </apt-output-field>
                         </td>
                         <td><button
-                            *ngIf="quote?.ApprovalStage !== 'Denied' && (!collaborationRequest || (collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner))"
+                            *ngIf="quote?.ApprovalStage !== 'Denied' && (isDsrMode || !collaborationRequest || (collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner))"
                             class="btn btn-link p-0 m-0" (click)="deleteAttachment(attachment)"
                             [ladda]="attachment?.DocumentMetadata?._metadata?.deleting" data-style="zoom-in"
                             data-spinner-color="black">
@@ -308,9 +322,9 @@
               </ng-template>
             </div>
             <span class="d-lg-block d-md-block d-sm-none d-none border-left"
-              *ngIf="quote?.ApprovalStage !== 'Denied' && (!collaborationRequest || (collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner))"></span>
+              *ngIf="quote?.ApprovalStage !== 'Denied' && (isDsrMode || !collaborationRequest || (collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner))"></span>
             <div class="col-12 col-md-5 pt-lg-0 pt-md-0 pt-sm-3 pt-3"
-              *ngIf="(!collaborationRequest || (collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner))">
+              *ngIf="(isDsrMode || !collaborationRequest || (collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner))">
               <ng-container *ngTemplateOutlet="addAttachments"></ng-container>
             </div>
           </div>
@@ -391,41 +405,44 @@
 </app-detail>
 
 <ng-template #desktopKebabButtons>
-  <!-- Generated Stage: Show Generate Document in Desktop Kebab Menu -->
-  <ng-container *ngIf="quote.ApprovalStage === 'Generated' && !showPresentTemplate">
+  <!-- Generated Stage: Show Generate Document in Desktop Kebab Menu (NOT in DSR mode) -->
+  <ng-container *ngIf="quote.ApprovalStage === 'Generated' && !showPresentTemplate && !isDsrMode">
     <apt-generate-document [record]="quote" [buttonClasses]="'dropdown-item'" (onStatusUpdate)="onGenerateQuote()">
     </apt-generate-document>
   </ng-container>
-  <!-- Presented Stage: Show Request Changes plus Generate/Present/Send for Signature for authorized users -->
-  <ng-container *ngIf="quote.ApprovalStage === 'Presented' && !showPresentTemplate && canShowCollaborationActions">
+  <!-- Presented Stage: DSR mode - show Request Changes button -->
+  <ng-container *ngIf="quote.ApprovalStage === 'Presented' && !showPresentTemplate && isDsrMode">
     <button type="button" class="dropdown-item" (click)="openRequestChangesModal()">
       {{ 'COMMENTS.REQUEST_CHANGES' | translate }}
     </button>
-    <!-- Generate, Send for Signature, and Present buttons visible when no collaboration, or for FullEdit record owners when collaboration exists -->
-    <ng-container *ngIf="!collaborationRequest || (collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner)">
-      <button type="button" class="dropdown-item" (click)="openSendForSignatureModal()" data-style="zoom-in">
-        {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
-      </button>
-      <apt-generate-document [record]="quote" [buttonClasses]="'dropdown-item'" (onStatusUpdate)="onGenerateQuote()">
-      </apt-generate-document>
-      <button type="button" class="dropdown-item" (click)="showPresentTemplateFun()">
-        {{'DETAILS.PRESENT_QUOTE' | translate}}
-      </button>
-    </ng-container>
+  </ng-container>
+  <!-- Presented Stage: Normal mode non-collaboration - show Generate/Send/Present/Request Changes buttons -->
+  <ng-container *ngIf="quote.ApprovalStage === 'Presented' && !showPresentTemplate && !isDsrMode && !collaborationRequest">
+    <button type="button" class="dropdown-item" (click)="openRequestChangesModal()">
+      {{ 'COMMENTS.REQUEST_CHANGES' | translate }}
+    </button>
+    <button type="button" class="dropdown-item" (click)="openSendForSignatureModal()" data-style="zoom-in">
+      {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
+    </button>
+    <apt-generate-document [record]="quote" [buttonClasses]="'dropdown-item'" (onStatusUpdate)="onGenerateQuote()">
+    </apt-generate-document>
+    <button type="button" class="dropdown-item" (click)="showPresentTemplateFun()">
+      {{'DETAILS.PRESENT_QUOTE' | translate}}
+    </button>
   </ng-container>
 </ng-template>
 
 <ng-template #mobileActionButtons>
-  <!-- Draft Stage: Show Generate Button (visible when no collaboration OR FullEdit access) -->
+  <!-- Draft Stage: Show Generate Button (normal mode only, no collaboration) -->
   <ng-container
-    *ngIf="quote.ApprovalStage === 'Draft' && !showPresentTemplate && (!collaborationRequest || collaborationRequest?.AccessType === 'FullEdit')">
+    *ngIf="quote.ApprovalStage === 'Draft' && !showPresentTemplate && !isDsrMode && !collaborationRequest">
     <apt-generate-document [record]="quote" (onStatusUpdate)="onGenerateQuote()">
     </apt-generate-document>
   </ng-container>
 
-  <!-- Generated Stage: Show Send for Signature, Present as Primary and Generate as Secondary button (visible when no collaboration OR FullEdit access) -->
+  <!-- Generated Stage: Show Send for Signature, Present, Generate buttons (normal mode only, no collaboration) -->
   <ng-container
-    *ngIf="quote.ApprovalStage === 'Generated' && !showPresentTemplate && (!collaborationRequest || collaborationRequest?.AccessType === 'FullEdit')">
+    *ngIf="quote.ApprovalStage === 'Generated' && !showPresentTemplate && !isDsrMode && !collaborationRequest">
     <button type="button" class="dropdown-item" (click)="openSendForSignatureModal()" data-style="zoom-in">
       {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
     </button>
@@ -436,9 +453,9 @@
     </apt-generate-document>
   </ng-container>
 
-  <!-- Presented Stage: Non-collaboration quote - show all buttons -->
+  <!-- Presented Stage: Normal mode, no collaboration - show all owner actions -->
   <ng-container
-    *ngIf="quote.ApprovalStage === 'Presented' && !showPresentTemplate && !collaborationRequest">
+    *ngIf="quote.ApprovalStage === 'Presented' && !showPresentTemplate && !isDsrMode && !collaborationRequest">
     <button type="button" class="dropdown-item" (click)="openSendForSignatureModal()" data-style="zoom-in">
       {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
     </button>
@@ -459,20 +476,9 @@
     </button>
   </ng-container>
 
-  <!-- Presented Stage: Collaboration scenarios - use canShowCollaborationActions logic -->
+  <!-- Presented Stage: DSR mode - show Request Changes, Accept, Reject -->
   <ng-container
-    *ngIf="quote.ApprovalStage === 'Presented' && !showPresentTemplate && collaborationRequest && canShowCollaborationActions">
-    <!-- Generate, Send for Signature, and Present buttons visible for FullEdit record owners -->
-    <ng-container *ngIf="collaborationRequest?.AccessType === 'FullEdit' && isRecordOwner">
-      <button type="button" class="dropdown-item" (click)="openSendForSignatureModal()" data-style="zoom-in">
-        {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
-      </button>
-      <apt-generate-document [record]="quote" (onStatusUpdate)="onGenerateQuote()">
-      </apt-generate-document>
-      <button type="button" class="dropdown-item" (click)="showPresentTemplateFun()">
-        {{'DETAILS.PRESENT_QUOTE' | translate}}
-      </button>
-    </ng-container>
+    *ngIf="quote.ApprovalStage === 'Presented' && !showPresentTemplate && isDsrMode">
     <button type="button" class="dropdown-item" (click)="openRequestChangesModal()">
       {{ 'COMMENTS.REQUEST_CHANGES' | translate }}
     </button>

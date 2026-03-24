@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ViewChild, Input } from '@angular/core';
 import { Observable, of, combineLatest } from 'rxjs';
 import { switchMap, take, map } from 'rxjs/operators';
 import { get } from 'lodash';
@@ -11,6 +11,8 @@ import { ExceptionService, OutputFieldComponent } from '@congarevenuecloud/eleme
   changeDetection: ChangeDetectionStrategy.Default
 })
 export class ActionBarComponent implements OnInit {
+
+  @Input() isDsrMode: boolean = false;
 
   cart$: Observable<Cart>;
   loading: boolean = false;

@@ -4,11 +4,12 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 
 import { Observable, of, BehaviorSubject, Subscription, combineLatest } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, map } from 'rxjs/operators';
 import { get, isNil, isEmpty, toString, toNumber, set, isEqual } from 'lodash';
 import { FilterOperator, PlatformConstants, ConfigurationService } from '@congarevenuecloud/core';
 import { Category, ProductService, ProductResult, PreviousState, FieldFilter, AccountService, CategoryService, Product, FacetFilter, FacetFilterPayload, CartService, StorefrontService, FavoriteService, Favorite, FavoriteResult } from '@congarevenuecloud/ecommerce';
 import { BatchSelectionService, ExceptionService } from '@congarevenuecloud/elements';
+import { DsrService } from '../../../services/dsr.service';
 
 @Component({
   selector: 'app-product-list',
@@ -30,6 +31,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   productFamilies$: Observable<Array<string>> = new Observable<Array<string>>();
   category: Category;
   subscriptions: Array<Subscription> = [];
+  private dsrSubscription: Subscription;
   hasSearchError: boolean;
   moveToLast: boolean = false;
   productResult: PreviousState;
@@ -55,6 +57,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
   favoriteSearchString: string = '';
   // Flag to check if the current view is the favorite catalog
   isFavoriteCatalog: boolean = false;
+  // Flag to track DSR mode for UI restrictions
+  isDsrMode: boolean = false;
   // Object to hold the loading state of the favorite records being added to the cart.
   isLoading: Object = {};
 
@@ -62,9 +66,18 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   constructor(private activatedRoute: ActivatedRoute, private sanitizer: DomSanitizer, private router: Router, private categoryService: CategoryService, public batchSelectionService: BatchSelectionService,
     public productService: ProductService, private translateService: TranslateService, private accountService: AccountService,
-    private storefrontService: StorefrontService, private favoriteService: FavoriteService, private exceptionService: ExceptionService, private configurationService: ConfigurationService) { }
+    private storefrontService: StorefrontService, private favoriteService: FavoriteService, private exceptionService: ExceptionService, private configurationService: ConfigurationService,
+    private dsrService: DsrService) { }
 
   ngOnInit() {
+    // Check if DSR mode is active to control UI visibility
+    // Keep this separate from subscriptions array since getResults() clears that array
+    this.dsrSubscription = this.dsrService.getDsrState().pipe(
+      map(state => state.isDsrMode)
+    ).subscribe(isDsrMode => {
+      this.isDsrMode = isDsrMode;
+    });
+
     this.subscriptions.push(
       this.router.events.subscribe((eventname: NavigationStart) => {
         if (eventname.navigationTrigger === 'popstate' && eventname instanceof NavigationStart) {
@@ -104,6 +117,9 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.dsrSubscription) {
+      this.dsrSubscription.unsubscribe();
+    }
     this.subscriptions.forEach(sub => sub.unsubscribe());
     if (this.searchDebounceTimer) {
       clearTimeout(this.searchDebounceTimer);

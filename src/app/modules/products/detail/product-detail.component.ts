@@ -19,6 +19,7 @@ import {
   ItemRequest
 } from '@congarevenuecloud/ecommerce';
 import { ProductConfigurationComponent, ProductConfigurationSummaryComponent, ProductConfigurationService, RevalidateCartService } from '@congarevenuecloud/elements';
+import { DsrService } from '../../../services/dsr.service';
 @Component({
   selector: 'app-product-detail',
   templateUrl: './product-detail.component.html',
@@ -31,6 +32,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
   viewState$: BehaviorSubject<ProductDetailsState> = new BehaviorSubject<ProductDetailsState>(null);
   recommendedProducts$: Observable<Array<ItemRequest>>;
+  isDsrMode: boolean = false;
   attachments$: Observable<Array<ProductInformation>>;
   modalRef: BsModalRef;
   primaryLineItem: CartItem = null;
@@ -66,7 +68,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private productConfigurationService: ProductConfigurationService,
     private crService: ConstraintRuleService,
     private modalService: BsModalService,
-    private configurationService: ConfigurationService) {
+    private configurationService: ConfigurationService,
+    private dsrService: DsrService) {
   }
 
   @HostListener('window:resize', ['$event'])
@@ -75,6 +78,14 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.subscriptions.push(
+      this.dsrService.getDsrState().pipe(
+        rmap((state) => state.isDsrMode)
+      ).subscribe(isDsrMode => {
+        this.isDsrMode = isDsrMode;
+      })
+    );
+
     // Initialize screen size
     this.checkScreenSize();
     this.subscriptions.push(this.route.params.pipe(
@@ -92,6 +103,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           }),
           distinctUntilChanged((oldCli, newCli) => get(newCli, 'Quantity') === this.currentQty)
         );
+        // TODO: Needs to be removed when product features are part of get products API call (CPQ-52267)
         const productFeatureValues$ = this.productService.getProductsWithFeatureValues([get(params, 'id')]).pipe(rmap((products: Array<Product>) => get(first(products), 'ProductFeatureValues')));
         return combineLatest([product$, cartItem$, this.storefrontService.getStorefront(), this.revalidateCartService.revalidateFlag, productFeatureValues$]);
       }),
