@@ -1,5 +1,5 @@
-<apt-breadcrumb [sobject]="context" [label]="title" [route]="route">
-  <app-action-bar>
+<apt-breadcrumb [sobject]="context" [label]="title" [route]="route" [hideHome]="hideHome" [readOnly]="readOnly" class="border-bottom">
+  <app-action-bar [isDsrMode]="isDsrMode" *ngIf="!readOnly">
     <ng-content select=".global-actions"></ng-content>
   </app-action-bar>
 </apt-breadcrumb>

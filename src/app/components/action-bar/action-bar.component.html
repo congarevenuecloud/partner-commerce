@@ -1,5 +1,5 @@
 <div *ngIf="cart$ | async as cart" class="d-flex justify-content-between w-100 align-items-center pr-2">
-  <div class="d-flex align-self-stretch">
+  <div class="d-flex align-self-stretch" *ngIf="!isDsrMode">
     <div class="px-1 d-flex align-items-center">
       <!-- quick add button with business object as quote which performs add to cart + quote placement-->
       <app-quick-add [layout]="'modal'" [fields]="fields" [productFieldType]="'lookup'"

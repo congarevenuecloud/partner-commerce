@@ -3,6 +3,7 @@ import { RouterModule } from '@angular/router';
 import { AuthorizationGuard } from './auth/auth.guard';
 import { MainComponent } from './main.component';
 import { environment } from '../environments/environment';
+import { DsrRestrictedGuard } from './guards/dsr-restricted.guard';
 
 @NgModule({
   imports: [
@@ -18,8 +19,14 @@ import { environment } from '../environments/environment';
             pathMatch: 'full'
           },
           {
+            path: 'dsr',
+            loadChildren: () => import('./modules/dsr/dsr.module').then(m => m.DsrModule),
+            data: { title: 'DSR' }
+          },
+          {
             path: 'orders',
-            loadChildren: () => import('./modules/orders/orders.module').then(m => m.OrdersModule)
+            loadChildren: () => import('./modules/orders/orders.module').then(m => m.OrdersModule),
+            canActivate: [DsrRestrictedGuard]
           },
           {
             path: 'products',
@@ -36,15 +43,18 @@ import { environment } from '../environments/environment';
           },
           {
             path: 'user',
-            loadChildren: () => import('./modules/user/user.module').then(m => m.UserModule)
+            loadChildren: () => import('./modules/user/user.module').then(m => m.UserModule),
+            canActivate: [DsrRestrictedGuard]
           },
           {
             path: 'assets',
-            loadChildren: () => import('./modules/assets/assets.module').then(m => m.AssetsModule)
+            loadChildren: () => import('./modules/assets/assets.module').then(m => m.AssetsModule),
+            canActivate: [DsrRestrictedGuard]
           },
           {
             path: 'dashboard',
-            loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule)
+            loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule),
+            canActivate: [DsrRestrictedGuard]
           },
           {
             path: 'proposals',
@@ -52,15 +62,18 @@ import { environment } from '../environments/environment';
           },
           {
             path: 'overview',
-            loadChildren: () => import('./modules/overview/overview.module').then(m => m.OverViewModule)
+            loadChildren: () => import('./modules/overview/overview.module').then(m => m.OverViewModule),
+            canActivate: [DsrRestrictedGuard]
           },
           {
             path: 'checkout',
             loadChildren: () => import('./modules/checkout/checkout.module').then(m => m.CheckoutModule),
+            canActivate: [DsrRestrictedGuard]
           },
           {
             path: 'favorites',
             loadChildren: () => import('./modules/favorites/favorites.module').then(m => m.FavoritesModule),
+            canActivate: [DsrRestrictedGuard]
           },
           {
             path: 'collaborative',

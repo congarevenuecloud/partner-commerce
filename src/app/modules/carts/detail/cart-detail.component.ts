@@ -8,6 +8,7 @@ import { plainToClass } from 'class-transformer';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { Cart, CartItem, CartService, LineItemService, Order, Quote, ItemGroup, QuoteService, ConstraintRuleService, OrderService, ItemRequest } from '@congarevenuecloud/ecommerce';
 import { BatchActionService, RevalidateCartService, ExceptionService, ButtonAction, BatchSelectionService } from '@congarevenuecloud/elements';
+import { DsrService } from '../../../services/dsr.service';
 
 @Component({
   selector: 'app-cart-detail',
@@ -27,6 +28,7 @@ export class CartDetailComponent implements OnInit {
   loading: boolean = false;
   primaryLI: Array<CartItem> = [];
   readOnly: boolean = false;
+  isDsrMode: boolean = false;
   cart: Cart;
   subscription: Array<Subscription> = [];
   disabled: boolean;
@@ -53,9 +55,25 @@ export class CartDetailComponent implements OnInit {
     public batchActionService: BatchActionService,
     private modalService: BsModalService,
     private exceptionService: ExceptionService,
-    public batchSelectionService: BatchSelectionService
+    public batchSelectionService: BatchSelectionService,
+    private dsrService: DsrService
   ) { }
   ngOnInit() {
+    // Subscribe to DSR mode state
+    this.subscription.push(
+      this.dsrService.getDsrState().pipe(
+        map(state => state.isDsrMode)
+      ).subscribe(isDsrMode => {
+        this.isDsrMode = isDsrMode;
+        if (isDsrMode) {
+          // Hide save favorite action in DSR mode
+          this.batchActionService.hideActions([this.batchActionService._saveFavorite]);
+        } else {
+          this.batchActionService.showActions([this.batchActionService._saveFavorite]);
+        }
+      })
+    );
+    
     this.getCart();
   }
 

@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
-import { map, switchMap, take, tap, filter, startWith } from 'rxjs/operators';
+import { map, switchMap, take, tap, filter, startWith, distinctUntilChanged, shareReplay, catchError } from 'rxjs/operators';
 import { first, defaultTo, get, cloneDeep, isEqual, upperFirst } from 'lodash';
 import {
   UserService,
@@ -18,8 +18,11 @@ import {
   CartService,
   AccountService,
   Account,
+  CollaborationRequestService,
+  CollaborationRequest,
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService } from '@congarevenuecloud/elements';
+import { DsrService } from '../../services/dsr.service';
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
@@ -41,6 +44,12 @@ export class HeaderComponent implements OnInit {
   loading: boolean = true;
 
   isReadOnlyCollaborationMode$: Observable<boolean>;
+  isDsrMode$: Observable<boolean>;
+  showMiniCart$: Observable<boolean>;
+  showProductSearch$: Observable<boolean>;
+  
+  isRestrictedMode$: Observable<boolean>;
+  isNormalMode$: Observable<boolean>;
 
   constructor(
     private userService: UserService,
@@ -48,8 +57,10 @@ export class HeaderComponent implements OnInit {
     private cartService: CartService,
     private accountService: AccountService,
     private exceptionService: ExceptionService,
+    private collaborationService: CollaborationRequestService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private dsrService: DsrService
   ) {}
 
   ngOnInit() {
@@ -68,6 +79,73 @@ export class HeaderComponent implements OnInit {
 
         return of(false);
       })
+    );
+
+    // Initialize DSR mode observable
+    this.isDsrMode$ = this.dsrService.getDsrState().pipe(
+      map((state) => state.isDsrMode),
+      shareReplay(1)
+    );
+
+    this.showMiniCart$ = combineLatest([
+      this.isDsrMode$,
+      currentUrl$
+    ]).pipe(
+      map(([isDsrMode, url]) => {
+        if (!isDsrMode) {
+          return true; // Always show in normal mode
+        }
+        
+        // In DSR mode: hide on quote details, show on products/cart/checkout pages
+        const isOnQuotePage = url.includes('/proposals/');
+        return !isOnQuotePage;
+      }),
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
+    this.isRestrictedMode$ = combineLatest([
+      this.isReadOnlyCollaborationMode$,
+      this.isDsrMode$
+    ]).pipe(
+      map(([isCollabMode, isDsrMode]) => isCollabMode || isDsrMode),
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
+    this.isNormalMode$ = this.isRestrictedMode$.pipe(
+      map(isRestricted => !isRestricted),
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
+    // Show product search in normal mode OR when in DSR FullEdit mode editing line items
+    this.showProductSearch$ = this.dsrService.getDsrState().pipe(
+      switchMap(state => {
+        // Show in normal mode (not DSR, not restricted)
+        if (!state.isDsrMode) {
+          return of(true);
+        }
+        
+        // In DSR mode with editing line items - check if FullEdit access
+        if (state.isDsrMode && state.editedLineItems && state.quoteId) {
+          return this.collaborationService.getCollaborationRequest('Proposal', state.quoteId).pipe(
+            take(1),
+            map((collabRequest: CollaborationRequest) => {
+              // Show search only for FullEdit access
+              return collabRequest?.AccessType === 'FullEdit';
+            }),
+            catchError(error => {
+              return of(true);
+            })
+          );
+        }
+        
+        // DSR mode but not editing - hide search
+        return of(false);
+      }),
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
 
     this.updateCartView();
