@@ -3,6 +3,7 @@ import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 import { Observable, of, combineLatest } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { get } from 'lodash';
+import { FilterOperator } from '@congarevenuecloud/core';
 import { AccountService, ContactService, UserService, Quote, QuoteService, PriceListService, Cart, Account, Contact, PriceList, StorefrontService } from '@congarevenuecloud/ecommerce';
 import { LookupOptions } from '@congarevenuecloud/elements';
 
@@ -28,6 +29,16 @@ export class RequestQuoteFormComponent implements OnInit {
     secondaryTextField: 'Email',
     fieldList: ['Id', 'Name', 'Email']
   };
+  partnerAccountLookupOptions: LookupOptions = {
+    primaryTextField: 'Name',
+    fieldList: ['Id', 'Name'],
+    filters: [{
+      field: 'IsPartner',
+      value: true,
+      filterOperator: FilterOperator.EQUAL
+    }]
+  };
+  partnerAccount: Account = null;
   contact: string;
 
   constructor(public quoteService: QuoteService,
@@ -45,7 +56,7 @@ export class RequestQuoteFormComponent implements OnInit {
         this.quote.BillToAccount = account;
         this.quote.Account = get(this.cart, 'Account');
         this.quote.PrimaryContact = get(user, 'Contact');
-        this.quote.Requestor = account?.Owner || user;
+        this.quote.SourceChannel = "Partner";
         this.contact = this.cart.Proposald ? get(quote[0], 'PrimaryContact.Id') : get(user, 'Contact.Id');
         if (get(this.cart, 'Proposald.Id')) {
           this.quote = get(this.cart, 'Proposal');
@@ -98,5 +109,10 @@ export class RequestQuoteFormComponent implements OnInit {
       this.quote.PrimaryContact = null;
       this.onQuoteUpdate.emit(this.quote);
     }
+  }
+
+  partnerAccountChange() {
+    this.quote.PartnerAccount = this.partnerAccount;
+    this.onQuoteUpdate.emit(this.quote);
   }
 }

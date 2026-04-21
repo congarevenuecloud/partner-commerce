@@ -3,7 +3,8 @@
     <div class="px-1 d-flex align-items-center">
       <!-- quick add button with business object as quote which performs add to cart + quote placement-->
       <app-quick-add [layout]="'modal'" [fields]="fields" [productFieldType]="'lookup'"
-        [businessObjectFields]="businessObjectFields" [btnClass]="'btn-custom-secondary border-0'"></app-quick-add>
+        [quoteFields]="quoteFields" [orderFields]="orderFields" [presetFields]="{ SourceChannel: 'Partner' }"
+        [btnClass]="'btn-custom-secondary border-0'"></app-quick-add>
     </div>
 
     <div *ngIf="cart?.Order?.Id" class="border-left px-3 d-flex align-items-center">

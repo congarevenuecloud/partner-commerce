@@ -7,6 +7,18 @@
     <apt-alert [record]="quoteConfirmation" message="ERROR.UPDATE_QUOTE_FAILED" [showOnlyMessage]="false">
     </apt-alert>
 
+    <div class="px-4 pt-2" *ngIf="showTaxRecalculationBanner">
+        <div class="alert alert-warning d-flex justify-content-between align-items-center mb-0 py-1 px-3" role="alert">
+            <div class="d-flex align-items-center pr-3">
+                <i class="fas fa-exclamation-triangle mr-2" aria-hidden="true"></i>
+                <span [innerHTML]="'TAX.RECALCULATION_BANNER_MESSAGE' | translate"></span>
+            </div>
+            <button type="button" class="close p-0 ml-2" aria-label="Close" (click)="closeTaxRecalculationBanner()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
+
     <div class="container-fluid animated fadeIn p-0">
         <div class="px-4 py-2">
             <div class="d-lg-flex d-md-flex d-sm-none d-none justify-content-between align-items-center">
@@ -17,7 +29,7 @@
                         {{'COMMON.CANCEL' | translate }}
                     </button>
                     <button *ngIf="!showCaptcha" class="btn btn-primary btn-raised" (click)="quotePlacement(cart)"
-                        [disabled]="disableSubmit || isTaxCalculationBlocking()" [ladda]="loading" data-style="zoom-in">
+                        [disabled]="disableSubmit" [ladda]="loading" data-style="zoom-in">
                         {{'COMMON.REQUEST_QUOTE' | translate }}
                     </button>
                 </div>
@@ -32,8 +44,8 @@
                         {{'COMMON.CANCEL' | translate }}
                     </button>
                     <button *ngIf="!showCaptcha" class="btn btn-primary btn-raised btn-sm"
-                        (click)="quotePlacement(cart)" [disabled]="disableSubmit || isTaxCalculationBlocking()"
-                        [ladda]="loading" data-style="zoom-in">
+                        (click)="quotePlacement(cart)" [disabled]="disableSubmit" [ladda]="loading"
+                        data-style="zoom-in">
                         {{'COMMON.REQUEST_QUOTE' | translate }}
                     </button>
                 </div>
@@ -46,8 +58,8 @@
                     <apt-price-summary [disableSubmit]="disableSubmit" [record]="cart" [loading]="loading"
                         [page]="'create-proposal'" [showCaptcha]="false" [enableTaxCalculation]="true"
                         [taxAddress]="taxAddress" (onRequestQuote)="convertCartToQuote(cart)"
-                        (onShowCaptcha)="loadCaptcha()"
-                        (taxStatusChange)="onTaxStatusChange($event)"></apt-price-summary>
+                        (onShowCaptcha)="loadCaptcha()" (taxStatusChange)="onTaxStatusChange($event)"
+                        (cartTotalsChanged)="onCartTotalsChanged()"></apt-price-summary>
                 </div>
             </div>
         </div>

@@ -174,6 +174,12 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     fieldList: ['Id', 'Name', 'Email'],
   };
 
+  partnerAccountLookupOptions: LookupOptions = {
+    primaryTextField: 'Name',
+    fieldList: ['Id', 'Name'],
+    filters: [{ field: 'IsPartner', value: true, filterOperator: FilterOperator.EQUAL }]
+  };
+
   isPrivate: boolean = false;
   maxFileSizeLimit = 29360128;
   cartRecord: Cart = new Cart();
@@ -226,8 +232,10 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     if (this.isDsrMode && this.dsrService.hasEditedLineItems()) {
       this.dsrService.clearEditingLineItems();
     }
-    
-    this.getQuote();
+
+    this.quoteSubscription.push(this.activatedRoute.params.pipe(
+      filter((params) => get(params, 'id') != null)
+    ).subscribe(() => this.getQuote()));
     this.quoteSubscription.push(
       this.attachmentService
         .getSupportedAttachmentType()

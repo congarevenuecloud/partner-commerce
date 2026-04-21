@@ -29,7 +29,9 @@ export class CreateQuoteComponent implements OnInit {
   taxAddress: TaxAddress;
   taxCalculated: boolean = false;
   taxCalculationEnabled: boolean = false;
+  showTaxRecalculationBanner: boolean = false;
   private previousShipToAccountId: string;
+  private taxEverCalculated: boolean = false;
 
   constructor(
     private cartService: CartService,
@@ -46,49 +48,74 @@ export class CreateQuoteComponent implements OnInit {
   updateTaxAddress(account: Account): void {
     if (!account) return;
 
-    const postalCode = account.ShippingPostalCode || account.BillingPostalCode;
+    // Reset tax calculation when address changes
+    this.taxCalculated = false;
 
-    if (postalCode) {
-      // Reset tax calculation when address changes
-      this.taxCalculated = false;
+    // Clear taxAddress first to force price-summary to detect the change
+    // even when the new address has the same field values
+    this.taxAddress = null;
+    this.cdr.detectChanges();
 
-      // Create a new object reference to trigger ngOnChanges in price-summary component
-      this.taxAddress = {
-        Line1: account.ShippingStreet || account.BillingStreet || '',
-        Line2: '',
-        City: account.ShippingCity || account.BillingCity || '',
-        Region: account.ShippingState || account.BillingState || '',
-        Country: account.ShippingCountry || account.BillingCountry || '',
-        PostalCode: postalCode.toString()
-      };
+    // Set the new address to trigger ngOnChanges in price-summary component
+    this.taxAddress = {
+      Line1: account.ShippingStreet || account.BillingStreet || '',
+      Line2: '',
+      City: account.ShippingCity || account.BillingCity || '',
+      Region: account.ShippingState || account.BillingState || '',
+      Country: account.ShippingCountry || account.BillingCountry || '',
+      PostalCode: (account.ShippingPostalCode || account.BillingPostalCode || '').toString()
+    };
 
-      // Trigger change detection to ensure updates propagate
-      this.cdr.detectChanges();
-    }
+    // Trigger change detection to ensure updates propagate
+    this.cdr.detectChanges();
   }
 
   // Handle tax status changes from price summary component
   onTaxStatusChange(status: { calculated: boolean, enabled: boolean, amount: number }): void {
     this.taxCalculated = status.calculated;
     this.taxCalculationEnabled = status.enabled;
-  }
 
-  // Check if tax calculation is blocking quote creation
-  isTaxCalculationBlocking(): boolean {
-    return this.taxCalculationEnabled && !this.taxCalculated;
+    if (status.calculated) {
+      this.taxEverCalculated = true;
+      this.showTaxRecalculationBanner = false;
+    }
   }
 
   onUpdate($event: Quote) {
     this.quoteRequestObj = $event;
-    this.disableSubmit = isEmpty(this.quoteRequestObj.PrimaryContact && this.quoteRequestObj.ProposalName);
+    this.disableSubmit = isEmpty(this.quoteRequestObj.PrimaryContact && this.quoteRequestObj.ProposalName  && get(this.quoteRequestObj, 'PartnerAccount.Id'));
 
     // Check if ship-to account changed and update tax address
     const newShipToAccountId = get(this.quoteRequestObj, 'ShipToAccount.Id');
     if (this.previousShipToAccountId !== newShipToAccountId && get(this.quoteRequestObj, 'ShipToAccount')) {
       this.updateTaxAddress(this.quoteRequestObj.ShipToAccount);
+
+      if (this.previousShipToAccountId && this.taxEverCalculated) {
+        this.showTaxRecalculationBanner = true;
+        this.cdr.detectChanges();
+      }
     }
 
     this.previousShipToAccountId = newShipToAccountId;
+  }
+
+  onCartTotalsChanged(): void {
+    if (get(this.quoteRequestObj, 'ShipToAccount')) {
+      this.updateTaxAddress(this.quoteRequestObj.ShipToAccount);
+    } else {
+      this.taxAddress = null;
+      this.cdr.detectChanges();
+    }
+
+    // Show banner only if tax was ever calculated before
+    if (this.taxEverCalculated) {
+      this.showTaxRecalculationBanner = true;
+      this.cdr.detectChanges();
+    }
+  }
+
+  closeTaxRecalculationBanner(): void {
+    this.showTaxRecalculationBanner = false;
   }
 
   loadCaptcha() {

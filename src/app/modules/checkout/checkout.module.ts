@@ -13,11 +13,13 @@ import {
   PriceSummaryModule,
   AlertModule,
   CaptchaModule,
-  InputFieldModule
+  InputFieldModule,
+  WizardModule
 } from '@congarevenuecloud/elements';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { AddressModule, PriceModule, IconModule } from '@congarevenuecloud/elements';
 import { TranslateModule } from '@ngx-translate/core';
 import { CongaModule } from '@congarevenuecloud/core';
@@ -44,6 +46,7 @@ import { PricingModule } from '@congarevenuecloud/ecommerce';
     PaymentComponentModule,
     OutputFieldModule,
     TooltipModule.forRoot(),
+    PaginationModule.forRoot(),
     TranslateModule.forChild(),
     BsDropdownModule.forRoot(),
     MiniProfileModule,
@@ -51,7 +54,8 @@ import { PricingModule } from '@congarevenuecloud/ecommerce';
     PriceSummaryModule,
     InputFieldModule,
     AlertModule,
-    LaddaModule
+    LaddaModule,
+    WizardModule
   ],
   declarations: [CheckoutComponent, SummaryComponent]
 })
