@@ -2,8 +2,9 @@ import { Component, OnInit, ChangeDetectionStrategy, ViewChild, Input } from '@a
 import { Observable, of, combineLatest } from 'rxjs';
 import { switchMap, take, map } from 'rxjs/operators';
 import { get } from 'lodash';
+import { FilterOperator } from '@congarevenuecloud/core';
 import { CartService, Cart, OrderService } from '@congarevenuecloud/ecommerce';
-import { ExceptionService, OutputFieldComponent } from '@congarevenuecloud/elements';
+import { ExceptionService, OutputFieldComponent, QuickAddField } from '@congarevenuecloud/elements';
 @Component({
   selector: 'app-action-bar',
   templateUrl: './action-bar.component.html',
@@ -17,7 +18,8 @@ export class ActionBarComponent implements OnInit {
   cart$: Observable<Cart>;
   loading: boolean = false;
   fields: string[];
-  businessObjectFields: string[];
+  quoteFields: Array<string | QuickAddField>;
+  orderFields: string[];
 
   @ViewChild('accountField', { static: false }) accountField: OutputFieldComponent;
 
@@ -25,7 +27,11 @@ export class ActionBarComponent implements OnInit {
 
   ngOnInit() {
     this.cart$ = this.cartService.getMyCart();
-    this.businessObjectFields = ['Description', 'BillToAccount', 'Amount', 'ABOType', 'DiscountPercent', 'configurationSyncDate', 'Accept', 'PriceList', 'SourceChannel'];
+    this.quoteFields = [
+      'Description', 'BillToAccount', 'configurationSyncDate', 'Accept', 'PriceList', 'SourceChannel',
+      { field: 'PartnerAccount', required: true, lookupOptions: { primaryTextField: 'Name', fieldList: ['Id', 'Name'], filters: [{ field: 'IsPartner', value: true, filterOperator: FilterOperator.EQUAL }] } }
+    ];
+    this.orderFields = ['Description', 'BillToAccount', 'configurationSyncDate', 'Accept', 'PriceList', 'SourceChannel'];
     this.fields = ['AdjustmentType', 'AdjustmentAmount', 'StartDate', 'EndDate'];
   }
 

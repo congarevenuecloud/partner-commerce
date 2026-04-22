@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable, of, Subscription } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { take, map, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { sumBy, get, defaultTo, isEmpty, filter, mapValues, forEach, map as _map, groupBy, omit, size, pickBy, reduce } from 'lodash';
 import { ApiService, FilterOperator,PlatformConstants } from '@congarevenuecloud/core';
-import { OrderService, Order, UserService, User, FieldFilter, AccountService, LocalCurrencyPipe, QuoteService, Quote, OrderResult, QuoteResult, DateFormatPipe } from '@congarevenuecloud/ecommerce';
+import { OrderService, Order, UserService, User, FieldFilter, AccountService, LocalCurrencyPipe, QuoteService, Quote, OrderResult, QuoteResult, DateFormatPipe, AggregateFields, AggregateResultSet } from '@congarevenuecloud/ecommerce';
 import { TableOptions } from '@congarevenuecloud/elements';
 
 import moment from 'moment';
@@ -45,29 +45,39 @@ export class OverViewComponent implements OnInit {
     this.view$ = this.accountService.getCurrentAccount().pipe(
       map(() => {
         this.totalOrderRecords$ = this.orderService.getMyOrders(null, null, this.getOrderFilters()).pipe(map(orderResult => defaultTo(get(orderResult, 'TotalCount'), 0)))
-        this.totalOrderAmount$ = this.orderService.getMyOrders(null, null, this.getFilterForAmount(), null, null, null, null, null, false).pipe(map((orderResult: OrderResult) => {
-          const orders = get(orderResult, 'Orders', []);
-          this.categorizeOrdersByAge(orders);
-          return sumBy(orders, (order) => get(order, 'OrderAmount.DisplayValue'));
-        })
+        this.totalOrderAmount$ = this.orderService.getOrderAggregatesByStatus(
+          null,
+          [{ AggregateFunction: 'sum', AggregateField: 'OrderAmount' }] as Array<AggregateFields>,
+          ['Status'], ['Status'],
+          this.getFilterForAmount()
+        ).pipe(map((data: AggregateResultSet) => sumBy(data as any, 'sum(OrderAmount)') || 0));
+
+        this.categorizedOrders$ = this.orderService.getMyOrders(null, null, this.getFilterForAmount(), null, null, null, null, null, false).pipe(
+          switchMap((orderResult: OrderResult) => {
+            const orders = get(orderResult, 'Orders', []);
+            return this.categorizeOrdersByAge(orders) || of({});
+          })
         );
         this.totalQuoteRecords$ = this.quoteService.getMyQuotes(null, this.getQuoteFilters(), null, null, null, null, null, false).pipe(map(quoteResult => defaultTo(get(quoteResult, 'TotalCount'), 0)))
-        this.totalQuoteAmount$ = this.quoteService.getMyQuotes(null, this.getQuoteFilterForAmount(), null, null, null, 'CreatedDate', 'DESC', false).pipe(
+        this.totalQuoteAmount$ = this.quoteService.getQuoteAggregatesByApprovalStage(
+          null,
+          [{ AggregateFunction: 'sum', AggregateField: 'Amount' }] as Array<AggregateFields>,
+          ['ApprovalStage'], ['ApprovalStage'],
+          this.getQuoteFilterForAmount()
+        ).pipe(map((data: AggregateResultSet) => sumBy(data as any, 'sum(Amount)') || 0));
+
+        this.quotesByDueDateData$ = this.quoteService.getMyQuotes(null, this.getQuoteFilterForAmount(), null, null, null, 'CreatedDate', 'DESC', false).pipe(
           map((quoteResult: QuoteResult) => {
             const quotes = get(quoteResult, 'Quotes', []);
             this.totalCount = get(quoteResult, 'TotalCount');
-
-            // Group quotes by 'RFPResponseDueDate' and count the number of quotes for each due date.
             const quotesCountByDueDate = mapValues(pickBy(groupBy(quotes, 'RFPResponseDueDate'), (value, date) => date !== 'null'),
               group => size(group));
             const categorizedQuoteCounts = reduce(quotesCountByDueDate, (quotesByCategory, quoteCount, dueDate) => {
-              const categoryLabel = this.generateLabel(dueDate); // Generate a category label based on the due dates
-              quotesByCategory[categoryLabel] = (quotesByCategory[categoryLabel] || 0) + quoteCount; // Group the quote count by each category label based on the due dates
-              return quotesByCategory; // Return the updated object
+              const categoryLabel = this.generateLabel(dueDate);
+              quotesByCategory[categoryLabel] = (quotesByCategory[categoryLabel] || 0) + quoteCount;
+              return quotesByCategory;
             }, {});
-            this.quotesByDueDateData$ = of(omit(categorizedQuoteCounts, 'null'));
-            
-            return sumBy(quotes, (quote) => get(quote, 'Amount.DisplayValue'));
+            return omit(categorizedQuoteCounts, 'null');
           })
         );
 

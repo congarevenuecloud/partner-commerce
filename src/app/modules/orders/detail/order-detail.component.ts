@@ -102,7 +102,9 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   ngOnInit() {
     this.isLoggedIn$ = this.userService.isLoggedIn();
-    this.getOrder();
+    this.subscriptions.push(this.activatedRoute.params.pipe(
+      filter(params => get(params, 'id') != null)
+    ).subscribe(() => this.getOrder()));
     this.subscriptions.push(this.accountService.getCurrentAccount().subscribe(account => {
       this.lookupOptions.expressionOperator = 'AND';
       this.lookupOptions.filters = null;

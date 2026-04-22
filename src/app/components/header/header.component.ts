@@ -20,6 +20,7 @@ import {
   Account,
   CollaborationRequestService,
   CollaborationRequest,
+  IntegrationService,
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService } from '@congarevenuecloud/elements';
 import { DsrService } from '../../services/dsr.service';
@@ -46,6 +47,7 @@ export class HeaderComponent implements OnInit {
   isReadOnlyCollaborationMode$: Observable<boolean>;
   isDsrMode$: Observable<boolean>;
   showMiniCart$: Observable<boolean>;
+  hideMiniCartForRoute$: Observable<boolean>;
   showProductSearch$: Observable<boolean>;
   
   isRestrictedMode$: Observable<boolean>;
@@ -60,7 +62,8 @@ export class HeaderComponent implements OnInit {
     private collaborationService: CollaborationRequestService,
     private cdr: ChangeDetectorRef,
     private router: Router,
-    private dsrService: DsrService
+    private dsrService: DsrService,
+    private integrationService: IntegrationService
   ) {}
 
   ngOnInit() {
@@ -68,6 +71,27 @@ export class HeaderComponent implements OnInit {
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       map(() => this.router.url),
       startWith(this.router.url)
+    );
+
+    this.hideMiniCartForRoute$ = currentUrl$.pipe(
+      switchMap(url => {
+        // Always hide on checkout
+        if (url.includes('/checkout')) {
+          return of(true);
+        }
+        
+        // For request quote page, hide only if tax is enabled
+        if (url.includes('/proposals/create')) {
+          return this.integrationService.getTaxMetadata().pipe(
+            map(metadata => get(metadata, 'EnableTaxIntegration', false)),
+            catchError(() => of(false))
+          );
+        }
+        
+        return of(false);
+      }),
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
 
     this.isReadOnlyCollaborationMode$ = currentUrl$.pipe(

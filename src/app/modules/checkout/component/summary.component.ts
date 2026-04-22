@@ -1,4 +1,4 @@
-import { Component, OnChanges, Input, TemplateRef, ViewChild  } from '@angular/core';
+import { Component, OnChanges, Input, TemplateRef, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import {
   Cart,
   QuoteService,
@@ -7,8 +7,8 @@ import {
   CartItemService,
   LineItemService
 } from '@congarevenuecloud/ecommerce';
-import { get, map}from 'lodash';
-import { Subscription } from 'rxjs';
+import { get, map } from 'lodash';
+import { Subscription, combineLatest } from 'rxjs';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -17,6 +17,7 @@ import { ProductConfigurationSummaryComponent } from '@congarevenuecloud/element
 @Component({
   selector: 'cart-summary',
   templateUrl: `./summary.component.html`,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
     .small{
       font-size: smaller;
@@ -55,30 +56,66 @@ export class SummaryComponent implements OnChanges {
   generatedQuoteName: string;
 
   lineItems: Array<CartItem>;
+  paginatedLineItems: Array<CartItem> = [];
+  paginationMinVal: number = 0;
+  paginationMaxVal: number = 0;
+  paginationTotalVal: number = 0;
+
+  // Pagination for review step (step 2)
+  currentPage: number = 1;
+  itemsPerPage: number = 5;
+  itemsPerPageOptions: number[] = [5, 10, 15];
+  Math = Math;
+
+  paginationButtonLabels: any = {
+    first: '',
+    previous: '',
+    next: '',
+    last: ''
+  };
 
   private subscriptions: Subscription[] = [];
 
-  get itemCount(): number{
+  get itemCount(): number {
     let count = 0;
-    if(get(this.cart, 'LineItems'))
+    if (get(this.cart, 'LineItems'))
       this.cart.LineItems.filter(p => p.LineType === 'Product/Service').forEach(r => count += Number(r.Quantity));
     return count;
   }
 
   constructor(private quoteService: QuoteService,
-              private cartItemService: CartItemService,
-              private modalService: BsModalService,
-              private translate: TranslateService) {
+    private cartItemService: CartItemService,
+    private modalService: BsModalService,
+    private translate: TranslateService,
+    private cdr: ChangeDetectorRef) {
     this.state = {
       configurationMessage: null,
       downloadLoading: false,
       requestQuoteMessage: null,
       requestQuoteLoading: false
     };
+
+    // Load pagination button labels
+    this.subscriptions.push(
+      combineLatest([
+        this.translate.stream('PAGINATION.FIRST'),
+        this.translate.stream('PAGINATION.PREVIOUS'),
+        this.translate.stream('PAGINATION.NEXT'),
+        this.translate.stream('PAGINATION.LAST')
+      ]).subscribe(([first, previous, next, last]) => {
+        this.paginationButtonLabels.first = first;
+        this.paginationButtonLabels.previous = previous;
+        this.paginationButtonLabels.next = next;
+        this.paginationButtonLabels.last = last;
+        this.cdr.markForCheck();
+      })
+    );
   }
 
   ngOnChanges() {
     this.lineItems = map(LineItemService.groupItems(get(this, 'cart.LineItems')), i => get(i, 'MainLine')) as Array<CartItem>;
+    this.updatePaginatedItems();
+    this.cdr.markForCheck();
   }
 
   createQuote() {
@@ -106,8 +143,38 @@ export class SummaryComponent implements OnChanges {
     this.lineItem = lineItem;
 
     setTimeout(() => {
-     this.summaryModal.show();
+      this.summaryModal.show();
     });
+  }
+
+  // Pagination methods
+  private updatePaginatedItems(): void {
+    if (!this.lineItems || this.lineItems.length === 0) {
+      this.paginatedLineItems = [];
+      this.paginationMinVal = 0;
+      this.paginationMaxVal = 0;
+      this.paginationTotalVal = 0;
+      return;
+    }
+    const startIndex = (this.currentPage - 1) * Number(this.itemsPerPage);
+    const endIndex = startIndex + Number(this.itemsPerPage);
+    this.paginatedLineItems = this.lineItems.slice(startIndex, endIndex);
+    
+    this.paginationTotalVal = this.lineItems.length;
+    this.paginationMinVal = startIndex + 1;
+    this.paginationMaxVal = Math.min(endIndex, this.lineItems.length);
+    this.cdr.markForCheck();
+  }
+
+  onItemsPerPageChange(newSize: number): void {
+    this.itemsPerPage = Number(newSize);
+    this.currentPage = 1; // Reset to first page
+    this.updatePaginatedItems();
+  }
+
+  onPageChange(event: any): void {
+    this.currentPage = event.page;
+    this.updatePaginatedItems();
   }
 
   ngOnDestroy() {
