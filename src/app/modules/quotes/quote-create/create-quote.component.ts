@@ -46,51 +46,54 @@ export class CreateQuoteComponent implements OnInit {
   }
 
   updateTaxAddress(account: Account): void {
-    if (!account) return;
-
-    // Reset tax calculation when address changes
+    // Reset tax state
     this.taxCalculated = false;
 
-    // Clear taxAddress first to force price-summary to detect the change
-    // even when the new address has the same field values
-    this.taxAddress = null;
-    this.cdr.detectChanges();
+    if (!account) {
+      this.taxAddress = null;
+      this.taxCalculationEnabled = false;
+      if (this.taxEverCalculated) {
+        this.showTaxRecalculationBanner = true;
+      }
+      this.cdr.detectChanges();
+      return;
+    }
 
-    // Set the new address to trigger ngOnChanges in price-summary component
     this.taxAddress = {
-      Line1: account.ShippingStreet || account.BillingStreet || '',
+      Line1: account.ShippingStreet || '',
       Line2: '',
-      City: account.ShippingCity || account.BillingCity || '',
-      Region: account.ShippingState || account.BillingState || '',
-      Country: account.ShippingCountry || account.BillingCountry || '',
-      PostalCode: (account.ShippingPostalCode || account.BillingPostalCode || '').toString()
+      City: account.ShippingCity || '',
+      Region: account.ShippingState || '',
+      Country: account.ShippingCountry || '',
+      PostalCode: (account.ShippingPostalCode || '').toString()
     };
 
-    // Trigger change detection to ensure updates propagate
+    this.taxCalculationEnabled = true;
     this.cdr.detectChanges();
   }
 
   // Handle tax status changes from price summary component
   onTaxStatusChange(status: { calculated: boolean, enabled: boolean, amount: number }): void {
     this.taxCalculated = status.calculated;
-    this.taxCalculationEnabled = status.enabled;
 
     if (status.calculated) {
       this.taxEverCalculated = true;
-      this.showTaxRecalculationBanner = false;
+      if (this.taxAddress) {
+        this.showTaxRecalculationBanner = false;
+      }
     }
   }
 
   onUpdate($event: Quote) {
     this.quoteRequestObj = $event;
-    this.disableSubmit = isEmpty(this.quoteRequestObj.PrimaryContact && this.quoteRequestObj.ProposalName  && get(this.quoteRequestObj, 'PartnerAccount.Id'));
+    this.disableSubmit = isEmpty(this.quoteRequestObj.PrimaryContact && this.quoteRequestObj.ProposalName && get(this.quoteRequestObj, 'PartnerAccount.Id'));
 
     // Check if ship-to account changed and update tax address
     const newShipToAccountId = get(this.quoteRequestObj, 'ShipToAccount.Id');
-    if (this.previousShipToAccountId !== newShipToAccountId && get(this.quoteRequestObj, 'ShipToAccount')) {
+    if (this.previousShipToAccountId !== newShipToAccountId) {
       this.updateTaxAddress(this.quoteRequestObj.ShipToAccount);
 
-      if (this.previousShipToAccountId && this.taxEverCalculated) {
+      if (this.previousShipToAccountId && this.taxEverCalculated && newShipToAccountId) {
         this.showTaxRecalculationBanner = true;
         this.cdr.detectChanges();
       }
@@ -102,14 +105,15 @@ export class CreateQuoteComponent implements OnInit {
   onCartTotalsChanged(): void {
     if (get(this.quoteRequestObj, 'ShipToAccount')) {
       this.updateTaxAddress(this.quoteRequestObj.ShipToAccount);
+
+      // Show banner only if tax was ever calculated before
+      if (this.taxEverCalculated) {
+        this.showTaxRecalculationBanner = true;
+      }
     } else {
       this.taxAddress = null;
-      this.cdr.detectChanges();
-    }
-
-    // Show banner only if tax was ever calculated before
-    if (this.taxEverCalculated) {
-      this.showTaxRecalculationBanner = true;
+      // Show banner when no account AND tax was calculated before
+      this.showTaxRecalculationBanner = this.taxEverCalculated;
       this.cdr.detectChanges();
     }
   }

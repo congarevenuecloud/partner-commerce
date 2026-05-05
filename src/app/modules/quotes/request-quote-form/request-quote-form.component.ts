@@ -1,7 +1,7 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 import { Observable, of, combineLatest } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { take, map, shareReplay } from 'rxjs/operators';
 import { get } from 'lodash';
 import { FilterOperator } from '@congarevenuecloud/core';
 import { AccountService, ContactService, UserService, Quote, QuoteService, PriceListService, Cart, Account, Contact, PriceList, StorefrontService } from '@congarevenuecloud/ecommerce';
@@ -39,7 +39,8 @@ export class RequestQuoteFormComponent implements OnInit {
     }]
   };
   partnerAccount: Account = null;
-  contact: string;
+  contact: Contact;
+  private lastProcessedContactId: string = null;
 
   constructor(public quoteService: QuoteService,
     private accountService: AccountService,
@@ -52,14 +53,13 @@ export class RequestQuoteFormComponent implements OnInit {
     combineLatest(this.accountService.getCurrentAccount(), this.userService.me(), (this.cart.Proposald ? this.quoteService.getQuoteById(get(this.cart, 'Proposald.Id')) : of(null)), this.storefrontService.getStorefront())
       .pipe(take(1)).subscribe(([account, user, quote, storefront]) => {
         this.quote.ProposalName = 'New Quote';
-        this.quote.ShipToAccount = account;
-        this.quote.BillToAccount = account;
         this.quote.Account = get(this.cart, 'Account');
-        this.quote.PrimaryContact = get(user, 'Contact');
+        this.quote.PrimaryContact = null;
         this.quote.SourceChannel = "Partner";
-        this.contact = this.cart.Proposald ? get(quote[0], 'PrimaryContact.Id') : get(user, 'Contact.Id');
+        this.contact = null;
         if (get(this.cart, 'Proposald.Id')) {
-          this.quote = get(this.cart, 'Proposal');
+          this.quote = get(quote, '[0]') || get(this.cart, 'Proposald');
+          this.contact = get(this.quote, 'PrimaryContact');
         }
         this.quoteChange();
         this.getPriceList();
@@ -77,6 +77,10 @@ export class RequestQuoteFormComponent implements OnInit {
         this.quote.ShipToAccount = newShippingAccount;
         this.onQuoteUpdate.emit(this.quote);
       });
+    } else {
+      this.quote.ShipToAccount = null;
+      this.shipToAccount$ = null;
+      this.onQuoteUpdate.emit(this.quote);
     }
   }
 
@@ -87,6 +91,10 @@ export class RequestQuoteFormComponent implements OnInit {
         this.quote.BillToAccount = newBillingAccount;
         this.onQuoteUpdate.emit(this.quote);
       });
+    } else {
+      this.quote.BillToAccount = null;
+      this.billToAccount$ = null;
+      this.onQuoteUpdate.emit(this.quote);
     }
   }
   getPriceList() {
@@ -98,17 +106,75 @@ export class RequestQuoteFormComponent implements OnInit {
   }
 
   primaryContactChange() {
-    if (get(this.contact, 'Id')) {
-      this.contactService.fetch(get(this.contact, 'Id'))
-        .pipe(take(1))
-        .subscribe((newPrimaryContact: Contact) => {
-          this.quote.PrimaryContact = newPrimaryContact;
-          this.onQuoteUpdate.emit(this.quote);
-        });
-    } else {
+    if (!this.contact || !get(this.contact, 'Id')) {
+      // Clear Bill To and Ship To when Primary Contact is cleared
       this.quote.PrimaryContact = null;
+      this.quote.BillToAccount = null;
+      this.quote.ShipToAccount = null;
+      this.billToAccount$ = null;
+      this.shipToAccount$ = null;
+      this.lastProcessedContactId = null;
       this.onQuoteUpdate.emit(this.quote);
+      return;
     }
+
+    const contactId = get(this.contact, 'Id');
+    
+    // Skip if this contact ID was already processed to avoid redundant API calls
+    if (contactId === this.lastProcessedContactId) {
+      return;
+    }
+    
+    // Check if contact already has Account data loaded
+    const existingAccount = get(this.contact, 'Account');
+    if (existingAccount && get(existingAccount, 'Id')) {
+      // Account already loaded, just populate Bill To and Ship To
+      this.quote.PrimaryContact = this.contact as any;
+      this.quote.BillToAccount = existingAccount;
+      this.quote.ShipToAccount = existingAccount;
+      const acct$ = this.accountService.getAccount(get(existingAccount, 'Id')).pipe(shareReplay(1));
+      this.billToAccount$ = acct$;
+      this.shipToAccount$ = acct$;
+      acct$.pipe(take(1)).subscribe(fullAccount => {
+        this.quote.BillToAccount = fullAccount;
+        this.quote.ShipToAccount = fullAccount;
+        this.onQuoteUpdate.emit(this.quote);
+      });
+      this.lastProcessedContactId = contactId;
+      return;
+    }
+
+    this.contactService.getContactById(contactId).pipe(take(1), map(fetchedContact => fetchedContact as Contact)).subscribe(fetchedContact => {
+      if (fetchedContact) {
+        // Update contact with full data including Account
+        this.quote.PrimaryContact = fetchedContact;
+        this.contact = fetchedContact;
+        // Auto-populate BillToAccount and ShipToAccount from Primary Contact's Account
+        const contactAccount = get(fetchedContact, 'Account');
+        if (contactAccount && get(contactAccount, 'Id')) {
+          this.quote.BillToAccount = contactAccount;
+          this.quote.ShipToAccount = contactAccount;
+          const acct$ = this.accountService.getAccount(get(contactAccount, 'Id')).pipe(shareReplay(1));
+          this.billToAccount$ = acct$;
+          this.shipToAccount$ = acct$;
+          acct$.pipe(take(1)).subscribe(fullAccount => {
+            this.quote.BillToAccount = fullAccount;
+            this.quote.ShipToAccount = fullAccount;
+            this.onQuoteUpdate.emit(this.quote);
+          });
+        } else {
+          // If contact has no account, clear Bill To and Ship To
+          this.quote.BillToAccount = null;
+          this.quote.ShipToAccount = null;
+          this.billToAccount$ = null;
+          this.shipToAccount$ = null;
+          this.onQuoteUpdate.emit(this.quote);
+        }
+        this.lastProcessedContactId = contactId;
+      } else {
+        this.lastProcessedContactId = null;
+      }
+    });
   }
 
   partnerAccountChange() {
