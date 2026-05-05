@@ -1,16 +1,16 @@
 import { Component, OnInit, ViewChild, ElementRef, TemplateRef, OnDestroy, NgZone, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Observable, Subscription, combineLatest, of, forkJoin } from 'rxjs';
-import { switchMap, take } from 'rxjs/operators';
+import { switchMap, take, catchError, map } from 'rxjs/operators';
 import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { TranslateService } from '@ngx-translate/core';
-import { get, uniqueId, set, isNil, isEmpty } from 'lodash';
+import { get, uniqueId, isNil, isEmpty } from 'lodash';
 import { ConfigurationService } from '@congarevenuecloud/core';
 import {
   Account, Cart, CartService, Order, OrderService, Contact, ContactService,
-  UserService, AccountService, AccountInfo, EmailService, EmailTemplate, TaxAddress
+  UserService, AccountService, AccountInfo, EmailService, EmailTemplate, TaxAddress, StorefrontService
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, PriceSummaryComponent, LookupOptions, WizardStep } from '@congarevenuecloud/elements';
 @Component({
@@ -31,6 +31,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   uniqueId: string;
   confirmationModal: BsModalRef;
+  private lastProcessedContactId: string = null;
   confirmedCartItems: any[] = [];
   confirmedCartSummary: any[] = [];
   confirmedCart: Cart = null; // Store cart reference for apt-price-summary component
@@ -129,7 +130,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     private ngZone: NgZone,
     private exceptionService: ExceptionService,
     private emailService: EmailService,
-    private cdr: ChangeDetectorRef) {
+    private cdr: ChangeDetectorRef,
+    private storefrontService: StorefrontService) {
     this.uniqueId = uniqueId();
   }
 
@@ -166,8 +168,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
         if (!this.order.Name) this.order.Name = 'New Order';
         if (!this.order.SoldToAccount?.Id && account) this.order.SoldToAccount = account;
-        if (!this.order.BillToAccount?.Id && account) this.order.BillToAccount = account;
-        if (!this.order.ShipToAccount?.Id && account) this.order.ShipToAccount = account;
+        // Do not pre-populate BillToAccount and ShipToAccount with partner account
+        // These should only be populated when Primary Contact is selected
         if (!this.order.PriceList?.Id && get(cart, 'PriceList')) this.order.PriceList = get(cart, 'PriceList');
 
         this.onBillToChange();
@@ -176,15 +178,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.subscriptions.push(
-      this.contactService
-        .getMyContact()
-        .pipe(take(1))
-        .subscribe((c) => {
-          this.primaryContact = this.order.PrimaryContact = get(c, 'Contact');
-          this.order.PrimaryContact = this.primaryContact;
-        })
-    );
     this.subscriptions.push(
       combineLatest([
         this.translate.stream('PRIMARY_CONTACT.INVALID_FIRSTNAME'),
@@ -289,13 +282,66 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   onPrimaryContactChange() {
+    // Handle Primary Contact cleared
+    if (!this.order.PrimaryContact || !get(this.order.PrimaryContact, 'Id')) {
+      // Clear Bill To and Ship To when Primary Contact is cleared
+      this.order.BillToAccount = null;
+      this.order.ShipToAccount = null;
+      this.billToAccount$ = null;
+      this.shipToAccount$ = null;
+      this.lastProcessedContactId = null;
+      this.isButtonDisabled();
+      return;
+    }
+
+    const contactId = get(this.order.PrimaryContact, 'Id');
+    
+    // Skip if this contact ID was already processed to avoid redundant API calls
+    if (contactId === this.lastProcessedContactId) {
+      return;
+    }
+    
+    // Check if contact already has Account data loaded
+    const existingAccount = get(this.order.PrimaryContact, 'Account');
+    if (existingAccount && get(existingAccount, 'Id')) {
+      // Account already loaded, just populate Bill To and Ship To
+      this.order.BillToAccount = existingAccount;
+      this.order.ShipToAccount = existingAccount;
+      this.onBillToChange();
+      this.onShipToChange();
+      this.lastProcessedContactId = contactId;
+      this.isButtonDisabled();
+      return;
+    }
+
+    // Fetch Primary Contact with Account relationship and populate Bill To and Ship To
     this.subscriptions.push(
-      this.contactService.fetch(get(this.order.PrimaryContact, 'Id')).subscribe(c => {
-        this.order.PrimaryContact.Id = get(c, 'Id');
-        set(this.order, 'PrimaryContact', c);
+      this.contactService.getContactById(contactId).subscribe(contact => {
+        if (contact) {
+          // Update contact with full data including Account
+          Object.assign(this.order.PrimaryContact, contact);
+
+          // Auto-populate BillToAccount and ShipToAccount from Primary Contact's Account
+          const contactAccount = get(contact, 'Account');
+          if (contactAccount && get(contactAccount, 'Id')) {
+            this.order.BillToAccount = contactAccount;
+            this.order.ShipToAccount = contactAccount;
+            this.onBillToChange();
+            this.onShipToChange();
+          } else {
+            // If contact has no account, clear Bill To and Ship To
+            this.order.BillToAccount = null;
+            this.order.ShipToAccount = null;
+            this.billToAccount$ = null;
+            this.shipToAccount$ = null;
+          }
+          this.lastProcessedContactId = contactId;
+          this.isButtonDisabled();
+        } else {
+          this.lastProcessedContactId = null;
+        }
       })
     );
-    this.isButtonDisabled()
   }
 
   onPreviewOrder(): void {
@@ -375,12 +421,30 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     // Navigate to the confirmation wizard step
     this.currentStepIndex++;
     
+    // Feature flag check for email notifications
     if (get(this.orderConfirmation, 'Id')) {
-      this.emailService.getEmailTemplateByName('DC Order Notification Template').pipe(
-        take(1),
-        switchMap((templateInfo: EmailTemplate) => templateInfo ? this.emailService.sendEmailNotificationWithTemplate(get(templateInfo, 'Id'), this.orderConfirmation, get(this.orderConfirmation.PrimaryContact, 'Id')) : of(null))
+      this.shouldSendEmailFromUI().pipe(
+        switchMap(enableEmailsFromDCUI => {
+          return enableEmailsFromDCUI
+            ? this.emailService.getEmailTemplateByName('DC Order Notification Template')
+            : of(null);
+        }),
+        switchMap((templateInfo: EmailTemplate) => {
+          return templateInfo
+            ? this.emailService.sendEmailNotificationWithTemplate(get(templateInfo, 'Id'), this.orderConfirmation, get(this.orderConfirmation.PrimaryContact, 'Id'))
+            : of(null);
+        }),
+        take(1)
       ).subscribe();
     }
+  }
+
+  private shouldSendEmailFromUI(): Observable<boolean> {
+    return this.storefrontService.getConfigSettings().pipe(
+      take(1),
+      catchError(() => of({ enableEmailsFromDCUI: true })),
+      map(configSettings => get(configSettings, 'enableEmailsFromDCUI', true))
+    );
   }
 
   loadCaptcha() {

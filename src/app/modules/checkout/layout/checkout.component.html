@@ -83,8 +83,7 @@
                         [(ngModel)]="order.BillToAccount" (ngModelChange)="onBillToChange()">
                       </apt-input-field>
                       <div *ngIf="billToAccount$ | async as billAccount">
-                        <apt-address [ngModel]="order?.BillToAccount" [type]="'Billing'" [readonly]="true"
-                          name="billTo"></apt-address>
+                        <apt-address [value]="billAccount" [type]="'Billing'" [readonly]="true"></apt-address>
                       </div>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -93,8 +92,7 @@
                         [required]="true" [errorMsg]="errMessages.requiredShipToAcc">
                       </apt-input-field>
                       <div *ngIf="shipToAccount$ | async as shipAccount">
-                        <apt-address [ngModel]="order?.ShipToAccount" [type]="'Shipping'" [readonly]="true"
-                          name="shipTo"></apt-address>
+                        <apt-address [value]="shipAccount" [type]="'Shipping'" [readonly]="true"></apt-address>
                       </div>
                     </div>
                   </div>
@@ -205,31 +203,9 @@
           </div>
 
           <div class="row">
-            <!-- Left Column: Billing & Shipping Details and Order Items -->
             <div class="col-lg-8 mb-3">
-              <!-- Billing & Shipping Details -->
-              <div class="card">
-                <div class="card-header bg-white border-bottom py-2">
-                  <h5 class="card-title m-0">{{ 'CONFIRMATION.BILLING_SHIPPING_DETAILS' | translate }}</h5>
-                </div>
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col-md-6 mb-3">
-                      <div *ngIf="billToAccount$ | async as billAccount">
-                        <apt-address [value]="billAccount" [type]="'Billing'" [readonly]="true"></apt-address>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div *ngIf="shipToAccount$ | async as shipAccount">
-                        <apt-address [value]="shipAccount" [type]="'Shipping'" [readonly]="true"></apt-address>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <!-- Order Items -->
-              <div class="card mt-3">
+              <div class="card">
                 <div class="card-header bg-white border-bottom py-2">
                   <h5 class="card-title m-0">
                     {{ 'CONFIRMATION.ORDER_ITEMS' | translate }} ({{confirmationPaginationTotalVal}})
