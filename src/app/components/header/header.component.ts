@@ -82,8 +82,7 @@ export class HeaderComponent implements OnInit {
         
         // For request quote page, hide only if tax is enabled
         if (url.includes('/proposals/create')) {
-          return this.integrationService.getTaxMetadata().pipe(
-            map(metadata => get(metadata, 'EnableTaxIntegration', false)),
+          return this.integrationService.isTaxIntegrationEnabled().pipe(
             catchError(() => of(false))
           );
         }
