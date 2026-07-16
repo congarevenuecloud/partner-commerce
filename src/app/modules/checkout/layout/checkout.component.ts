@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Observable, Subscription, combineLatest, of, forkJoin } from 'rxjs';
 import { switchMap, take, catchError, map } from 'rxjs/operators';
 import { TabsetComponent } from 'ngx-bootstrap/tabs';
+import { PopoverDirective } from 'ngx-bootstrap/popover';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -10,7 +11,8 @@ import { get, uniqueId, isNil, isEmpty } from 'lodash';
 import { ConfigurationService } from '@congarevenuecloud/core';
 import {
   Account, Cart, CartService, Order, OrderService, Contact, ContactService,
-  UserService, AccountService, AccountInfo, EmailService, EmailTemplate, TaxAddress, StorefrontService
+  UserService, AccountService, AccountInfo, EmailService, EmailTemplate, TaxAddress, StorefrontService,
+  IntegrationService, TaxBreakup
 } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, PriceSummaryComponent, LookupOptions, WizardStep } from '@congarevenuecloud/elements';
 @Component({
@@ -40,6 +42,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   confirmationPaginationMinVal: number = 0;
   confirmationPaginationMaxVal: number = 0;
   confirmationPaginationTotalVal: number = 0;
+
+  // Tax breakup popover state for the confirmation step.
+  confirmedHasSalesTax: boolean = false;
+  taxBreakupMap: Map<string, TaxBreakup> = new Map();
+  taxLoadingMap: Map<string, boolean> = new Map();
+  taxErrorMap: Map<string, boolean> = new Map();
+  private activeTaxPop: PopoverDirective = null;
 
   // Pagination for confirmation step
   confirmationCurrentPage: number = 1;
@@ -131,7 +140,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     private exceptionService: ExceptionService,
     private emailService: EmailService,
     private cdr: ChangeDetectorRef,
-    private storefrontService: StorefrontService) {
+    private storefrontService: StorefrontService,
+    private integrationService: IntegrationService) {
     this.uniqueId = uniqueId();
   }
 
@@ -378,6 +388,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     if (this.cart && this.cart.SummaryGroups) {
       this.confirmedCartSummary = [...this.cart.SummaryGroups];
     }
+    // Determine whether a Sales Tax summary group exists so the confirmation step can show the tax icon.
+    this.confirmedHasSalesTax = this.confirmedCartSummary.some(group =>
+      get(group, 'ChargeType', '').toLowerCase() === 'sales tax'
+    );
+    // Reset per-item tax breakup caches for the confirmed cart.
+    this.taxBreakupMap.clear();
+    this.taxLoadingMap.clear();
+    this.taxErrorMap.clear();
 
     this.orderService.convertCartToOrder(order, primaryContact).pipe(
       take(1)
@@ -470,6 +488,33 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   // Filter confirmed cart items to primary product line items only
+  closeTaxPopover(): void {
+    this.activeTaxPop?.hide();
+  }
+
+  openEstimateTaxPopup(itemId: string, pop?: PopoverDirective): void {
+    if (pop) { this.activeTaxPop = pop; }
+    this.taxLoadingMap.set(itemId, true);
+    this.taxErrorMap.set(itemId, false);
+    this.taxBreakupMap.set(itemId, null);
+    this.cdr.markForCheck();
+
+    this.subscriptions.push(
+      this.integrationService.getLineLevelTax(itemId).pipe(take(1)).subscribe(
+        (item: TaxBreakup) => {
+          this.taxBreakupMap.set(itemId, item);
+          this.taxLoadingMap.set(itemId, false);
+          this.cdr.markForCheck();
+        },
+        () => {
+          this.taxErrorMap.set(itemId, true);
+          this.taxLoadingMap.set(itemId, false);
+          this.cdr.markForCheck();
+        }
+      )
+    );
+  }
+
   private updateConfirmedProductItems(): void {
     if (!this.confirmedCartItems || this.confirmedCartItems.length === 0) {
       this.confirmedProductItems = [];

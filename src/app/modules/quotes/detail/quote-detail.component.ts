@@ -326,6 +326,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
               : [result, null];
             this.cartRecord.LineItems = lineItems;
             this.cartRecord.BusinessObjectType = 'Proposal';
+            set(this.cartRecord, 'SalesTaxAmount', get(quote, 'SalesTaxAmount'));
             this.updateComputedProperties();
             return this.updateQuoteValue(quote);
           })
@@ -695,11 +696,12 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     }
 
     // Use existing collaboration logic for navigation
+    const hasTax = Number(get(this.quote, 'SalesTaxAmount.Value', get(this.quote, 'SalesTaxAmount'))) > 0;
     if (accessType === CollaborationAccessType.RestrictedEdit) {
-      this.ngZone.run(() => this.router.navigate(['/collaborative/cart']));
+      this.ngZone.run(() => this.router.navigate(['/collaborative/cart'], { state: { autoTax: hasTax } }));
     } else {
       // For FullEdit, AcceptReject or other access types, navigate to normal cart
-      this.ngZone.run(() => this.router.navigate(['/carts', 'active']));
+      this.ngZone.run(() => this.router.navigate(['/carts', 'active'], { state: { autoTax: hasTax } }));
     }
   }
 
