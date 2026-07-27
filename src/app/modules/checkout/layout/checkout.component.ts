@@ -390,7 +390,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
     // Determine whether a Sales Tax summary group exists so the confirmation step can show the tax icon.
     this.confirmedHasSalesTax = this.confirmedCartSummary.some(group =>
-      get(group, 'ChargeType', '').toLowerCase() === 'sales tax'
+      (get(group, 'ChargeType') ?? '').toLowerCase() === 'sales tax'
     );
     // Reset per-item tax breakup caches for the confirmed cart.
     this.taxBreakupMap.clear();
@@ -457,6 +457,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
   }
 
+  // TO DO : Remove this method once email sending logic is moved to backend
   private shouldSendEmailFromUI(): Observable<boolean> {
     return this.storefrontService.getConfigSettings().pipe(
       take(1),
