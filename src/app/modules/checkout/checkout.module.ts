@@ -20,7 +20,8 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { PaginationModule } from 'ngx-bootstrap/pagination';
-import { AddressModule, PriceModule, IconModule } from '@congarevenuecloud/elements';
+import { AddressModule, PriceModule, IconModule, TaxBreakupModule, PopoverModule } from '@congarevenuecloud/elements';
+import { PopoverModule as BSPopoverModule } from 'ngx-bootstrap/popover';
 import { TranslateModule } from '@ngx-translate/core';
 import { CongaModule } from '@congarevenuecloud/core';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
@@ -55,7 +56,10 @@ import { PricingModule } from '@congarevenuecloud/ecommerce';
     InputFieldModule,
     AlertModule,
     LaddaModule,
-    WizardModule
+    WizardModule,
+    TaxBreakupModule,
+    PopoverModule,
+    BSPopoverModule.forRoot()
   ],
   declarations: [CheckoutComponent, SummaryComponent]
 })
