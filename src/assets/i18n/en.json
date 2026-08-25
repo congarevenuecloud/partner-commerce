@@ -756,7 +756,7 @@
   "TAX.SALES_TAX": "Sales Tax",
   "TAX_BREAKUP.EMPTY": "No tax details available.",
   "TAX_BREAKUP.ERROR": "Failed to load tax details. Please try again.",
-  "TAX_BREAKUP.RATE": "Rate:",
+  "TAX_BREAKUP.RATE": "Rate",
   "TAX_BREAKUP.TITLE": "Tax Breakup",
   "TAX_BREAKUP.TOTAL_TAX": "Total Tax",
   "WARNING.GENERATE_DOCUMENT_HIBERNATE": "Document generation is hibernating",

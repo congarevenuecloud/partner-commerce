@@ -165,7 +165,7 @@ export class SummaryComponent implements OnChanges {
   private computeHasSalesTaxSummaryGroup(): boolean {
     const summaryGroups = get(this.cart, 'SummaryGroups', []);
     return Array.isArray(summaryGroups) && summaryGroups.some(group =>
-      get(group, 'ChargeType', '').toLowerCase() === 'sales tax'
+      (get(group, 'ChargeType') ?? '').toLowerCase() === 'sales tax'
     );
   }
 
