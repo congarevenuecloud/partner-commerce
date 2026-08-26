@@ -47,9 +47,9 @@ You need to install Node.js and then the development tools. Node.js comes with a
 
 - [Node.js](http://nodejs.org)
 
-- [Angular](https://angular.io/docs)
+- [Angular](https://angular.dev/docs)
 
-- [Angular CLI](https://angular.io/cli)
+- [Angular CLI](https://angular.dev/cli)
 
 ### Get the Code
 
@@ -131,7 +131,7 @@ Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.
 
 ## Running end-to-end tests
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+Run `ng e2e` to execute the end-to-end tests.
 
 <div id="digital-commerce-sdk"/>
 
@@ -151,4 +151,4 @@ Refer the [Docs](https://developer.conga.com/revenue) to get detailed informatio
 
 ## Further help
 
-[Bootstrap](https://getbootstrap.com/docs/4.1/getting-started/introduction/)
+[Bootstrap](https://getbootstrap.com/docs/5.3/getting-started/introduction/)

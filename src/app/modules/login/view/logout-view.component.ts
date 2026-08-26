@@ -20,7 +20,8 @@ import { Component, OnInit } from '@angular/core';
       .container{
           height: 90vh;
       }
-    `]
+    `],
+    standalone: false
 })
 export class LogoutViewComponent implements OnInit {
 

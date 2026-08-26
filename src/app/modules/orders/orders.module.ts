@@ -45,7 +45,7 @@ import { OrderDetailComponent } from './detail/order-detail.component';
     PriceSummaryModule,
     PricingModule,
     TranslateModule.forChild(),
-    TooltipModule.forRoot(),
+    TooltipModule,
     NgScrollbarModule,
     ButtonModule,
     LaddaModule,

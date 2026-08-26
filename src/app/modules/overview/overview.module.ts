@@ -39,7 +39,7 @@ import { OverViewComponent } from './overview/overview.component';
     PriceSummaryModule,
     PricingModule,
     TranslateModule.forChild(),
-    TooltipModule.forRoot(),
+    TooltipModule,
     NgScrollbarModule,
     ButtonModule,
     LaddaModule,

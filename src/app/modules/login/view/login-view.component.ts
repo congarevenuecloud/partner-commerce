@@ -14,7 +14,8 @@ import { ExceptionService } from '@congarevenuecloud/elements';
       .container{
           height: 90vh;
       }
-    `]
+    `],
+  standalone: false
 })
 export class LoginViewComponent implements OnInit, OnDestroy {
 

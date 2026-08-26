@@ -35,7 +35,7 @@ import {
   isNil,
 } from 'lodash';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
-import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { FilterOperator, PlatformConstants } from '@congarevenuecloud/core';
 import {
   QuoteService,
@@ -74,10 +74,11 @@ import {
 import { DsrService } from '../../../services/dsr.service';
 
 @Component({
-  selector: 'app-quote-details',
-  templateUrl: './quote-detail.component.html',
-  styleUrls: ['./quote-detail.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+    selector: 'app-quote-details',
+    templateUrl: './quote-detail.component.html',
+    styleUrls: ['./quote-detail.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class QuoteDetailComponent implements OnInit, OnDestroy {
   quote$: BehaviorSubject<Quote> = new BehaviorSubject<Quote>(null);
@@ -129,7 +130,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
 
   showReqChangesModal = false;
 
-  showViewCommentsComponent = true;
+  @ViewChild('viewCommentsRef') viewCommentsRef: any;
 
   viewCommentsConfig: ViewCommentsConfig = {
     modalOptions: { 'class': 'modal-lg', 'backdrop': 'static', 'keyboard': true },
@@ -352,6 +353,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
         .subscribe((r) => {
           this.quote = r;
           set(this.quote, 'Items', quoteItems);
+          this.cdr.detectChanges();
         })
     );
   }
@@ -364,6 +366,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
           get(updatedQuote, 'Id')
         );
         this.quote = updatedQuote;
+        this.cdr.detectChanges();
         return updatedQuote;
       })
     );
@@ -911,20 +914,13 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     }
     if (event && event.action === 'submit') {
       this.showReqChangesModal = false;
-
-      this.showViewCommentsComponent = false;
-      setTimeout(() => {
-        this.showViewCommentsComponent = true;
-      }, 100);
+      this.viewCommentsRef?.loadInitialComments();
     }
   }
 
   handleAddCommentsChanges(event: any) {
     if (event && event.action === 'submit') {
-      this.showViewCommentsComponent = false;
-      setTimeout(() => {
-        this.showViewCommentsComponent = true;
-      }, 100);
+      this.viewCommentsRef?.loadInitialComments();
     }
   }
 

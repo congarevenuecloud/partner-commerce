@@ -8,9 +8,10 @@ import { ProductService, Product, Cart, CartService, FieldFilter } from '@congar
 import { ProductDrawerService, BatchSelectionService } from '@congarevenuecloud/elements';
 
 @Component({
-  selector: 'app-compare-layout',
-  templateUrl: './compare-layout.component.html',
-  styleUrls: ['./compare-layout.component.scss']
+    selector: 'app-compare-layout',
+    templateUrl: './compare-layout.component.html',
+    styleUrls: ['./compare-layout.component.scss'],
+    standalone: false
 })
 export class CompareLayoutComponent implements OnInit, OnDestroy {
   products: Array<Product>;

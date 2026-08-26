@@ -3,9 +3,10 @@ import { Observable } from 'rxjs';
 import { UserService, Quote, User, Cart, CartService, StorefrontService } from '@congarevenuecloud/ecommerce';
 
 @Component({
-  selector: 'app-dashboard-view',
-  templateUrl: './dashboard-view.component.html',
-  styleUrls: ['./dashboard-view.component.scss']
+    selector: 'app-dashboard-view',
+    templateUrl: './dashboard-view.component.html',
+    styleUrls: ['./dashboard-view.component.scss'],
+    standalone: false
 })
 export class DashboardViewComponent implements OnInit {
 

@@ -2,8 +2,8 @@
   <app-action-bar></app-action-bar>
 </apt-breadcrumb>
 <apt-alert [autoRun]="false"></apt-alert>
-<div class="row no-gutters flex-fill">
-  <div class="col-2 border-right bg-white d-none d-md-block d-lg-block d-sm-none mt-0">
+<div class="row g-0 flex-fill">
+  <div class="col-2 border-end bg-white d-none d-md-block d-lg-block d-sm-none mt-0">
     <ul class="list-group list-group-flush p-2">
       <a href="javascript:void(0)" [routerLink]="['/overview']" routerLinkActive="active"
         class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.OVERVIEW' | translate}}</a>
@@ -13,8 +13,10 @@
         class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.MY_QUOTES' | translate}}</a>
       <a href="javascript:void(0)" [routerLink]="['/carts']" routerLinkActive="active"
         class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.MY_CARTS' | translate}}</a>
-      <a href="javascript:void(0)" *ngIf="showFavorites$ | async" [routerLink]="['/favorites']" routerLinkActive="active"
+      @if (showFavorites$ | async) {
+      <a href="javascript:void(0)" [routerLink]="['/favorites']" routerLinkActive="active"
         class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.MY_FAVORITES' | translate}}</a>
+      }
       <a href="javascript:void(0)" [routerLink]="['/assets']" routerLinkActive="active"
         class="list-group-item list-group-item-action py-2 border-0">{{'COMMON.INSTALLED_PRODUCTS' | translate}}</a>
       <a href="javascript:void(0)" [routerLink]="['/products']" routerLinkActive="active"

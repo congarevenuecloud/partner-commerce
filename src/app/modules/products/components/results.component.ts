@@ -3,39 +3,39 @@ import * as _ from 'lodash';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
-  // tslint:disable-next-line:component-selector
-  selector: 'pl-results',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
+    // tslint:disable-next-line:component-selector
+    selector: 'pl-results',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
     <div class="p-2 d-flex align-items-center justify-content-between">
       <div>
         {{showRecordsCountMessage}}
-        <span class="d-none d-md-inline" *ngIf="query"> {{'FOR_YOUR_SEARCH' | translate }}&nbsp;<strong>{{query}}</strong></span>
+        @if (query) {
+        <span class="d-none d-md-inline"> {{'FOR_YOUR_SEARCH' | translate }}&nbsp;<strong>{{query}}</strong></span>
+        }
       </div>
 
       <div class="d-flex align-items-center">
-        <div class="input-group input-group-sm mr-3 d-none d-sm-none d-md-flex">
-          <div class="input-group-prepend">
-            <label class="input-group-text" for="sort">{{'PRODUCT_LIST.SHOW' | translate}}</label>
-          </div>
-          <select class="custom-select custom-select-sm" id="size" [(ngModel)]="limit" name="limit" (change)="onPageSizeChange.emit($event.target.value)">
-          <option *ngFor="let option of pageSizeOptions"
-            [attr.value]="option"
-            [attr.selected]="option === limit">{{option}}
-          </option>
+        <div class="input-group input-group-sm me-3 d-none d-sm-none d-md-flex w-auto">
+          <label class="input-group-text" for="sort">{{'PRODUCT_LIST.SHOW' | translate}}</label>
+          <select class="form-select form-select-sm" id="size" [(ngModel)]="limit" name="limit" (change)="onPageSizeChange.emit($event.target.value)">
+          @for (option of pageSizeOptions; track option) {
+            <option
+              [attr.value]="option"
+              [attr.selected]="option === limit">{{option}}
+            </option>
+          }
           </select>
         </div>
 
-        <div class="input-group input-group-sm mr-0 mr-sm-0 mr-md-3">
-          <div class="input-group-prepend">
-            <label class="input-group-text" for="sort">{{'PRODUCT_LIST.SORT_BY' | translate}}</label>
-          </div>
-          <select class="custom-select custom-select-sm" id="sort" [(ngModel)]="sortBy" name="sortBy" (change)="onSortChange.emit($event.target.value)">
+        <div class="input-group input-group-sm me-0 me-sm-0 me-md-3 w-auto">
+          <label class="input-group-text" for="sort">{{'PRODUCT_LIST.SORT_BY' | translate}}</label>
+          <select class="form-select form-select-sm" id="sort" [(ngModel)]="sortBy" name="sortBy" (change)="onSortChange.emit($event.target.value)">
             <option [value]="'Relevance'">{{'PRODUCT_LIST.SORT_BY_RELEVANCE' | translate}}</option>
             <option [value]="'Name'">{{'COMMON.NAME' | translate}}</option>
           </select>
         </div>
-        <ng-container *ngIf="view">
+        @if (view) {
         <a href="javascript:void(0)"
             class="btn btn-link btn-sm pb-0 px-0 text-dark d-none d-sm-none d-md-block"
             [class.disabled]="view == 'grid'"
@@ -50,18 +50,19 @@ import { TranslateService } from '@ngx-translate/core';
             (click)="onViewChange.emit('list')">
           <i class="fas fa-list-ul"></i>
         </a>
-        </ng-container>
+        }
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     :host{
       font-size: smaller;
     }
     .move-down{
       margin-top: 1px;
     }
-  `]
+  `],
+    standalone: false
 })
 export class ResultsComponent implements OnChanges {
   @Input() recordCount: number;

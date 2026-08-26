@@ -1,41 +1,41 @@
 <div class="row py-2">
-    <div class="col-12 col-md-6 col-lg-3 pt-lg-0 pt-md-2 pt-sm-0 pt-0 pr-lg-1">
+    <div class="col-12 col-md-6 col-lg-3 pt-lg-0 pt-md-2 pt-sm-0 pt-0 pe-lg-1">
         <div class="card h-100">
             <div class="card-body p-0">
                 <div class="d-flex justify-content-between px-3 pt-3 pb-1">
-                    <span class="font-weight-bold">{{'MY_ACCOUNT.DASHBOARD.ORDERS_THIS_WEEK' | translate}}</span>
-                    <h6><span class="badge badge-primary">{{'MY_ACCOUNT.DASHBOARD.WEEKLY' | translate}}</span></h6>
+                    <span class="fw-bold">{{'MY_ACCOUNT.DASHBOARD.ORDERS_THIS_WEEK' | translate}}</span>
+                    <h6><span class="badge text-bg-primary">{{'MY_ACCOUNT.DASHBOARD.WEEKLY' | translate}}</span></h6>
                 </div>
                 <div class="px-3 pt-1 pb-3">
-                    <h2 class="m-0 font-weight-bold text-center dashboard-status">{{ totalOrderRecords$ | async }}</h2>
+                    <h2 class="m-0 fw-bold text-center dashboard-status">{{ totalOrderRecords$ | async }}</h2>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-12 col-md-6 col-lg-3 pt-lg-0 pt-md-2 pt-sm-2 pt-2 pr-lg-2">
+    <div class="col-12 col-md-6 col-lg-3 pt-lg-0 pt-md-2 pt-sm-2 pt-2 pe-lg-2">
         <div class="card h-100">
             <div class="card-body p-0">
                 <div class="d-flex justify-content-between px-3 pt-3 pb-1">
-                    <span class="font-weight-bold">{{'MY_ACCOUNT.DASHBOARD.QUOTES_THIS_WEEK' | translate}}</span>
-                    <h6><span class="badge badge-primary">{{'MY_ACCOUNT.DASHBOARD.WEEKLY' | translate}}</span></h6>
+                    <span class="fw-bold">{{'MY_ACCOUNT.DASHBOARD.QUOTES_THIS_WEEK' | translate}}</span>
+                    <h6><span class="badge text-bg-primary">{{'MY_ACCOUNT.DASHBOARD.WEEKLY' | translate}}</span></h6>
                 </div>
                 <div class="px-3 pt-1 pb-3">
-                    <h2 class="m-0 font-weight-bold text-center dashboard-status">{{ totalQuoteRecords$ | async }}</h2>
+                    <h2 class="m-0 fw-bold text-center dashboard-status">{{ totalQuoteRecords$ | async }}</h2>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-12 col-md-6 col-lg-3 pt-lg-0 pt-md-2 pt-sm-2 pt-2 pl-lg-2 pr-lg-1">
+    <div class="col-12 col-md-6 col-lg-3 pt-lg-0 pt-md-2 pt-sm-2 pt-2 ps-lg-2 pe-lg-1">
         <div class="card h-100">
             <div class="card-body p-0">
                 <div class="d-flex justify-content-between px-3 pt-3 pb-1">
-                    <span class="font-weight-bold">{{'COMMON.ORDER_TOTAL' | translate}}</span>
+                    <span class="fw-bold">{{'COMMON.ORDER_TOTAL' | translate}}</span>
                     <h6>
-                        <span class="badge badge-primary">{{'COMMON.TOTAL' | translate}}</span>
+                        <span class="badge text-bg-primary">{{'COMMON.TOTAL' | translate}}</span>
                     </h6>
                 </div>
                 <div class="px-3 pt-1 pb-3">
-                    <h2 class="m-0 font-weight-bold text-center dashboard-status">{{totalOrderAmount$ | async | localCurrency | async }}</h2>
+                    <h2 class="m-0 fw-bold text-center dashboard-status">{{totalOrderAmount$ | async | localCurrency | async }}</h2>
                 </div>
             </div>
         </div>
@@ -44,51 +44,59 @@
         <div class="card h-100">
             <div class="card-body p-0">
                 <div class="d-flex justify-content-between px-3 pt-3 pb-1">
-                    <span class="font-weight-bold">{{'COMMON.QUOTE_TOTAL' | translate}}</span>
+                    <span class="fw-bold">{{'COMMON.QUOTE_TOTAL' | translate}}</span>
                     <h6>
-                        <span class="badge badge-primary">{{'COMMON.TOTAL' | translate}}</span>
+                        <span class="badge text-bg-primary">{{'COMMON.TOTAL' | translate}}</span>
                     </h6>
                 </div>
                 <div class="px-3 pt-1 pb-3">
-                    <h2 class="m-0 font-weight-bold text-center dashboard-status">{{totalQuoteAmount$ | async | localCurrency | async }}</h2>
+                    <h2 class="m-0 fw-bold text-center dashboard-status">{{totalQuoteAmount$ | async | localCurrency | async }}</h2>
                 </div>
             </div>
         </div>
     </div>
 </div>
 <div class="row">
-    <div class="col-sm-12 col-md-6 col-lg-6 pt-lg-0 pt-md-0 pt-3 pr-2">
+    <div class="col-sm-12 col-md-6 col-lg-6 pt-lg-0 pt-md-0 pt-3 pe-2">
         <div class="card">
-            <div class="card-header mt-2">
+            <div class="card-header mt-2 border-bottom-0">
                 <strong class="text-uppercase d-block">{{'MY_ACCOUNT.ORDER_DETAIL.ORDER_PENDING' | translate}}</strong>
             </div>
             <div class="card-body">
-                <ng-container *ngIf="categorizedOrders$ | async as categorizedOrders; else loading">
+                @if (categorizedOrders$ | async; as categorizedOrders) {
                     <apt-chart [data]="categorizedOrders" [type]="'bar'" [showLegend]="false">
                     </apt-chart>
-                </ng-container>
+                } @else {
+                    <div class="d-flex justify-content-center py-5">
+                        <apt-dots></apt-dots>
+                    </div>
+                }
             </div>
         </div>
     </div>
 
-    <div class="col-sm-12 col-md-6 col-lg-6 pt-lg-0 pt-md-0 pt-3 pl-2">
+    <div class="col-sm-12 col-md-6 col-lg-6 pt-lg-0 pt-md-0 pt-3 ps-2">
         <div class="card">
-            <div class="card-header mt-2">
+            <div class="card-header mt-2 border-bottom-0">
                 <strong class="text-uppercase d-block">{{'MY_ACCOUNT.QUOTE_DETAIL.QUOTES_BY_DUE_DATE' |
                     translate}}</strong>
             </div>
             <div class="card-body">
-                <ng-container *ngIf="quotesByDueDateData$ | async as quotesByDueDateData ; else loading">
+                @if (quotesByDueDateData$ | async; as quotesByDueDateData) {
                     <apt-chart [data]="quotesByDueDateData" [type]="'doughnut'" [legendPosition]="'right'" [colorPalette]="colorPalette"
                         [centerText]="totalCount">
                     </apt-chart>
-                </ng-container>
+                } @else {
+                    <div class="d-flex justify-content-center py-5">
+                        <apt-dots></apt-dots>
+                    </div>
+                }
             </div>
         </div>
     </div>
 </div>
 <div class="row py-2 full-length-display">
-    <div class="col-12 col-md-12 col-lg-6 pt-lg-0 pt-md-2 pt-sm-2 pt-2 pl-2.5 pr-lg-2">
+    <div class="col-12 col-md-12 col-lg-6 pt-lg-0 pt-md-2 pt-sm-2 pt-2 ps-2.5 pe-lg-2">
         <div class="p-3 border bg-white rounded">
             <div class="d-flex justify-content-between mb-2">
                 <h5>{{'MY_ACCOUNT.DASHBOARD.RECENT_ORDERS' | translate}}</h5>
@@ -96,12 +104,18 @@
                     translate}} ></a>
             </div>
             <div>
-                <apt-table *ngIf="view$ | async as view; else loading" [type]="orderType" [showTableControls]=false
+                @if (view$ | async; as view) {
+                <apt-table [type]="orderType" [showTableControls]=false
                      [showErrorToaster]=true [options]="view?.tableOptions" [primaryColumn]="'OrderNumber'"></apt-table>
+                } @else {
+                    <div class="d-flex justify-content-center py-5">
+                        <apt-dots></apt-dots>
+                    </div>
+                }
             </div>
         </div>
     </div>
-    <div class="col-12 col-md-12 col-lg-6 pt-lg-0 pt-md-4 pt-sm-2 pt-4 pl-2.5 pl-lg-2">
+    <div class="col-12 col-md-12 col-lg-6 pt-lg-0 pt-md-4 pt-sm-2 pt-4 ps-2.5 ps-lg-2">
         <div class="p-3 border bg-white rounded">
             <div class="d-flex justify-content-between mb-2">
                 <h5>{{'MY_ACCOUNT.DASHBOARD.RECENT_QUOTES' | translate}}</h5>
@@ -109,16 +123,16 @@
                     translate}} ></a>
             </div>
             <div>
-                <apt-table *ngIf="quoteView$ | async as quoteView; else loading" [type]="quoteType"
+                @if (quoteView$ | async; as quoteView) {
+                <apt-table [type]="quoteType"
                     [showTableControls]=false [showErrorToaster]=true
                     [options]="quoteView?.tableOptions" [primaryColumn]="'ProposalNumber'"></apt-table>
+                } @else {
+                    <div class="d-flex justify-content-center py-5">
+                        <apt-dots></apt-dots>
+                    </div>
+                }
             </div>
         </div>
     </div>
 </div>
-
-<ng-template #loading>
-    <div class="d-flex justify-content-center">
-        <apt-dots></apt-dots>
-    </div>
-</ng-template>

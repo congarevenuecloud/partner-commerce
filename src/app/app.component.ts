@@ -6,13 +6,17 @@ import { map, takeUntil, filter } from 'rxjs/operators';
 import { get } from 'lodash';
 import { BatchSelectionService } from '@congarevenuecloud/elements';
 import { DsrService } from './services/dsr.service';
+
 @Component({
-  selector: 'app-root',
-  template: `
+    selector: 'app-root',
+    template: `
     <router-outlet></router-outlet>
-    <apt-product-drawer *ngIf="showDrawer$ | async"></apt-product-drawer>
+    @if (showDrawer$ | async) {
+    <apt-product-drawer></apt-product-drawer>
+    }
   `,
-  styles: [`.container{height: 90vh;}`]
+    styles: [`.container{height: 90vh;}`],
+    standalone: false
 })
 
 export class AppComponent implements OnInit, OnDestroy {

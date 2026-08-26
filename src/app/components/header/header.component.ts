@@ -25,10 +25,11 @@ import {
 import { ExceptionService } from '@congarevenuecloud/elements';
 import { DsrService } from '../../services/dsr.service';
 @Component({
-  selector: 'app-header',
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-header',
+    templateUrl: './header.component.html',
+    styleUrls: ['./header.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class HeaderComponent implements OnInit {
   pageTop: boolean = true;
