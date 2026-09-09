@@ -6,10 +6,10 @@ import { TranslateService } from '@ngx-translate/core';
 import { get, set, indexOf, first, sum, cloneDeep, isNil, map as _map, join, split, trim } from 'lodash';
 import {
   Order, OrderLineItem, OrderService, UserService,
-  ItemGroup, LineItemService, EmailService, AccountService,
+  ItemGroup, LineItemService, EmailService,
   Contact, Cart, Account, AttachmentDetails, AttachmentService, ProductInformationService, StorefrontService
 } from '@congarevenuecloud/ecommerce';
-import { ExceptionService, LookupOptions, FileOutput } from '@congarevenuecloud/elements';
+import { ExceptionService, FileOutput } from '@congarevenuecloud/elements';
 @Component({
     selector: 'app-order-detail',
     templateUrl: './order-detail.component.html',
@@ -72,13 +72,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
 
   showPresentTemplate = false;
 
-
-  lookupOptions: LookupOptions = {
-    primaryTextField: 'Name',
-    secondaryTextField: 'Email',
-    fieldList: ['Name', 'Id', 'Email']
-  };
-
   isPrivate: boolean = false;
   maxFileSizeLimit = 29360128;
   cartRecord: Cart = new Cart();
@@ -94,7 +87,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     private exceptionService: ExceptionService,
     private router: Router,
     private emailService: EmailService,
-    private accountService: AccountService,
     private cdr: ChangeDetectorRef,
     private attachmentService: AttachmentService,
     private productInformationService: ProductInformationService,
@@ -107,12 +99,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     this.subscriptions.push(this.activatedRoute.params.pipe(
       filter(params => get(params, 'id') != null)
     ).subscribe(() => this.getOrder()));
-    this.subscriptions.push(this.accountService.getCurrentAccount().subscribe(account => {
-      this.lookupOptions.expressionOperator = 'AND';
-      this.lookupOptions.filters = null;
-      this.lookupOptions.sortOrder = null;
-      this.lookupOptions.page = 10;
-    }));
     this.subscriptions.push(this.attachmentService.getSupportedAttachmentType().pipe(
       take(1)
     ).subscribe((data: string) => {

@@ -161,9 +161,8 @@
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote" [field]="'PrimaryContact'"
                     [label]="'MY_ACCOUNT.QUOTE_DETAIL.PRIMARY_CONTACT' | translate" [displayValue]="'PrimaryContact'"
-                    [editable]="(quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented') && canEditQuoteFields"
-                    [showQuickView]="true" [lookupOptions]="lookupOptions"
-                    (onChange)="refreshQuote($event, quote, 'PrimaryContact')">
+                    [editable]="false"
+                    [showQuickView]="true">
                   </apt-output-field>
                 </div>
               </div>
@@ -176,18 +175,23 @@
                 </div>
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote" field="ShipToAccount" [displayValue]="'ShipToAccount'"
-                    [editable]="(quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented') && canEditQuoteFields"
-                    [label]="'MY_ACCOUNT.ORDER_DETAIL.SHIP_TO_ACCOUNT' | translate" [showQuickView]="true"
-                    (onChange)="refreshQuote($event, quote, 'ShipToAccount')"></apt-output-field>
+                    [editable]="false"
+                    [label]="'MY_ACCOUNT.ORDER_DETAIL.SHIP_TO_ACCOUNT' | translate" [showQuickView]="true"></apt-output-field>
 
                 </div>
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote" field="BillToAccount" [displayValue]="'BillToAccount'"
-                    [editable]="(quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented') && canEditQuoteFields"
-                    [label]="'MY_ACCOUNT.ORDER_DETAIL.BILL_TO_ACCOUNT' | translate" [showQuickView]="true"
-                    (onChange)="refreshQuote($event, quote, 'BillToAccount')"></apt-output-field>
+                    [editable]="false"
+                    [label]="'MY_ACCOUNT.ORDER_DETAIL.BILL_TO_ACCOUNT' | translate" [showQuickView]="true"></apt-output-field>
 
                 </div>
+                @if (quote?.Location?.Id) {
+                <div class="flex-shrink-1 col-md-4 mb-2">
+                  <apt-output-field [record]="quote" field="Location" displayValue="Name"
+                    [label]="'CART.SHIPPING_LOCATION' | translate" [editable]="false"
+                    [showQuickView]="true"></apt-output-field>
+                </div>
+                }
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote" field="PartnerAccount" [displayValue]="'PartnerAccount'"
                     [label]="'CREATE_QUOTE.PARTNER_ACCOUNT' | translate"

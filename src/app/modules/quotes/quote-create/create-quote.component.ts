@@ -3,8 +3,8 @@ import { Observable, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal';
-import { get, set, find, defaultTo, isEmpty } from 'lodash';
-import { Quote, QuoteService, Storefront, Cart, CartService, AccountService, Account, TaxAddress } from '@congarevenuecloud/ecommerce';
+import { get, set, find, defaultTo } from 'lodash';
+import { Quote, QuoteService, Storefront, Cart, CartService, TaxAddress } from '@congarevenuecloud/ecommerce';
 
 @Component({
     selector: 'app-create-quote',
@@ -31,7 +31,7 @@ export class CreateQuoteComponent implements OnInit {
   taxCalculated: boolean = false;
   taxCalculationEnabled: boolean = false;
   showTaxRecalculationBanner: boolean = false;
-  private previousShipToAccountId: string;
+  private previousLocationId: string;
   private taxEverCalculated: boolean = false;
 
   constructor(
@@ -46,11 +46,13 @@ export class CreateQuoteComponent implements OnInit {
     this.cart$ = this.cartService.getMyCart();
   }
 
-  updateTaxAddress(account: Account): void {
+  updateTaxAddress(): void {
     // Reset tax state
     this.taxCalculated = false;
 
-    if (!account) {
+    // Tax is derived from the selected shipping location, not the ship-to account.
+    const location = get(this.quoteRequestObj, 'Location.Location');
+    if (!location || !get(location, 'Id')) {
       this.taxAddress = null;
       this.taxCalculationEnabled = false;
       if (this.taxEverCalculated) {
@@ -61,12 +63,12 @@ export class CreateQuoteComponent implements OnInit {
     }
 
     this.taxAddress = {
-      Line1: account.ShippingStreet || '',
-      Line2: '',
-      City: account.ShippingCity || '',
-      Region: account.ShippingState || '',
-      Country: account.ShippingCountry || '',
-      PostalCode: (account.ShippingPostalCode || '').toString()
+      Line1: get(location, 'Street', '') || '',
+      Line2: get(location, 'AddressLine', '') || '',
+      City: get(location, 'City', '') || '',
+      Region: get(location, 'State', '') || '',
+      Country: get(location, 'Country', '') || '',
+      PostalCode: (get(location, 'PostalCode', '') || '').toString()
     };
 
     this.taxCalculationEnabled = true;
@@ -87,25 +89,28 @@ export class CreateQuoteComponent implements OnInit {
 
   onUpdate($event: Quote) {
     this.quoteRequestObj = $event;
-    this.disableSubmit = isEmpty(this.quoteRequestObj.PrimaryContact && this.quoteRequestObj.ProposalName && get(this.quoteRequestObj, 'PartnerAccount.Id'));
+    this.disableSubmit = !get(this.quoteRequestObj, 'PrimaryContact.Id')
+      || !get(this.quoteRequestObj, 'ProposalName')
+      || !get(this.quoteRequestObj, 'PartnerAccount.Id')
+      || !get(this.quoteRequestObj, 'Location.Id');
 
-    // Check if ship-to account changed and update tax address
-    const newShipToAccountId = get(this.quoteRequestObj, 'ShipToAccount.Id');
-    if (this.previousShipToAccountId !== newShipToAccountId) {
-      this.updateTaxAddress(this.quoteRequestObj.ShipToAccount);
+    // Check if the shipping location changed and update tax address
+    const newLocationId = get(this.quoteRequestObj, 'Location.Id');
+    if (this.previousLocationId !== newLocationId) {
+      this.updateTaxAddress();
 
-      if (this.previousShipToAccountId && this.taxEverCalculated && newShipToAccountId) {
+      if (this.previousLocationId && this.taxEverCalculated && newLocationId) {
         this.showTaxRecalculationBanner = true;
         this.cdr.detectChanges();
       }
     }
 
-    this.previousShipToAccountId = newShipToAccountId;
+    this.previousLocationId = newLocationId;
   }
 
   onCartTotalsChanged(): void {
-    if (get(this.quoteRequestObj, 'ShipToAccount')) {
-      this.updateTaxAddress(this.quoteRequestObj.ShipToAccount);
+    if (get(this.quoteRequestObj, 'Location.Id')) {
+      this.updateTaxAddress();
 
       // Show banner only if tax was ever calculated before
       if (this.taxEverCalculated) {
@@ -113,7 +118,7 @@ export class CreateQuoteComponent implements OnInit {
       }
     } else {
       this.taxAddress = null;
-      // Show banner when no account AND tax was calculated before
+      // Show banner when no location AND tax was calculated before
       this.showTaxRecalculationBanner = this.taxEverCalculated;
       this.cdr.detectChanges();
     }

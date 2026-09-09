@@ -14,7 +14,8 @@ import {
   AlertModule,
   CaptchaModule,
   InputFieldModule,
-  WizardModule
+  WizardModule,
+  LocationPickerModule
 } from '@congarevenuecloud/elements';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { ModalModule } from 'ngx-bootstrap/modal';
@@ -59,7 +60,8 @@ import { PricingModule } from '@congarevenuecloud/ecommerce';
     WizardModule,
     TaxBreakupModule,
     PopoverModule,
-    BSPopoverModule
+    BSPopoverModule,
+    LocationPickerModule
   ],
   declarations: [CheckoutComponent, SummaryComponent]
 })

@@ -171,12 +171,6 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   @ViewChild('intimationTemplate') intimationTemplate: TemplateRef<any>;
   @ViewChild('fileInput') fileInput: ElementRef;
 
-  lookupOptions: LookupOptions = {
-    primaryTextField: 'Name',
-    secondaryTextField: 'Email',
-    fieldList: ['Id', 'Name', 'Email'],
-  };
-
   partnerAccountLookupOptions: LookupOptions = {
     primaryTextField: 'Name',
     fieldList: ['Id', 'Name'],
@@ -572,6 +566,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
             // Fallback to hardcoded option if no providers available
             this.selectedSignatureOption = 'CongaSign';
           }
+          this.cdr.detectChanges();
         },
         error: (error) => {
           this.loadingProviders = false;
@@ -582,6 +577,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
             });
           // Fallback to hardcoded option if API fails
           this.selectedSignatureOption = 'CongaSign';
+          this.cdr.detectChanges();
         },
       });
 
@@ -901,15 +897,14 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   }
 
   openRequestChangesModal() {
-    this.showReqChangesModal = false;
-
-    setTimeout(() => {
+    // Re-enter Angular's zone (native BS5 dropdown clicks fire outside it) so the @if renders the modal component.
+    this.ngZone.run(() => {
       this.showReqChangesModal = true;
-    }, 10);
+    });
   }
 
   handleRequestChangesAction(event: any) {
-    if (event && event.action === 'close') {
+    if (event && (event.action === 'close' || event.action === 'cancel')) {
       this.showReqChangesModal = false;
     }
     if (event && event.action === 'submit') {

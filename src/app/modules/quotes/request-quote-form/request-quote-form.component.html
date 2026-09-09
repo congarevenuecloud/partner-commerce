@@ -19,14 +19,12 @@
     <!-- Row 2: Quote Title | Partner Account -->
     <div class="row">
       <div class="col-12 col-md-6">
-        <div class="mb-3">
-          <apt-input-field [entity]="quote" [field]="'ProposalName'" [(ngModel)]="quote.ProposalName"
-            (ngModelChange)="quoteChange()" [label]="'CREATE_QUOTE.QUOTE_TITLE' | translate" [required]="true"
-            [errorMsg]="!quote.ProposalName ? ('CREATE_QUOTE.TITLE_REQUIRED' | translate) : ''"></apt-input-field>
-        </div>
+        <apt-input-field [entity]="quote" [field]="'ProposalName'" [(ngModel)]="quote.ProposalName"
+          (ngModelChange)="quoteChange()" [label]="'CREATE_QUOTE.QUOTE_TITLE' | translate" [required]="true"
+          [errorMsg]="!quote.ProposalName ? ('CREATE_QUOTE.TITLE_REQUIRED' | translate) : ''"></apt-input-field>
       </div>
       <div class="col-12 col-md-6">
-        <div class="mb-3 form-group--with-error">
+        <div class="form-group--with-error">
           <apt-input-field [entity]="quote" [field]="'PartnerAccount'" [lookupOptions]="partnerAccountLookupOptions"
             [(ngModel)]="partnerAccount" (ngModelChange)="partnerAccountChange()"
             [label]="'CREATE_QUOTE.PARTNER_ACCOUNT' | translate" [required]="true"
@@ -35,57 +33,70 @@
         </div>
       </div>
     </div>
-    <!-- Row 3: Primary Contact | RFP Response Due Date -->
+    <!-- Row 3: Source Channel | Ship To -->
     <div class="row">
       <div class="col-12 col-md-6">
         <div class="mb-3">
-          <apt-input-field placeholder="{{'CREATE_QUOTE.SEARCH_CONTACTS' | translate }}" [entity]="quote"
-            [field]="'PrimaryContact'" [lookupOptions]="lookupOptions" [required]="true" [(ngModel)]="contact"
-            (ngModelChange)="primaryContactChange()" [errorMsg]="('CREATE_QUOTE.PRIMARY_CONTACT_REQUIRED' | translate)">
-          </apt-input-field>
-        </div>
-      </div>
-      <div class="col-12 col-md-6">
-        <div class="mb-3">
-          <apt-input-field [entity]="quote" [field]="'RFPResponseDueDate'" [(ngModel)]="quote.RFPResponseDueDate"
-            (ngModelChange)="quoteChange()">
-          </apt-input-field>
-        </div>
-      </div>
-    </div>
-    <!-- Row 4: Ship To | Bill To -->
-    <div class="row">
-      <div class="col-12 col-md-6">
-        <div class="mb-3">
-          <apt-input-field [entity]="quote" [field]="'ShipToAccount'" [(ngModel)]="quote.ShipToAccount"
-            (ngModelChange)="shipToChange()"></apt-input-field>
-          @if (shipToAccount$ | async; as shipToAccount) {
-          <small class="px-1 fst-italic d-block">
-            <apt-address [ngModel]="quote?.ShipToAccount" [readonly]="true" type="Shipping" [showLabel]="false">
-            </apt-address>
-          </small>
-          }
-        </div>
-      </div>
-      <div class="col-12 col-md-6">
-        <div class="mb-3">
-          <apt-input-field [entity]="quote" [field]="'BillToAccount'" [(ngModel)]="quote.BillToAccount"
-            (ngModelChange)="billToChange()"></apt-input-field>
-          @if (billToAccount$ | async; as billToAccount) {
-          <small class="px-1 fst-italic d-block">
-            <apt-address [ngModel]="quote?.BillToAccount" [readonly]="true" type="Billing" [showLabel]="false">
-            </apt-address>
-          </small>
-          }
-        </div>
-      </div>
-    </div>
-    <!-- Row 5: Source Channel -->
-    <div class="row">
-      <div class="col-12 col-md-6">
-        <div class="mb-3 mb-0">
           <apt-output-field [record]="quote" field="SourceChannel" [label]="'COMMON.SOURCE_CHANNEL' | translate"
             [editable]="false"></apt-output-field>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="mb-3">
+          <apt-output-field [record]="quote" field="ShipToAccount" [labelClass]="'fw-normal'"
+            [editable]="false" [showQuickView]="true"></apt-output-field>
+        </div>
+      </div>
+    </div>
+    <!-- Row 4: Primary Contact | RFP Response Due Date -->
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <apt-input-field placeholder="{{'CREATE_QUOTE.SEARCH_CONTACTS' | translate }}" [entity]="quote"
+          [field]="'PrimaryContact'" [lookupOptions]="lookupOptions" [required]="true" [(ngModel)]="contact"
+          (ngModelChange)="primaryContactChange()" [errorMsg]="('CREATE_QUOTE.PRIMARY_CONTACT_REQUIRED' | translate)">
+        </apt-input-field>
+      </div>
+      <div class="col-12 col-md-6">
+        <apt-input-field [entity]="quote" [field]="'RFPResponseDueDate'" [(ngModel)]="quote.RFPResponseDueDate"
+          (ngModelChange)="quoteChange()">
+        </apt-input-field>
+      </div>
+    </div>
+    <!-- Row 5: Shipping Location | Bill To -->
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="mb-3">
+          <apt-location-picker name="location" [(ngModel)]="quote.Location"
+            (locationChange)="onShippingLocationChange()" [accountId]="quote.ShipToAccount?.Id"
+            [required]="true" [label]="'CART.SHIPPING_LOCATION' | translate">
+          </apt-location-picker>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="mb-3">
+          <apt-output-field [record]="quote" field="BillToAccount" [labelClass]="'fw-normal'"
+            [editable]="false" [showQuickView]="true"></apt-output-field>
+        </div>
+      </div>
+    </div>
+    <!-- Row 6: Shipping Location Address | Billing Address -->
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="mb-3">
+          <label class="mutedLabels d-block">{{'CART.SHIPPING_LOCATION_ADDRESS' | translate}}</label>
+          @if (quote.Location) {
+          <apt-address [value]="quote.Location" [readonly]="true" [showLabel]="false" [layout]="'Block'">
+          </apt-address>
+          }
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="mb-3">
+          @if (billToAccount$ | async; as billToAccount) {
+          <label class="mutedLabels d-block">{{'CART.BILLING_ADDRESS' | translate}}</label>
+          <apt-address [value]="billToAccount" [type]="'Billing'" [readonly]="true" [showLabel]="false"
+            [layout]="'Block'"></apt-address>
+          }
         </div>
       </div>
     </div>
