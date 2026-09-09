@@ -49,26 +49,30 @@
               <div class="card p-3">
                 <div>
                   <div class="row">
-                    <div class="col-md-6 mb-3">
-                      <apt-output-field [record]="order" field="SoldToAccount" displayValue="SoldToAccount"
-                        [labelClass]="'fw-normal'" [editable]="false" [showQuickView]="true">
-                      </apt-output-field>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <apt-output-field [record]="order" field="SoldToAccount" displayValue="SoldToAccount"
+                          [labelClass]="'fw-normal'" [editable]="false" [showQuickView]="true">
+                        </apt-output-field>
+                      </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                      <apt-output-field [record]="order" field="PriceList" [labelClass]="'fw-normal'"
-                        [editable]="false" [showQuickView]="true">
-                      </apt-output-field>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <apt-output-field [record]="order" field="PriceList" [labelClass]="'fw-normal'"
+                          [editable]="false" [showQuickView]="true">
+                        </apt-output-field>
+                      </div>
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6">
                       <apt-input-field name="description" [labelClass]="'fw-normal'" [entity]="order"
                         (change)="isButtonDisabled()" [required]="true"
                         [errorMsg]="!order.Name ? errMessages.requiredOrderTitle : '' " [field]="'Name'"
                         [(ngModel)]="order.Name" [label]="'COMMON.ORDER_TITLE' | translate">
                       </apt-input-field>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6">
                       <apt-input-field name="primaryContact" [labelClass]="'fw-normal'" [entity]="order"
                         [field]="'PrimaryContact'" [(ngModel)]="order.PrimaryContact"
                         (ngModelChange)="onPrimaryContactChange()" [lookupOptions]="lookupOptions" [required]="true"
@@ -77,27 +81,39 @@
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col-md-6 mb-3">
-                      <apt-input-field name="billTo" [labelClass]="'fw-normal'" [entity]="order"
-                        [required]="true" [errorMsg]="errMessages.requiredBillToAcc" [field]="'BillToAccount'"
-                        [(ngModel)]="order.BillToAccount" (ngModelChange)="onBillToChange()">
-                      </apt-input-field>
-                      @if (billToAccount$ | async; as billAccount) {
-                        <div>
-                          <apt-address [value]="billAccount" [type]="'Billing'" [readonly]="true"></apt-address>
-                        </div>
-                      }
+                    <!-- Shipping column: account, location, and derived shipping address -->
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <apt-output-field [record]="order" field="ShipToAccount" [labelClass]="'fw-normal'"
+                          [editable]="false" [showQuickView]="true"></apt-output-field>
+                      </div>
+                      <div class="mb-3">
+                        <apt-location-picker name="location" [(ngModel)]="order.Location"
+                          (locationChange)="onShippingLocationChange()" [accountId]="order.ShipToAccount?.Id"
+                          [required]="true" [label]="'CART.SHIPPING_LOCATION' | translate">
+                        </apt-location-picker>
+                      </div>
+                      <div class="mb-3">
+                        <label class="mutedLabels d-block">{{'CART.SHIPPING_LOCATION_ADDRESS' | translate}}</label>
+                        @if (order.Location) {
+                          <apt-address [value]="order.Location" [readonly]="true" [showLabel]="false" [layout]="'Block'">
+                          </apt-address>
+                        }
+                      </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                      <apt-input-field name="shipTo" [labelClass]="'fw-normal'" [entity]="order"
-                        [field]="'ShipToAccount'" [(ngModel)]="order.ShipToAccount" (ngModelChange)="onShipToChange()"
-                        [required]="true" [errorMsg]="errMessages.requiredShipToAcc">
-                      </apt-input-field>
-                      @if (shipToAccount$ | async; as shipAccount) {
-                        <div>
-                          <apt-address [value]="shipAccount" [type]="'Shipping'" [readonly]="true"></apt-address>
-                        </div>
-                      }
+                    <!-- Billing column: account and its billing address -->
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <apt-output-field [record]="order" field="BillToAccount" [labelClass]="'fw-normal'"
+                          [editable]="false" [showQuickView]="true"></apt-output-field>
+                      </div>
+                      <div class="mb-3">
+                        @if (billToAccount$ | async; as billAccount) {
+                          <label class="mutedLabels d-block">{{'CART.BILLING_ADDRESS' | translate}}</label>
+                          <apt-address [value]="billAccount" [type]="'Billing'" [readonly]="true" [showLabel]="false"
+                            [layout]="'Block'"></apt-address>
+                        }
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -174,9 +190,11 @@
                         <apt-address [value]="billAccount" [type]="'Billing'" [readonly]="true"></apt-address>
                       </div>
                     }
-                    @if (shipToAccount$ | async; as shipAccount) {
+                    @if (order.Location) {
                       <div class="text-muted">
-                        <apt-address [value]="shipAccount" [type]="'Shipping'" [readonly]="true"></apt-address>
+                        <label class="mutedLabels d-block">{{'CART.SHIPPING_LOCATION_ADDRESS' | translate}}</label>
+                        <apt-address [value]="order.Location" [readonly]="true" [showLabel]="false" [layout]="'Block'">
+                        </apt-address>
                       </div>
                     }
                   </div>
@@ -366,9 +384,11 @@
                       <apt-address [value]="billAccount" [type]="'Billing'" [readonly]="true"></apt-address>
                     </div>
                   }
-                  @if (shipToAccount$ | async; as shipAccount) {
+                  @if (order.Location) {
                     <div class="text-muted">
-                      <apt-address [value]="shipAccount" [type]="'Shipping'" [readonly]="true"></apt-address>
+                      <label class="mutedLabels d-block">{{'CART.SHIPPING_LOCATION_ADDRESS' | translate}}</label>
+                      <apt-address [value]="order.Location" [readonly]="true" [showLabel]="false" [layout]="'Block'">
+                      </apt-address>
                     </div>
                   }
                 </div>

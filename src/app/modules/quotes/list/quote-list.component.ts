@@ -77,17 +77,19 @@ export class QuoteListComponent implements OnInit {
 
   ngOnInit() {
     this.loadView();
-    this.quoteFields = [
-      'Description', 'BillToAccount', 'ShipToAccount', 'SourceChannel',
-      { field: 'PartnerAccount', required: true, lookupOptions: { primaryTextField: 'Name', fieldList: ['Id', 'Name'], filters: [{ field: 'IsPartner', value: true, filterOperator: FilterOperator.EQUAL }] } }
-    ];
   }
 
   loadView() {
     let tableOptions = {} as QuoteListView;
     this.view$ = this.accountService.getCurrentAccount()
       .pipe(
-        switchMap(() => {
+        switchMap((account) => {
+          // Scope the Primary Contact lookup to the current account (parity with checkout).
+          this.quoteFields = [
+            'Description', 'BillToAccount', 'ShipToAccount', 'SourceChannel',
+            { field: 'PartnerAccount', required: true, lookupOptions: { primaryTextField: 'Name', fieldList: ['Id', 'Name'], filters: [{ field: 'IsPartner', value: true, filterOperator: FilterOperator.EQUAL }] } },
+            { field: 'PrimaryContact', required: true, lookupOptions: { primaryTextField: 'Name', filters: [{ field: 'Account.Id', value: get(account, 'Id'), filterOperator: FilterOperator.EQUAL }] } }
+          ];
           tableOptions = {
             tableOptions: {
               stickyColumnCount: 1,

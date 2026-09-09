@@ -1,10 +1,10 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 import { Observable, of, combineLatest } from 'rxjs';
-import { take, map, shareReplay } from 'rxjs/operators';
+import { take, switchMap } from 'rxjs/operators';
 import { get } from 'lodash';
 import { FilterOperator } from '@congarevenuecloud/core';
-import { AccountService, ContactService, UserService, Quote, QuoteService, PriceListService, Cart, Account, Contact, PriceList, StorefrontService } from '@congarevenuecloud/ecommerce';
+import { AccountService, UserService, Quote, QuoteService, PriceListService, Cart, Account, Contact, PriceList, StorefrontService, AccountLocationManagementService } from '@congarevenuecloud/ecommerce';
 import { LookupOptions } from '@congarevenuecloud/elements';
 
 @Component({
@@ -22,7 +22,6 @@ export class RequestQuoteFormComponent implements OnInit {
   startDate: Date = new Date();
   rfpDueDate: Date = new Date();
 
-  shipToAccount$: Observable<Account>;
   billToAccount$: Observable<Account>;
   priceList$: Observable<PriceList>;
   lookupOptions: LookupOptions = {
@@ -41,18 +40,26 @@ export class RequestQuoteFormComponent implements OnInit {
   };
   partnerAccount: Account = null;
   contact: Contact;
-  private lastProcessedContactId: string = null;
 
   constructor(public quoteService: QuoteService,
     private accountService: AccountService,
     private userService: UserService,
     private plservice: PriceListService,
-    private contactService: ContactService,
+    private accountLocationService: AccountLocationManagementService,
     private storefrontService: StorefrontService) { }
 
   ngOnInit() {
     combineLatest(this.accountService.getCurrentAccount(), this.userService.me(), (this.cart.Proposald ? this.quoteService.getQuoteById(get(this.cart, 'Proposald.Id')) : of(null)), this.storefrontService.getStorefront())
-      .pipe(take(1)).subscribe(([account, user, quote, storefront]) => {
+      .pipe(
+        take(1),
+        switchMap(([account, user, quote, storefront]) => {
+          // A reopened proposal returns Location as Id/Name only; hydrate the full AccountLocation before any emit so tax has its address.
+          const reopenedQuote = get(this.cart, 'Proposald.Id') ? (get(quote, '[0]') || get(this.cart, 'Proposald')) : null;
+          const locationId = get(reopenedQuote, 'Location.Id');
+          const location$ = (locationId && !get(reopenedQuote, 'Location.Location.Id')) ? this.accountLocationService.getAccountLocationById(locationId) : of(null);
+          return combineLatest([of(account), of(quote), location$]);
+        })
+      ).subscribe(([account, quote, hydratedLocation]) => {
         this.quote.ProposalName = 'New Quote';
         this.quote.Account = get(this.cart, 'Account');
         this.quote.PrimaryContact = null;
@@ -61,6 +68,17 @@ export class RequestQuoteFormComponent implements OnInit {
         if (get(this.cart, 'Proposald.Id')) {
           this.quote = get(quote, '[0]') || get(this.cart, 'Proposald');
           this.contact = get(this.quote, 'PrimaryContact');
+          if (hydratedLocation) {
+            this.quote.Location = hydratedLocation;
+          }
+        }
+        if (account) {
+          // Ship To and Bill To are the same locked app-level account.
+          this.quote.ShipToAccount = account;
+          this.quote.BillToAccount = account;
+          // billToAccount$ feeds <apt-address>, which needs the full account record (address fields) fetched by Id.
+          this.billToAccount$ = this.accountService.getAccount(get(account, 'Id'));
+          this.lookupOptions.filters = [{ field: 'Account.Id', value: get(account, 'Id'), filterOperator: FilterOperator.EQUAL }];
         }
         this.quoteChange();
         this.getPriceList();
@@ -71,33 +89,10 @@ export class RequestQuoteFormComponent implements OnInit {
     this.onQuoteUpdate.emit(this.quote);
   }
 
-  shipToChange() {
-    if (get(this.quote.ShipToAccount, 'Id')) {
-      this.shipToAccount$ = this.accountService.getAccount(get(this.quote.ShipToAccount, 'Id'));
-      this.shipToAccount$.pipe(take(1)).subscribe((newShippingAccount) => {
-        this.quote.ShipToAccount = newShippingAccount;
-        this.onQuoteUpdate.emit(this.quote);
-      });
-    } else {
-      this.quote.ShipToAccount = null;
-      this.shipToAccount$ = null;
-      this.onQuoteUpdate.emit(this.quote);
-    }
+  onShippingLocationChange() {
+    this.onQuoteUpdate.emit(this.quote);
   }
 
-  billToChange() {
-    if (get(this.quote.BillToAccount, 'Id')) {
-      this.billToAccount$ = this.accountService.getAccount(get(this.quote.BillToAccount, 'Id'));
-      this.billToAccount$.pipe(take(1)).subscribe((newBillingAccount) => {
-        this.quote.BillToAccount = newBillingAccount;
-        this.onQuoteUpdate.emit(this.quote);
-      });
-    } else {
-      this.quote.BillToAccount = null;
-      this.billToAccount$ = null;
-      this.onQuoteUpdate.emit(this.quote);
-    }
-  }
   getPriceList() {
     this.priceList$ = this.plservice.getPriceList();
     this.priceList$.pipe(take(1)).subscribe((newPricelList) => {
@@ -107,75 +102,9 @@ export class RequestQuoteFormComponent implements OnInit {
   }
 
   primaryContactChange() {
-    if (!this.contact || !get(this.contact, 'Id')) {
-      // Clear Bill To and Ship To when Primary Contact is cleared
-      this.quote.PrimaryContact = null;
-      this.quote.BillToAccount = null;
-      this.quote.ShipToAccount = null;
-      this.billToAccount$ = null;
-      this.shipToAccount$ = null;
-      this.lastProcessedContactId = null;
-      this.onQuoteUpdate.emit(this.quote);
-      return;
-    }
-
-    const contactId = get(this.contact, 'Id');
-    
-    // Skip if this contact ID was already processed to avoid redundant API calls
-    if (contactId === this.lastProcessedContactId) {
-      return;
-    }
-    
-    // Check if contact already has Account data loaded
-    const existingAccount = get(this.contact, 'Account');
-    if (existingAccount && get(existingAccount, 'Id')) {
-      // Account already loaded, just populate Bill To and Ship To
-      this.quote.PrimaryContact = this.contact as any;
-      this.quote.BillToAccount = existingAccount;
-      this.quote.ShipToAccount = existingAccount;
-      const acct$ = this.accountService.getAccount(get(existingAccount, 'Id')).pipe(shareReplay(1));
-      this.billToAccount$ = acct$;
-      this.shipToAccount$ = acct$;
-      acct$.pipe(take(1)).subscribe(fullAccount => {
-        this.quote.BillToAccount = fullAccount;
-        this.quote.ShipToAccount = fullAccount;
-        this.onQuoteUpdate.emit(this.quote);
-      });
-      this.lastProcessedContactId = contactId;
-      return;
-    }
-
-    this.contactService.getContactById(contactId).pipe(take(1), map(fetchedContact => fetchedContact as Contact)).subscribe(fetchedContact => {
-      if (fetchedContact) {
-        // Update contact with full data including Account
-        this.quote.PrimaryContact = fetchedContact;
-        this.contact = fetchedContact;
-        // Auto-populate BillToAccount and ShipToAccount from Primary Contact's Account
-        const contactAccount = get(fetchedContact, 'Account');
-        if (contactAccount && get(contactAccount, 'Id')) {
-          this.quote.BillToAccount = contactAccount;
-          this.quote.ShipToAccount = contactAccount;
-          const acct$ = this.accountService.getAccount(get(contactAccount, 'Id')).pipe(shareReplay(1));
-          this.billToAccount$ = acct$;
-          this.shipToAccount$ = acct$;
-          acct$.pipe(take(1)).subscribe(fullAccount => {
-            this.quote.BillToAccount = fullAccount;
-            this.quote.ShipToAccount = fullAccount;
-            this.onQuoteUpdate.emit(this.quote);
-          });
-        } else {
-          // If contact has no account, clear Bill To and Ship To
-          this.quote.BillToAccount = null;
-          this.quote.ShipToAccount = null;
-          this.billToAccount$ = null;
-          this.shipToAccount$ = null;
-          this.onQuoteUpdate.emit(this.quote);
-        }
-        this.lastProcessedContactId = contactId;
-      } else {
-        this.lastProcessedContactId = null;
-      }
-    });
+    // Ship To / Bill To stay locked to the app-level account; only sync the selected contact.
+    this.quote.PrimaryContact = this.contact;
+    this.onQuoteUpdate.emit(this.quote);
   }
 
   partnerAccountChange() {

@@ -5,7 +5,7 @@
         <div class="px-1 d-flex align-items-center">
           <!-- quick add button with business object as quote which performs add to cart + quote placement-->
           <app-quick-add [layout]="'modal'" [fields]="fields" [productFieldType]="'lookup'"
-            [quoteFields]="quoteFields" [orderFields]="orderFields" [presetFields]="{ SourceChannel: 'Partner' }"
+            [quoteFields]="quoteFields" [orderFields]="orderFields" [enableShippingLocation]="true" [presetFields]="{ SourceChannel: 'Partner' }"
             [btnClass]="'btn-custom-secondary border-0'"></app-quick-add>
         </div>
 

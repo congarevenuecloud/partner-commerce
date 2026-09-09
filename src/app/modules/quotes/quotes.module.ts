@@ -29,7 +29,8 @@ import {
   DocumentSelectorModule,
   EmailComposerModule,
   SendForSignatureModule,
-  CommentsModule
+  CommentsModule,
+  LocationPickerModule
 } from '@congarevenuecloud/elements';
 import { DetailsModule } from '../details/details.module';
 import { QuotesRoutingModule } from './quotes-routing.module';
@@ -61,12 +62,10 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
     LaddaModule,
     NgScrollbarModule,
     PriceSummaryModule,
-    DetailsModule,
     TableModule,
     ChartModule,
     DataFilterModule,
     ComponentModule,
-    ButtonModule,
     CongaModule,
     AlertModule,
     QuickAddModule,
@@ -74,7 +73,8 @@ import { RequestQuoteFormComponent } from './request-quote-form/request-quote-fo
     DocumentSelectorModule,
     EmailComposerModule,
     SendForSignatureModule,
-    CommentsModule
+    CommentsModule,
+    LocationPickerModule
   ],
   declarations: [
     QuoteListComponent,

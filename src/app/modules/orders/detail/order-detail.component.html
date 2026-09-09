@@ -137,34 +137,27 @@
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="order" field="ShipToAccount" displayValue="ShipToAccount" [label]="
                   'MY_ACCOUNT.ORDER_DETAIL.SHIP_TO_ACCOUNT' | translate
-                " [editable]="
-                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'draft' ||
-                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'generated' ||
-                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'presented'
-                " [showQuickView]="true" [required]="true" (onChange)="refreshOrder($event, order, 'ShipToAccount')">
+                " [editable]="false" [showQuickView]="true">
                   </apt-output-field>
 
                 </div>
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="order" field="BillToAccount" displayValue="BillToAccount" [label]="
                     'MY_ACCOUNT.ORDER_DETAIL.BILL_TO_ACCOUNT' | translate
-                  " [editable]="
-                    orderStatusMap[order.Status]?.Key?.toLowerCase() === 'draft' ||
-                    orderStatusMap[order.Status]?.Key?.toLowerCase() === 'generated' ||
-                    orderStatusMap[order.Status]?.Key?.toLowerCase() === 'presented'
-                  " [showQuickView]="true"
-                    (onChange)="refreshOrder($event, order, 'BillToAccount')"></apt-output-field>
+                  " [editable]="false" [showQuickView]="true"></apt-output-field>
                 </div>
               </div>
               @if (isExpanded) {
               <div class="row">
+                @if (order?.Location?.Id) {
                 <div class="flex-shrink-1 col-md-4 mb-2">
-                  <apt-output-field [record]="order" field="PrimaryContact" displayValue="PrimaryContact" [editable]="
-                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'draft'||
-                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'generated' ||
-                  orderStatusMap[order.Status]?.Key?.toLowerCase() === 'presented'
-                " [showQuickView]="true" [lookupOptions]="lookupOptions" [required]="true"
-                    (onChange)="refreshOrder($event, order, 'PrimaryContact')"></apt-output-field>
+                  <apt-output-field [record]="order" field="Location" displayValue="Name"
+                    [label]="'CART.SHIPPING_LOCATION' | translate" [editable]="false"
+                    [showQuickView]="true"></apt-output-field>
+                </div>
+                }
+                <div class="flex-shrink-1 col-md-4 mb-2">
+                  <apt-output-field [record]="order" field="PrimaryContact" displayValue="PrimaryContact" [editable]="false" [showQuickView]="true"></apt-output-field>
                 </div>
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="order" field="Description"

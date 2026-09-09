@@ -1,16 +1,14 @@
-import { Component, OnInit, ViewChild, ElementRef, TemplateRef, OnDestroy, NgZone, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, NgZone, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Observable, Subscription, combineLatest, of, forkJoin } from 'rxjs';
 import { switchMap, take, catchError, map } from 'rxjs/operators';
 import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { PopoverDirective } from 'ngx-bootstrap/popover';
-import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
-import { BsModalRef } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 import { get, uniqueId, isNil, isEmpty } from 'lodash';
-import { ConfigurationService } from '@congarevenuecloud/core';
+import { ConfigurationService, FilterOperator } from '@congarevenuecloud/core';
 import {
-  Account, Cart, CartService, Order, OrderService, Contact, ContactService,
+  Account, Cart, CartService, Order, OrderService, Contact,
   UserService, AccountService, AccountInfo, EmailService, EmailTemplate, TaxAddress, StorefrontService,
   IntegrationService, TaxBreakup
 } from '@congarevenuecloud/ecommerce';
@@ -26,15 +24,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   @ViewChild('addressTabs') addressTabs: any;
   @ViewChild('addressInfo') addressInfo: ElementRef;
   @ViewChild('staticTabs') staticTabs: TabsetComponent;
-  @ViewChild('confirmationTemplate') confirmationTemplate: TemplateRef<any>;
   @ViewChild('priceSummary') priceSummary: PriceSummaryComponent;
   primaryContact: Contact;
   order: Order;
   orderConfirmation: Order;
   loading: boolean = false;
   uniqueId: string;
-  confirmationModal: BsModalRef;
-  private lastProcessedContactId: string = null;
   confirmedCartItems: any[] = [];
   confirmedCartSummary: any[] = [];
   confirmedCart: Cart = null; // Store cart reference for apt-price-summary component
@@ -69,13 +64,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     requiredLastName: '',
     requiredEmail: '',
     requiredPrimaryContact: '',
-    requiredShipToAcc: '',
-    requiredBillToAcc: '',
     requiredOrderTitle: ''
   };
   cart: Cart;
   isLoggedIn: boolean;
-  shipToAccount$: Observable<Account>;
   billToAccount$: Observable<Account>;
   primaryContact$: Observable<any>;
   pricingSummaryType: 'checkout' | 'paymentForOrder' | '' = 'checkout';
@@ -130,8 +122,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   constructor(private cartService: CartService,
     public configurationService: ConfigurationService,
     private orderService: OrderService,
-    private modalService: BsModalService,
-    public contactService: ContactService,
     private translate: TranslateService,
     private userService: UserService,
     private accountService: AccountService,
@@ -150,9 +140,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
 
     this.subscriptions.push(this.userService.isLoggedIn().subscribe(isLoggedIn => this.isLoggedIn = isLoggedIn));
-    this.subscriptions.push(this.accountService.getCurrentAccount().subscribe(() => {
+    this.subscriptions.push(this.accountService.getCurrentAccount().subscribe((account) => {
       this.lookupOptions.expressionOperator = 'AND';
-      this.lookupOptions.filters = null;
+      this.lookupOptions.filters = account ? [{ field: 'Account.Id', value: get(account, 'Id'), filterOperator: FilterOperator.EQUAL }] : null;
       this.lookupOptions.sortOrder = null;
       this.lookupOptions.page = 10;
     }));
@@ -179,12 +169,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
         if (!this.order.Name) this.order.Name = 'New Order';
         if (!this.order.SoldToAccount?.Id && account) this.order.SoldToAccount = account;
-        // Do not pre-populate BillToAccount and ShipToAccount with partner account
-        // These should only be populated when Primary Contact is selected
+        // Ship To and Bill To are locked to the app-level account.
+        if (account) {
+          this.order.ShipToAccount = account;
+          this.order.BillToAccount = account;
+        }
         if (!this.order.PriceList?.Id && get(cart, 'PriceList')) this.order.PriceList = get(cart, 'PriceList');
 
         this.onBillToChange();
-        this.onShipToChange();
         this.isButtonDisabled();
       })
     );
@@ -195,8 +187,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.translate.stream('PRIMARY_CONTACT.INVALID_LASTNAME'),
         this.translate.stream('PRIMARY_CONTACT.INVALID_EMAIL'),
         this.translate.stream('PRIMARY_CONTACT.INVALID_PRIMARY_CONTACT'),
-        this.translate.stream('PRIMARY_CONTACT.INVALID_BILL_TO_ACC'),
-        this.translate.stream('PRIMARY_CONTACT.INVALID_SHIP_TO_ACC'),
         this.translate.stream('PRIMARY_CONTACT.INVALID_ORDER_TITLE'),
         this.translate.stream('AOBJECTS.CART'),
         this.translate.stream('PAGINATION.FIRST'),
@@ -209,8 +199,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           lastName,
           email,
           primaryContact,
-          billToAcc,
-          shipToAcc,
           orderTitle,
           cartLabel,
           first,
@@ -222,8 +210,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           this.errMessages.requiredLastName = lastName;
           this.errMessages.requiredEmail = email;
           this.errMessages.requiredPrimaryContact = primaryContact;
-          this.errMessages.requiredBillToAcc = billToAcc;
-          this.errMessages.requiredShipToAcc = shipToAcc;
           this.errMessages.requiredOrderTitle = orderTitle;
           this.paginationButtonLabels.first = first;
           this.paginationButtonLabels.previous = previous;
@@ -242,7 +228,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   isButtonDisabled() {
-    this.disableSubmit = isNil(this.order.PrimaryContact) || !this.order.Name || isNil(this.order.BillToAccount) || isNil(this.order.ShipToAccount);
+    this.disableSubmit = isNil(this.order.PrimaryContact) || !this.order.Name || isNil(this.order.BillToAccount) || isNil(this.order.ShipToAccount) || !get(this.order.Location, 'Id');
   }
 
   submitOrder() {
@@ -254,31 +240,32 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.isButtonDisabled()
   }
 
-  onShipToChange() {
-    if (get(this.order.ShipToAccount, 'Id')) {
-      this.shipToAccount$ = this.accountService.getAccount(get(this.order.ShipToAccount, 'Id'));
-      // Update tax address when shipping account changes
-      this.subscriptions.push(
-        this.shipToAccount$.subscribe(account => {
-          this.updateTaxAddress(account);
-        })
-      );
+  onShippingLocationChange(): void {
+    this.isButtonDisabled();
+    const location = get(this.order.Location, 'Location');
+    if (!get(this.order.Location, 'Id') || !get(location, 'Id')) {
+      this.taxAddress = null;
+      if (get(this.order.Location, 'Id') && !get(location, 'Id')) {
+        this.exceptionService.showError(this.translate.instant('TAX.LOCATION_MISSING_POSTAL_CODE'));
+      }
+      this.cdr.markForCheck();
+      return;
     }
-    this.isButtonDisabled()
-  }
-
-  // Update tax address based on shipping account
-  updateTaxAddress(account?: Account): void {
-    if (!account) return;
-
-    this.taxAddress = {
-      Line1: account.ShippingStreet || '',
-      Line2: '',
-      City: account.ShippingCity || '',
-      Region: account.ShippingState || '',
-      Country: account.ShippingCountry || '',
-      PostalCode: account.ShippingPostalCode || ''
-    };
+    const postalCode = get(location, 'PostalCode');
+    if (postalCode) {
+      this.taxAddress = {
+        Line1: get(location, 'Street', '') || '',
+        Line2: get(location, 'AddressLine', '') || '',
+        City: get(location, 'City', '') || '',
+        Region: get(location, 'State', '') || '',
+        Country: get(location, 'Country', '') || '',
+        PostalCode: postalCode.toString()
+      };
+    } else {
+      this.taxAddress = null;
+      this.exceptionService.showError(this.translate.instant('TAX.LOCATION_MISSING_POSTAL_CODE'));
+    }
+    this.cdr.markForCheck();
   }
 
   // Handle tax status changes from price summary component
@@ -293,66 +280,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   onPrimaryContactChange() {
-    // Handle Primary Contact cleared
-    if (!this.order.PrimaryContact || !get(this.order.PrimaryContact, 'Id')) {
-      // Clear Bill To and Ship To when Primary Contact is cleared
-      this.order.BillToAccount = null;
-      this.order.ShipToAccount = null;
-      this.billToAccount$ = null;
-      this.shipToAccount$ = null;
-      this.lastProcessedContactId = null;
-      this.isButtonDisabled();
-      return;
-    }
-
-    const contactId = get(this.order.PrimaryContact, 'Id');
-    
-    // Skip if this contact ID was already processed to avoid redundant API calls
-    if (contactId === this.lastProcessedContactId) {
-      return;
-    }
-    
-    // Check if contact already has Account data loaded
-    const existingAccount = get(this.order.PrimaryContact, 'Account');
-    if (existingAccount && get(existingAccount, 'Id')) {
-      // Account already loaded, just populate Bill To and Ship To
-      this.order.BillToAccount = existingAccount;
-      this.order.ShipToAccount = existingAccount;
-      this.onBillToChange();
-      this.onShipToChange();
-      this.lastProcessedContactId = contactId;
-      this.isButtonDisabled();
-      return;
-    }
-
-    // Fetch Primary Contact with Account relationship and populate Bill To and Ship To
-    this.subscriptions.push(
-      this.contactService.getContactById(contactId).subscribe(contact => {
-        if (contact) {
-          // Update contact with full data including Account
-          Object.assign(this.order.PrimaryContact, contact);
-
-          // Auto-populate BillToAccount and ShipToAccount from Primary Contact's Account
-          const contactAccount = get(contact, 'Account');
-          if (contactAccount && get(contactAccount, 'Id')) {
-            this.order.BillToAccount = contactAccount;
-            this.order.ShipToAccount = contactAccount;
-            this.onBillToChange();
-            this.onShipToChange();
-          } else {
-            // If contact has no account, clear Bill To and Ship To
-            this.order.BillToAccount = null;
-            this.order.ShipToAccount = null;
-            this.billToAccount$ = null;
-            this.shipToAccount$ = null;
-          }
-          this.lastProcessedContactId = contactId;
-          this.isButtonDisabled();
-        } else {
-          this.lastProcessedContactId = null;
-        }
-      })
-    );
+    // Ship To / Bill To stay locked to the app-level account; only validation is needed here.
+    this.isButtonDisabled();
   }
 
   onPreviewOrder(): void {
@@ -482,11 +411,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     else {
       this.submitOrder();
     }
-  }
-
-  closeModal() {
-    this.confirmationModal.hide();
-    this.redirectOrderPage();
   }
 
   // Filter confirmed cart items to primary product line items only
