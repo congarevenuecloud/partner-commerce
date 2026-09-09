@@ -1,36 +1,43 @@
-<div class="card animated fadeIn" *ngIf="cart">
+﻿@if (cart) {
+<div class="card animated fadeIn">
   <div class="card-header">
-    <h5 class="card-title mb-0" *ngIf="!cart.Proposald?.Id">{{'MANAGE_CART.CART_SUMMARY.CART_SUMMARY_TITLE' | translate }}</h5>
-    <h5 class="card-title mb-0" *ngIf="cart.Proposald?.Id">{{'DETAILS.PRICE_SUMMARY' | translate }}</h5>
+    @if (!cart.Proposald?.Id) {
+    <h5 class="card-title mb-0">{{'MANAGE_CART.CART_SUMMARY.CART_SUMMARY_TITLE' | translate }}</h5>
+    }
+    @if (cart.Proposald?.Id) {
+    <h5 class="card-title mb-0">{{'DETAILS.PRICE_SUMMARY' | translate }}</h5>
+    }
   </div>
   <div class="card-body">
     <div class="d-flex justify-content-between">
       <span> {{'MANAGE_CART.CART_SUMMARY.TOTAL_PRICE' | translate }} </span>
-      <span class="font-weight-bold">
+      <span class="fw-bold">
         <span>{{cartTotal?.NetPrice | localCurrency | async}}</span>
       </span>
     </div>
-    <div *ngIf="(storefront$ | async)?.EnablePromotions && (storefront$ | async) !== null ? true : false" class="d-flex mt-2 justify-content-between">
+    @if ((storefront$ | async)?.EnablePromotions && (storefront$ | async) !== null ? true : false) {
+    <div class="d-flex mt-2 justify-content-between">
       <span> {{'MANAGE_CART.CART_SUMMARY.PROMOTIONS_APPLIED' | translate }} </span>
       <span>{{totalPromotions | localCurrency | async}}</span>
     </div>
+    }
     <hr class="mt-2 mb-3" />
     <div class="d-flex justify-content-between">
       <span> {{'MANAGE_CART.CART_SUMMARY.SUB_TOTAL' | translate }} </span>
-      <span class="font-weight-bold">
+      <span class="fw-bold">
         <span>{{cartSubTotal?.NetPrice | localCurrency | async}}</span>
       </span>
     </div>
     <hr class="mt-2 mb-3" />
   </div>
 </div>
+}
 
 
 <ng-template #discardChangesTemplate>
   <div class="modal-header">
-    <h4 class="modal-title pull-left"> {{'MANAGE_CART.DISCARD_CHANGES_MODAL.DISCARD_CHANGES_TITLE' | translate}} </h4>
-    <button type="button" class="close pull-right" aria-label="Close" (click)="discardChangesModal.hide()">
-      <span aria-hidden="true">&times;</span>
+    <h4 class="modal-title float-start"> {{'MANAGE_CART.DISCARD_CHANGES_MODAL.DISCARD_CHANGES_TITLE' | translate}} </h4>
+    <button type="button" class="btn-close float-end" aria-label="Close" (click)="discardChangesModal.hide()">
     </button>
   </div>
   <div class="modal-body flex-column justify-content-center">

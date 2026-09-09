@@ -7,10 +7,11 @@ import { Favorite, FavoriteService, LineItemService, ItemGroup, User, UserServic
 import { ExceptionService } from '@congarevenuecloud/elements';
 
 @Component({
-  selector: 'app-favorite-detail',
-  templateUrl: './favorite-detail.component.html',
-  styleUrls: ['./favorite-detail.component.scss'],
-  encapsulation: ViewEncapsulation.None
+    selector: 'app-favorite-detail',
+    templateUrl: './favorite-detail.component.html',
+    styleUrls: ['./favorite-detail.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class FavoriteDetailComponent implements OnInit, OnDestroy {
 

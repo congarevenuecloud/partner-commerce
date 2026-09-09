@@ -1,14 +1,15 @@
 import { Component, OnInit, ViewChild, TemplateRef, Input, OnChanges } from '@angular/core';
 import { Cart, StorefrontService, Storefront, ConstraintRuleService, SummaryGroup } from '@congarevenuecloud/ecommerce';
 import { BsModalService } from 'ngx-bootstrap/modal';
-import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { Observable, of } from 'rxjs';
 import { find, get, sum } from 'lodash';
 
 @Component({
-  selector: 'app-cart-summary',
-  templateUrl: './cart-summary.component.html',
-  styleUrls: ['./cart-summary.component.scss']
+    selector: 'app-cart-summary',
+    templateUrl: './cart-summary.component.html',
+    styleUrls: ['./cart-summary.component.scss'],
+    standalone: false
 })
 
 export class CartSummaryComponent implements OnInit, OnChanges {

@@ -5,7 +5,7 @@ import { switchMap, take, catchError, map } from 'rxjs/operators';
 import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { PopoverDirective } from 'ngx-bootstrap/popover';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
-import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 import { get, uniqueId, isNil, isEmpty } from 'lodash';
 import { ConfigurationService } from '@congarevenuecloud/core';
@@ -19,7 +19,8 @@ import { ExceptionService, PriceSummaryComponent, LookupOptions, WizardStep } fr
   selector: 'app-cart',
   templateUrl: './checkout.component.html',
   styleUrls: ['./checkout.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class CheckoutComponent implements OnInit, OnDestroy {
   @ViewChild('addressTabs') addressTabs: any;

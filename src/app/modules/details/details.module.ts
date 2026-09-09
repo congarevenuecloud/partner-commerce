@@ -38,10 +38,10 @@ import { DetailSectionComponent } from './detail-section/detail-section.componen
     ConfigurationSummaryModule,
     FormsModule,
     InputFieldModule,
-    BsDatepickerModule.forRoot(),
+    BsDatepickerModule,
     AddressModule,
-    TooltipModule.forRoot(),
-    BsDropdownModule.forRoot()
+    TooltipModule,
+    BsDropdownModule
   ],
   declarations: [DetailsLayoutComponent, DetailSectionComponent],
   exports: [DetailsLayoutComponent, DetailSectionComponent]

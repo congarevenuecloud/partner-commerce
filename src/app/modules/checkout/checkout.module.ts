@@ -40,16 +40,16 @@ import { PricingModule } from '@congarevenuecloud/ecommerce';
     PriceModule,
     PricingModule,
     IconModule,
-    TabsModule.forRoot(),
-    ModalModule.forRoot(),
+    TabsModule,
+    ModalModule,
     AddressModule,
     CongaModule,
     PaymentComponentModule,
     OutputFieldModule,
-    TooltipModule.forRoot(),
-    PaginationModule.forRoot(),
+    TooltipModule,
+    PaginationModule,
     TranslateModule.forChild(),
-    BsDropdownModule.forRoot(),
+    BsDropdownModule,
     MiniProfileModule,
     BreadcrumbModule,
     PriceSummaryModule,
@@ -59,7 +59,7 @@ import { PricingModule } from '@congarevenuecloud/ecommerce';
     WizardModule,
     TaxBreakupModule,
     PopoverModule,
-    BSPopoverModule.forRoot()
+    BSPopoverModule
   ],
   declarations: [CheckoutComponent, SummaryComponent]
 })

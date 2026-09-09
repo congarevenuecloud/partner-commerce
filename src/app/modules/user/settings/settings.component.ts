@@ -6,9 +6,10 @@ import { UserService, AccountService, User, Account } from '@congarevenuecloud/e
 import { ExceptionService } from '@congarevenuecloud/elements';
 
 @Component({
-  selector: 'app-settings',
-  templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss']
+    selector: 'app-settings',
+    templateUrl: './settings.component.html',
+    styleUrls: ['./settings.component.scss'],
+    standalone: false
 })
 export class SettingsComponent implements OnInit {
 

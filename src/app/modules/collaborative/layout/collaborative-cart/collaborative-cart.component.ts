@@ -1,4 +1,4 @@
-import { Component, NgZone, TemplateRef, ViewChild } from '@angular/core';
+import { Component, NgZone, TemplateRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { BehaviorSubject, combineLatest, Observable, of, Subscription, switchMap, take } from 'rxjs';
@@ -9,7 +9,8 @@ import { BatchActionService, RevalidateCartService, ExceptionService, ButtonActi
 @Component({
     selector: 'app-collaborative-cart',
     templateUrl: './collaborative-cart.component.html',
-    styleUrls: ['./collaborative-cart.component.scss']
+    styleUrls: ['./collaborative-cart.component.scss'],
+    standalone: false
 })
 export class CollaborativeCartComponent {
 
@@ -84,7 +85,8 @@ export class CollaborativeCartComponent {
         private ngZone: NgZone,
         private modalService: BsModalService,
         private exceptionService: ExceptionService,
-        public batchSelectionService: BatchSelectionService) {
+        public batchSelectionService: BatchSelectionService,
+        private cdr: ChangeDetectorRef) {
     }
 
     ngOnInit() {
@@ -211,10 +213,12 @@ export class CollaborativeCartComponent {
                 this.loading = false;
                 this.modalRef.hide();
                 this.exceptionService.showSuccess('SUCCESS.CART.CLONE_CART_SUCCESS');
+                this.cdr.detectChanges();
             },
             err => {
                 this.loading = false;
                 this.exceptionService.showError('MY_ACCOUNT.CART_LIST.CART_CREATION_FAILED');
+                this.cdr.detectChanges();
             }
         );
     }

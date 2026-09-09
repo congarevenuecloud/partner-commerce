@@ -3,7 +3,7 @@
 </apt-breadcrumb>
 <apt-alert [record]="cart" [autoRun]="false"></apt-alert>
 <apt-constraint-rule-alert></apt-constraint-rule-alert>
-<ng-container *ngIf="view$ | async as view">
+@if (view$ | async; as view) {
   <div class="container-fluid py-4">
     <div class="row">
       <div class="col-12 col-lg-3">
@@ -26,11 +26,15 @@
                 <strong class="text-uppercase">{{'ASSET_LIST.ASSETS_BY_PRICE_TYPE' | translate}}</strong>
               </div>
               <div class="card-body">
-                <ng-container *ngIf="assetByPriceType$ | async as assetByPriceType; else loading">
+                @if (assetByPriceType$ | async; as assetByPriceType) {
                   <apt-chart [data]="assetByPriceType"
                     [amountsByStatus]="assetAmountByPriceType$ | async" [type]="'bar'" [showLegend]="false">
                   </apt-chart>
-                </ng-container>
+                } @else {
+                  <div class="d-flex justify-content-center">
+                    <apt-dots></apt-dots>
+                  </div>
+                }
               </div>
             </div>
           </div>
@@ -42,12 +46,16 @@
                 >
               </div>
               <div class="card-body">
-                <ng-container *ngIf="assetAmountByPriceType$ | async as assetAmountByPriceType; else loading">
+                @if (assetAmountByPriceType$ | async; as assetAmountByPriceType) {
                     <apt-chart
                         [data]="assetAmountByPriceType" [type]="'doughnut'" [legendPosition]="'right'"
                         [colorPalette]="colorPalette" [labelDataTransform]="'currency'">
                     </apt-chart>
-                </ng-container>
+                } @else {
+                  <div class="d-flex justify-content-center">
+                    <apt-dots></apt-dots>
+                  </div>
+                }
             </div>
             </div>
           </div>
@@ -65,4 +73,4 @@
       </div>
     </div>
   </div>
-</ng-container>
+}

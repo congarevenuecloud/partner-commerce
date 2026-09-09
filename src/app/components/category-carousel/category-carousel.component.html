@@ -1,43 +1,49 @@
-<div class="carousel slide flex-grow-1" id="menuCarousel" data-ride="carousel" data-interval="0"
-  *ngIf="view$ | async as view">
+@if (view$ | async; as view) {
+<div class="carousel slide flex-grow-1" id="menuCarousel" data-bs-ride="carousel" data-interval="0">
   <div class="carousel-inner h-100">
     <div class="carousel-item active">
       <ul class="list-group list-group-flush">
-        <ng-container *ngFor="let category of view?.categoryTree">
-          <a class="list-group-item list-group-item-action py-2" href="#menuCarousel"
-            (click)="goToCategory(category, view)" data-slide="next" *ngIf="category?.Children?.length > 0; else direct"
-            [title]="category?.Label">{{category?.Label | truncate:21 }}</a>
-          <ng-template #direct>
+        @for (category of view?.categoryTree; track category.Id) {
+          @if (category?.Children?.length > 0) {
+            <a class="list-group-item list-group-item-action py-2" href="#menuCarousel"
+              (click)="goToCategory(category, view)" data-bs-slide="next"
+              [title]="category?.Label">{{category?.Label | truncate:21 }}</a>
+          } @else {
             <a class="list-group-item list-group-item-action py-2" (click)="modalRef.hide()"
               [routerLink]="['/products/category', category.Id]" [title]="category?.Label">{{category?.Label |
               truncate:21 }}</a>
-          </ng-template>
-        </ng-container>
+          }
+        }
       </ul>
     </div>
-    <div class="carousel-item" *ngFor="let currentCategory of view?.categoryBranch">
-      <div *ngIf="currentCategory?.Id">
+    @for (currentCategory of view?.categoryBranch; track (currentCategory?.Id ?? $index)) {
+    <div class="carousel-item">
+      @if (currentCategory?.Id) {
+      <div>
         <div class="d-flex justify-content-between">
-          <a href="#menuCarousel" data-slide="prev" (click)="goBack(view, currentCategory)">
-            <i class="fas fa-arrow-left mr-2"></i>BACK
+          <a href="#menuCarousel" data-bs-slide="prev" (click)="goBack(view, currentCategory)">
+            <i class="fas fa-arrow-left me-2"></i>BACK
           </a>
           <a href="#menuCarousel" [routerLink]="['/products/category', currentCategory.Id]" (click)="modalRef.hide()"
-            data-slide-to="0">SHOW ALL</a>
+            data-bs-slide-to="0">SHOW ALL</a>
         </div>
         <ul class="list-group list-group-flush mt-3">
-          <ng-container *ngFor="let category of currentCategory?.Children">
-            <a class="list-group-item list-group-item-action py-2" href="#menuCarousel"
-              (click)="goToCategory(category, view)" data-slide="next"
-              *ngIf="category.Children && category.Children.length > 0; else link"
-              [title]="category?.Label">{{category?.Label | truncate:21 }}</a>
-            <ng-template #link>
-              <a class="list-group-item list-group-item-action py-2" href="#menuCarousel" (click)="modalRef.hide()"
-                [routerLink]="['/products/category', category.Id]" data-slide-to="0"
+          @for (category of currentCategory?.Children; track category.Id) {
+            @if (category.Children && category.Children.length > 0) {
+              <a class="list-group-item list-group-item-action py-2" href="#menuCarousel"
+                (click)="goToCategory(category, view)" data-bs-slide="next"
                 [title]="category?.Label">{{category?.Label | truncate:21 }}</a>
-            </ng-template>
-          </ng-container>
+            } @else {
+              <a class="list-group-item list-group-item-action py-2" href="#menuCarousel" (click)="modalRef.hide()"
+                [routerLink]="['/products/category', category.Id]" data-bs-slide-to="0"
+                [title]="category?.Label">{{category?.Label | truncate:21 }}</a>
+            }
+          }
         </ul>
       </div>
+      }
     </div>
+    }
   </div>
 </div>
+}

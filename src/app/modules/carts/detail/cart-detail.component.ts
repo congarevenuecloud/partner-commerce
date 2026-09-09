@@ -1,20 +1,21 @@
-import { Component, OnInit, TemplateRef, ViewChild, NgZone } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, NgZone, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, Observable, Subscription, combineLatest, of, throwError } from 'rxjs';
 import { map, switchMap, take, filter as _filter, debounceTime, catchError } from 'rxjs/operators';
 import { filter, find, forEach, get, isEqual, isNil, isNull, lowerCase, pick, set } from 'lodash';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { plainToClass } from 'class-transformer';
-import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { Cart, CartItem, CartService, LineItemService, Order, Quote, ItemGroup, QuoteService, ConstraintRuleService, OrderService, ItemRequest, IntegrationService, TaxAddress, AccountService } from '@congarevenuecloud/ecommerce';
 import { BatchActionService, RevalidateCartService, ExceptionService, ButtonAction, BatchSelectionService } from '@congarevenuecloud/elements';
 import { DsrService } from '../../../services/dsr.service';
 
 
 @Component({
-  selector: 'app-cart-detail',
-  templateUrl: './cart-detail.component.html',
-  styleUrls: ['./cart-detail.component.scss']
+    selector: 'app-cart-detail',
+    templateUrl: './cart-detail.component.html',
+    styleUrls: ['./cart-detail.component.scss'],
+    standalone: false
 })
 
 export class CartDetailComponent implements OnInit {
@@ -68,7 +69,8 @@ export class CartDetailComponent implements OnInit {
     public batchSelectionService: BatchSelectionService,
     private dsrService: DsrService,
     private integrationService: IntegrationService,
-    private accountService: AccountService
+    private accountService: AccountService,
+    private cdr: ChangeDetectorRef,
   ) { }
   ngOnInit() {
     // Subscribe to DSR mode state
@@ -267,10 +269,12 @@ export class CartDetailComponent implements OnInit {
         this.loading = false;
         this.modalRef.hide();
         this.exceptionService.showSuccess('SUCCESS.CART.CLONE_CART_SUCCESS');
+        this.cdr.detectChanges();
       },
       err => {
         this.loading = false;
         this.exceptionService.showError('MY_ACCOUNT.CART_LIST.CART_CREATION_FAILED');
+        this.cdr.detectChanges();
       }
     );
   }

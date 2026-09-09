@@ -12,9 +12,10 @@ import { BatchSelectionService, ExceptionService } from '@congarevenuecloud/elem
 import { DsrService } from '../../../services/dsr.service';
 
 @Component({
-  selector: 'app-product-list',
-  templateUrl: './product-list.component.html',
-  styleUrls: ['./product-list.component.scss']
+    selector: 'app-product-list',
+    templateUrl: './product-list.component.html',
+    styleUrls: ['./product-list.component.scss'],
+    standalone: false
 })
 export class ProductListComponent implements OnInit, OnDestroy {
 

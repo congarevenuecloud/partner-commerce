@@ -6,10 +6,11 @@ import { FilterOperator } from '@congarevenuecloud/core';
 import { CartService, Cart, OrderService } from '@congarevenuecloud/ecommerce';
 import { ExceptionService, OutputFieldComponent, QuickAddField } from '@congarevenuecloud/elements';
 @Component({
-  selector: 'app-action-bar',
-  templateUrl: './action-bar.component.html',
-  styleUrls: ['./action-bar.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+    selector: 'app-action-bar',
+    templateUrl: './action-bar.component.html',
+    styleUrls: ['./action-bar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Default,
+    standalone: false
 })
 export class ActionBarComponent implements OnInit {
 

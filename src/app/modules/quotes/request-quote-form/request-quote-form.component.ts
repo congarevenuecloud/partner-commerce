@@ -10,7 +10,8 @@ import { LookupOptions } from '@congarevenuecloud/elements';
 @Component({
   selector: 'app-request-quote-form',
   templateUrl: './request-quote-form.component.html',
-  styleUrls: ['./request-quote-form.component.scss']
+  styleUrls: ['./request-quote-form.component.scss'],
+  standalone: false
 })
 export class RequestQuoteFormComponent implements OnInit {
   @Input() cart: Cart;

@@ -42,6 +42,7 @@
   }
   .nav-link {
     margin-bottom: 0;
+    padding: 0.5rem 1rem;
     color: $gray-700;
     &.active {
       border-bottom: 3px solid $blue !important;

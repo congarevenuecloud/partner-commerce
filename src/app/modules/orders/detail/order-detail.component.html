@@ -1,4 +1,5 @@
-<app-detail *ngIf="order$ | async as order; else loading" [context]="order" [route]="'orders'">
+﻿@if (order$ | async; as order) {
+<app-detail [context]="order" [route]="'orders'">
   <apt-alert [record]="order" message="ERROR.UPDATE_ORDER_FAILED_ON_DETAILS_PAGE" [showOnlyMessage]="false"
     [showPriceError]="false">
   </apt-alert>
@@ -10,7 +11,8 @@
       <span tooltip="{{order?.Name}}" class="page-header d-lg-none d-md-none d-sm-block d-block">{{ order?.Name |
         truncate:13 }}</span>
 
-      <div class="badge badge-light ml-1 px-2 py-0" *ngIf="order?.Status">
+      @if (order?.Status) {
+      <div class="badge text-bg-light ms-1 px-2 py-0">
         <apt-output-field
           [record]="order"
           field="Status"
@@ -19,11 +21,14 @@
           [valueClass]="'pt-0'"
         ></apt-output-field>
       </div>
-      <div *ngIf="!showPresentTemplate" class="btn-group secondary-actions ml-auto align-self-stretch" role="group"
-        [ngSwitch]="order?.Status" [tooltip]="
+      }
+      @if (!showPresentTemplate) {
+      <div class="btn-group secondary-actions ms-auto align-self-stretch" role="group"
+        [tooltip]="
             order.hasErrors ? ('DETAILS.MISSING_REQ_FIELDS' | translate) : ''">
-        <ng-container *ngSwitchCase="'Draft'">
-          <apt-generate-document [record]="order" class="ml-auto px-3 d-lg-block d-md-block d-none d-sm-none"
+        @switch (order?.Status) {
+          @case ('Draft') {
+          <apt-generate-document [record]="order" class="ms-auto px-3 d-lg-block d-md-block d-none d-sm-none"
             (onStatusUpdate)="onGenerateOrder()">
           </apt-generate-document>
           <button type="button" class="btn btn-primary btn-raised rounded d-lg-block d-md-block d-none d-sm-none"
@@ -31,14 +36,14 @@
             [disabled]="order.hasErrors">
             {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
           </button>
-        </ng-container>
+          }
 
-        <ng-container *ngSwitchCase="'Generated'">
-          <button type="button" class="btn btn-outline-primary rounded-right px-2 d-lg-block d-md-block d-none d-sm-none"
+          @case ('Generated') {
+          <button type="button" class="btn btn-outline-primary rounded-end px-2 d-lg-block d-md-block d-none d-sm-none"
             (click)="openPresentOrderPage()" data-style="zoom-in">
             {{'DETAILS.PRESENT_ORDER' | translate}}
           </button>
-          <apt-generate-document [record]="order" class="ml-auto px-3 d-lg-block d-md-block d-none d-sm-none"
+          <apt-generate-document [record]="order" class="ms-auto px-3 d-lg-block d-md-block d-none d-sm-none"
             (onStatusUpdate)="onGenerateOrder()">
           </apt-generate-document>
           <button type="button" class="btn btn-primary btn-raised rounded d-lg-block d-md-block d-none d-sm-none"
@@ -46,14 +51,14 @@
             [ladda]="isLoading" data-style="zoom-in">
             {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
           </button>
-        </ng-container>
+          }
 
-        <ng-container *ngSwitchCase="'Presented'">
-          <button type="button" class="btn btn-outline-primary rounded-right text-primary px-2 d-lg-block d-md-block d-none d-sm-none"
+          @case ('Presented') {
+          <button type="button" class="btn btn-outline-primary rounded-end text-primary px-2 d-lg-block d-md-block d-none d-sm-none"
             (click)="openPresentOrderPage()" data-style="zoom-in">
             {{'DETAILS.PRESENT_ORDER' | translate}}
           </button>
-          <apt-generate-document [record]="order" class="ml-auto px-3 d-lg-block d-md-block d-none d-sm-none"
+          <apt-generate-document [record]="order" class="ms-auto px-3 d-lg-block d-md-block d-none d-sm-none"
             (onStatusUpdate)="onGenerateOrder()">
           </apt-generate-document>
           <button type="button" class="btn btn-primary rounded btn-raised d-lg-block d-md-block d-none d-sm-none"
@@ -62,37 +67,46 @@
             {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
           </button>
 
-        </ng-container>
+          }
+        }
       </div>
-      <div class="d-sm-block d-block ml-auto d-md-none d-lg-none pt-2"
-        *ngIf="order?.Status === 'Draft' || order?.Status === 'Generated' || order?.Status === 'Presented'">
+      }
+      @if (order?.Status === 'Draft' || order?.Status === 'Generated' || order?.Status === 'Presented') {
+      <div class="d-sm-block d-block ms-auto d-md-none d-lg-none pt-2">
         <div class="dropdown">
           <a class="fa fa-ellipsis-v dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           </a>
-          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
             <ng-container *ngTemplateOutlet="orderActions"></ng-container>
           </div>
         </div>
       </div>
+      }
 
-      <div *ngIf="order?.Proposal as proposal" class="ml-auto d-lg-block d-md-block d-sm-none d-none">
+      @if (order?.Proposal; as proposal) {
+      <div class="ms-auto d-lg-block d-md-block d-sm-none d-none">
         <apt-output-field [record]="proposal" field="Name" labelClass="d-none" [editable]="false"
           [showQuickView]="true"></apt-output-field>
       </div>
+      }
     </div>
-    <div *ngIf="order?.Proposal as proposal" class="ml-auto d-lg-none d-md-none d-sm-block d-block">
+    @if (order?.Proposal; as proposal) {
+    <div class="ms-auto d-lg-none d-md-none d-sm-block d-block">
       <apt-output-field [record]="proposal" field="Name" labelClass="d-none" [editable]="false"
         [showQuickView]="true"></apt-output-field>
     </div>
-    <app-progress *ngIf="orderStatusLabelMap[order.Status]" [steps]="orderStatusStepsLabels"
+    }
+    @if (orderStatusLabelMap[order.Status]) {
+    <app-progress [steps]="orderStatusStepsLabels"
       [currentStep]="orderStatusLabelMap[order.Status]"></app-progress>
+    }
   </div>
 
-  <ng-container *ngIf="!showPresentTemplate;else presentDocumentTemplate">
+  @if (!showPresentTemplate) {
     <app-detail-section [title]="'DETAILS.ORDER_SUMMARY' | translate">
       <div class="row pt-3">
-        <div class="col-12 col-md-8 pl-lg-3 pl-md-3">
+        <div class="col-12 col-md-8 ps-lg-3 ps-md-3">
           <div class="card">
             <div class="card-header border-bottom py-2">
               <h5>
@@ -142,7 +156,8 @@
                     (onChange)="refreshOrder($event, order, 'BillToAccount')"></apt-output-field>
                 </div>
               </div>
-              <div class="row" *ngIf="isExpanded">
+              @if (isExpanded) {
+              <div class="row">
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="order" field="PrimaryContact" displayValue="PrimaryContact" [editable]="
                   orderStatusMap[order.Status]?.Key?.toLowerCase() === 'draft'||
@@ -165,6 +180,7 @@
                   <apt-output-field [record]="order" field="SourceChannel" [editable]="false"></apt-output-field>
                 </div>
               </div>
+              }
               <div class="d-flex justify-content-start">
                 <a href="javascript:void(0)" (click)="isExpanded = !isExpanded" class="text-decoration-none">
                   <span>
@@ -177,7 +193,7 @@
           </div>
         </div>
 
-        <div class="col-12 col-md-4 pt-lg-0 pt-md-0 pt-sm-3 pt-3 pl-md-0">
+        <div class="col-12 col-md-4 pt-lg-0 pt-md-0 pt-sm-3 pt-3 ps-md-0">
           <apt-price-summary [record]="order" [page]="'orders'" [showStatus]="true"></apt-price-summary>
         </div>
       </div>
@@ -189,23 +205,24 @@
           <h5 class="m-0">
             {{ "DETAILS.LINE_ITEMS" | translate }}
 
-            <button class="btn text-primary px-2 ml-1 py-0"
-              *ngIf="(order?.Status === 'Draft' || order?.Status === 'Generated' || order?.Status === 'Presented')"
+            @if (order?.Status === 'Draft' || order?.Status === 'Generated' || order?.Status === 'Presented') {
+            <button class="btn text-primary px-2 ms-1 py-0"
               [ladda]="lineItemLoader" data-style="zoom-in" data-spinner-color="black" (click)="editOrderItems(order)">
               <i class="fa fa-edit"></i>
               {{ "COMMON.EDIT" | translate }}
             </button>
+            }
           </h5>
         </div>
 
         <div class="card-body p-0">
           <table class="table">
             <tbody>
-              <ng-container *ngFor="let item of orderLineItems$ | async; let i = index">
+              @for (item of orderLineItems$ | async; track item.MainLine?.Id ?? $index; let i = $index) {
                 <apt-line-item-table-row [cart]="cartRecord" [index]="i" [parent]="item.MainLine" [options]="item.Flat"
                   [children]="item.SecondaryLines" [editableFields]="false">
                 </apt-line-item-table-row>
-              </ng-container>
+              }
             </tbody>
           </table>
         </div>
@@ -213,21 +230,24 @@
     </app-detail-section>
 
     <app-detail-section [title]="'DETAILS.ATTACHMENTS' | translate" class="mt-3">
-      <div class="card" #attachmentSection *ngIf="attachmentList$ | async as attachmentList; else loading">
+      @if (attachmentList$ | async; as attachmentList) {
+      <div class="card" #attachmentSection>
         <div class="card-header border-bottom py-2">
           <h5 class="mt-0">
             {{ "DETAILS.ATTACHMENTS" | translate }}
 
-            <span *ngIf="attachmentList?.length > 0">({{ attachmentList?.length }})</span>
+            @if (attachmentList?.length > 0) {
+            <span>({{ attachmentList?.length }})</span>
+            }
           </h5>
         </div>
 
         <div class="card-body">
           <div class="row d-flex justify-content-between">
             <div class="col-12 col-md-6 attachment-container">
-              <ng-container *ngIf="attachmentList?.length > 0; else emptyAttachments">
+              @if (attachmentList?.length > 0) {
                 <div class="table-container overflow-auto">
-                  <table class="table table-sm">
+                  <table class="table table-sm table-borderless">
                     <thead class="position-sticky bg-white">
                       <tr>
                         <th scope="col">#</th>
@@ -266,7 +286,8 @@
                     </thead>
 
                     <tbody>
-                      <tr *ngFor="let attachment of attachmentList; let i = index">
+                      @for (attachment of attachmentList; track attachment?.DocumentMetadata?.Id ?? $index; let i = $index) {
+                      <tr>
                         <th scope="row">{{ i + 1 }}</th>
 
                         <td>
@@ -301,52 +322,57 @@
                             <span class="fa fa-trash"></span>
                           </button></td>
                       </tr>
+                      }
                     </tbody>
                   </table>
                 </div>
-              </ng-container>
-
-              <ng-template #emptyAttachments>
+              } @else {
                 <div class="d-flex align-items-center justify-content-center flex-column h-100 text-muted">
                   <i class="fa fa-4x fa-file-o mb-2"></i>
 
                   {{ "COMMON.ATTACHMENT_DETAILS.NO_ATTACHMENTS" | translate }}
                 </div>
-              </ng-template>
+              }
             </div>
-            <span class=" d-lg-block d-md-block d-sm-none d-none border-left"></span>
+            <span class="d-lg-block d-md-block d-sm-none d-none border-start p-0 flex-grow-0 flex-shrink-0" style="width: 1px;"></span>
             <div class="col-12 col-md-5 pt-lg-0 pt-md-0 pt-sm-3 pt-3">
               <ng-container *ngTemplateOutlet="addAttachments"></ng-container>
             </div>
           </div>
         </div>
       </div>
+      }
     </app-detail-section>
-  </ng-container>
+  } @else {
+    @if (attachmentList$ | async; as attachmentList) {
+    <div>
+      <apt-present-document [record]="order" (onPresentDoc)="onPresentDoc($event)"
+        [attachmentList]="attachmentList">
+      </apt-present-document>
+    </div>
+    }
+  }
 
 </app-detail>
-
-<ng-template #presentDocumentTemplate>
-  <div *ngIf="attachmentList$ | async as attachmentList">
-    <apt-present-document *ngIf="showPresentTemplate" [record]="order" (onPresentDoc)="onPresentDoc($event)"
-      [attachmentList]="attachmentList">
-    </apt-present-document>
+} @else {
+  <div class="d-flex justify-content-center pt-5">
+    <apt-dots></apt-dots>
   </div>
-</ng-template>
+}
 
 
 <ng-template #orderActions>
-  <div [ngSwitch]="order?.Status">
-    <ng-container *ngSwitchCase="'Draft'">
+  @switch (order?.Status) {
+    @case ('Draft') {
       <button type="button" class="btn btn-link text-primary" (click)="confirmOrder(order.Id, order.PrimaryContact.Id)"
         [ladda]="isLoading" data-style="zoom-in" [disabled]="order.hasErrors">
         {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
       </button>
       <apt-generate-document [record]="order" (onStatusUpdate)="onGenerateOrder()">
       </apt-generate-document>
-    </ng-container>
+    }
 
-    <ng-container *ngSwitchCase="'Generated'">
+    @case ('Generated') {
       <button type="button" class="btn btn-raised" [disabled]="order.hasErrors"
         (click)="confirmOrder(order.Id, order.PrimaryContact.Id)" [ladda]="isLoading" data-style="zoom-in">
         {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
@@ -356,9 +382,9 @@
       <button type="button" class="btn btn-raised" (click)="openPresentOrderPage()" data-style="zoom-in">
         {{'DETAILS.PRESENT_ORDER' | translate}}
       </button>
-    </ng-container>
+    }
 
-    <ng-container *ngSwitchCase="'Presented'">
+    @case ('Presented') {
       <button type="button" class="btn btn-raised" [disabled]="order.hasErrors"
         (click)="confirmOrder(order.Id, order.PrimaryContact.Id)" [ladda]="isLoading" data-style="zoom-in">
         {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
@@ -368,14 +394,8 @@
       <button type="button" class="btn btn-raised" (click)="openPresentOrderPage()" data-style="zoom-in">
         {{'DETAILS.PRESENT_ORDER' | translate}}
       </button>
-    </ng-container>
-  </div>
-</ng-template>
-
-<ng-template #loading>
-  <div class="d-flex justify-content-center pt-5">
-    <apt-dots></apt-dots>
-  </div>
+    }
+  }
 </ng-template>
 
 <ng-template #noProducts>

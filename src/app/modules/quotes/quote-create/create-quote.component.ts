@@ -2,14 +2,15 @@ import { Component, OnInit, ViewChild, TemplateRef, ChangeDetectorRef, OnDestroy
 import { Observable, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { BsModalService } from 'ngx-bootstrap/modal';
-import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { get, set, find, defaultTo, isEmpty } from 'lodash';
 import { Quote, QuoteService, Storefront, Cart, CartService, AccountService, Account, TaxAddress } from '@congarevenuecloud/ecommerce';
 
 @Component({
-  selector: 'app-create-quote',
-  templateUrl: `./create-quote.component.html`,
-  styles: []
+    selector: 'app-create-quote',
+    templateUrl: `./create-quote.component.html`,
+    styles: [],
+    standalone: false
 })
 export class CreateQuoteComponent implements OnInit {
   @ViewChild('confirmationTemplate') confirmationTemplate: TemplateRef<any>;
