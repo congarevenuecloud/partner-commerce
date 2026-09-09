@@ -210,7 +210,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     return orderLineItems.filter(orderItem => !orderItem.IsPrimaryLine && orderItem.PrimaryLineNumber === lineItem.PrimaryLineNumber);
   }
 
-  // TO DO : Remove this method once email sending logic is moved to backend
   private shouldSendEmailFromUI(): Observable<boolean> {
     return this.storefrontService.getConfigSettings().pipe(
       take(1),
