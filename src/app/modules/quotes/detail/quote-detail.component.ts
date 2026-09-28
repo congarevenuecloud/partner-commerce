@@ -33,10 +33,12 @@ import {
   split,
   trim,
   isNil,
+  values,
+  last,
 } from 'lodash';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal';
-import { FilterOperator, PlatformConstants } from '@congarevenuecloud/core';
+import { FilterOperator, PlatformConstants, AObject } from '@congarevenuecloud/core';
 import {
   QuoteService,
   Quote,
@@ -59,7 +61,8 @@ import {
   CollaborationAccessType,
   CollaborationAuthenticationType,
   CollaborationStatus,
-  StorefrontService
+  StorefrontService,
+  DetailActionArea, DetailActionSection, DetailActionSet, DetailAction, DisplayColumn, DisplayColumnSection
 } from '@congarevenuecloud/ecommerce';
 import {
   ExceptionService,
@@ -69,9 +72,12 @@ import {
   SendForSignatureService,
   SignatureProvider,
   AddCommentsConfig,
-  ViewCommentsConfig
+  ViewCommentsConfig,
+  DisplayColumnService,
+  CartItemView
 } from '@congarevenuecloud/elements';
 import { DsrService } from '../../../services/dsr.service';
+import { DEFAULT_DETAIL_ACTIONS } from '../../../services/detail-actions.config';
 
 @Component({
     selector: 'app-quote-details',
@@ -196,6 +202,24 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   canShowCollaborationActions: boolean = true;
   isDsrMode: boolean = false;
 
+  // Action configuration from the displayActions API, falling back to the built-in defaults.
+  actions: DetailActionSet = new DetailActionSet(DetailActionSection.Quote, DEFAULT_DETAIL_ACTIONS, () => ({
+    stage: get(this.quote, 'ApprovalStage'),
+    isLoggedIn: true
+  }));
+
+  // Placement buckets exposed to the template.
+  readonly actionArea = DetailActionArea;
+
+  // Quote summary fields from the displayColumns API; empty keeps the built-in layout.
+  proposalColumns: Array<DisplayColumn> = [];
+
+  // Quote line item fields from the displayColumns API; null keeps the user's Edit Layout selection.
+  quoteLineItemColumns: Array<CartItemView> = null;
+
+  // Line item price rows from the displayColumns API; null keeps the built-in price rows.
+  priceColumns: Array<DisplayColumn> = null;
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private quoteService: QuoteService,
@@ -217,11 +241,13 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     private contactService: ContactService,
     private collaborationService: CollaborationRequestService,
     private dsrService: DsrService,
-    private storefrontService: StorefrontService
+    private storefrontService: StorefrontService,
+    private displayColumnService: DisplayColumnService
   ) { }
 
   ngOnInit() {
     this.initializeTranslationsComments();
+    this.loadDisplayActions();
     
     // Initialize DSR mode state
     this.isDsrMode = this.dsrService.isDsrMode();
@@ -257,6 +283,121 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     this.translateQuoteStatusLabels(this.quoteStatusMap);
   }
 
+  /**
+   * Held outside `quoteSubscription` because `getQuote()` resets that list, which would otherwise
+   * cancel this request before its response arrives.
+   */
+  private displayConfigSubscription: Subscription;
+
+  // Loads the storefront column and action overrides for this page in a single pass.
+  private loadDisplayActions(): void {
+    this.displayConfigSubscription =
+      this.storefrontService.getStorefront().pipe(
+        take(1),
+        switchMap((storefront) => {
+          const flow = get(storefront, 'DefaultFlow') || 'system';
+          return combineLatest([
+            this.storefrontService.getStorefrontDisplayColumns(flow, get(storefront, 'Id')).pipe(catchError(() => of([]))),
+            this.storefrontService.getStorefrontDisplayActions(flow, get(storefront, 'Id')).pipe(catchError(() => of([])))
+          ]);
+        }),
+        catchError(() => of<[Array<DisplayColumn>, Array<DetailAction>]>([[], []]))
+      ).subscribe(([columnsResponse, actionsResponse]) => {
+        const allCols: Array<DisplayColumn> = columnsResponse ?? [];
+
+        const proposalCols = this.columnsInSection(allCols, DisplayColumnSection.QuoteSummary);
+        if (proposalCols.length > 0) this.proposalColumns = proposalCols;
+
+        const quoteLineCols = this.columnsInSection(allCols, DisplayColumnSection.QuoteLineItem);
+        if (quoteLineCols.length > 0) {
+          this.quoteLineItemColumns = quoteLineCols.map((c: DisplayColumn) => ({
+            fieldName: c.FieldName,
+            label: c.Label,
+            sequence: c.Sequence ?? 0,
+            isSelected: true,
+            isEditable: c.IsEditable ?? false
+          }));
+        }
+
+        const priceCols = this.columnsInSection(allCols, DisplayColumnSection.LineItemPrice);
+        if (priceCols.length > 0) this.priceColumns = priceCols;
+
+        this.actions.applyOverrides(actionsResponse);
+        this.cdr.detectChanges();
+      });
+  }
+
+  // Returns the configured columns for a section, ordered by Sequence.
+  private columnsInSection(allCols: Array<DisplayColumn>, section: string): Array<DisplayColumn> {
+    return allCols
+      .filter((c: DisplayColumn) => c.Section === section)
+      .sort((a, b) => (a.Sequence ?? 0) - (b.Sequence ?? 0));
+  }
+
+  // Template-callable wrapper over DisplayColumnService.recordForColumn.
+  recordForColumn(record: AObject, fieldName: string): AObject {
+    return this.displayColumnService.recordForColumn(record, fieldName);
+  }
+
+  // Returns the leaf field name for a configured column.
+  fieldForColumn(fieldName: string): string {
+    return this.displayColumnService.fieldForColumn(fieldName);
+  }
+
+  // Template-callable wrapper over DisplayColumnService.summaryFieldValue.
+  summaryFieldValue(emitted: AObject, fieldName: string): any {
+    return this.displayColumnService.summaryFieldValue(emitted, fieldName);
+  }
+
+  // Mirrors the desktop kebab guards; unknown actions default to visible so a rendered action is
+  // never hidden by the toggle.
+  private isKebabActionVisible(action: DetailAction): boolean {
+    switch (action.ActionName) {
+      case 'RequestChanges':
+        return this.isDsrMode || !this.collaborationRequest;
+      case 'Generate':
+        return !this.isDsrMode && (get(this.quote, 'ApprovalStage') === 'Generated' || !this.collaborationRequest);
+      case 'SendForSignature':
+      case 'Present':
+        return !this.isDsrMode && !this.collaborationRequest;
+      default:
+        return true;
+    }
+  }
+
+  // True when any configured kebab action will render, so the desktop ⋮ toggle is not shown empty.
+  get hasVisibleKebabActions(): boolean {
+    return this.actions.inArea(this.actionArea.Kebab).some(action => this.isKebabActionVisible(action));
+  }
+
+  // Mirrors the mobile menu guards (Main and Kebab collapsed together).
+  private isMobileActionVisible(action: DetailAction): boolean {
+    switch (action.ActionName) {
+      case 'RequestChanges':
+        return this.isDsrMode || !this.collaborationRequest;
+      case 'Reject':
+        return this.isDsrMode || this.canShowCollaborationActions;
+      case 'AcceptQuote':
+        return (this.isDsrMode || this.canShowCollaborationActions) && get(this.quote, 'Items.length', 0) > 0;
+      case 'Generate':
+      case 'SendForSignature':
+      case 'Present':
+        return !this.isDsrMode && !this.collaborationRequest;
+      default:
+        return true;
+    }
+  }
+
+  // True when any Main/Kebab action will render, so the mobile ⋮ toggle is not shown empty.
+  get hasVisibleMobileActions(): boolean {
+    return this.actions.inAreas(this.actionArea.Main, this.actionArea.Kebab).some(action => this.isMobileActionVisible(action));
+  }
+
+  // Tracks configured columns by field name so the summary does not re-render on every change.
+  trackByFieldName(_index: number, col: DisplayColumn): string {
+    return col.FieldName;
+  }
+
   private initializeTranslationsComments(): void {
     const commentTranslationKeys = [
       'COMMENTS.SEND_REQUEST',
@@ -278,7 +419,7 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
   }
 
   getQuote() {
-    this.ngOnDestroy();
+    this.resetQuoteSubscriptions();
     this.quoteSubscription.push(
       this.activatedRoute.params
         .pipe(
@@ -996,10 +1137,20 @@ export class QuoteDetailComponent implements OnInit, OnDestroy {
     this.canShowCollaborationActions = isDsrMode && !this.isRecordOwner;
   }
 
-  ngOnDestroy() {
+  /**
+   * Releases the per-quote subscriptions. `getQuote()` calls this before reloading so the previous
+   * quote's streams are dropped without disturbing subscriptions that outlive a single quote.
+   */
+  private resetQuoteSubscriptions(): void {
     if (this.attachemntSubscription) this.attachemntSubscription.unsubscribe();
     this.quoteSubscription.forEach((subscription) =>
       subscription.unsubscribe()
     );
+    this.quoteSubscription = [];
+  }
+
+  ngOnDestroy() {
+    this.resetQuoteSubscriptions();
+    if (this.displayConfigSubscription) this.displayConfigSubscription.unsubscribe();
   }
 }

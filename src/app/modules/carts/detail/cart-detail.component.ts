@@ -6,9 +6,10 @@ import { filter, find, forEach, get, isEqual, isNil, isNull, lowerCase, pick, se
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { plainToClass } from 'class-transformer';
 import { BsModalRef } from 'ngx-bootstrap/modal';
-import { Cart, CartItem, CartService, LineItemService, Order, Quote, ItemGroup, QuoteService, ConstraintRuleService, OrderService, ItemRequest, IntegrationService, TaxAddress, AccountLocationManagementService } from '@congarevenuecloud/ecommerce';
-import { BatchActionService, RevalidateCartService, ExceptionService, ButtonAction, BatchSelectionService } from '@congarevenuecloud/elements';
+import { Cart, CartItem, CartService, LineItemService, Order, Quote, ItemGroup, QuoteService, ConstraintRuleService, OrderService, ItemRequest, IntegrationService, TaxAddress, AccountService, StorefrontService, AccountLocationManagementService, DetailActionArea, DetailActionSection, DetailActionSet, DetailAction, DisplayColumn, DisplayColumnSection } from '@congarevenuecloud/ecommerce';
+import { BatchActionService, RevalidateCartService, ExceptionService, ButtonAction, BatchSelectionService, UserViewMappingService, DisplayColumnService } from '@congarevenuecloud/elements';
 import { DsrService } from '../../../services/dsr.service';
+import { DEFAULT_DETAIL_ACTIONS } from '../../../services/detail-actions.config';
 
 
 @Component({
@@ -38,6 +39,12 @@ export class CartDetailComponent implements OnInit {
   isDsrMode: boolean = false;
   cart: Cart;
   subscription: Array<Subscription> = [];
+
+  // Cart summary fields from the displayColumns API; empty keeps the built-in summary layout.
+  cartColumns: Array<DisplayColumn> = [];
+
+  // Configured price columns. Null or empty keeps the built-in price fields.
+  priceColumns: Array<DisplayColumn> = null;
   disabled: boolean;
   isCartFinalized: boolean = false;
   searchText: string;
@@ -55,6 +62,18 @@ export class CartDetailComponent implements OnInit {
   taxState: 'idle' | 'calculating' | 'calculating-manual' | 'calculated' | 'stale' = 'idle';
   businessObjectType: string = 'ProductConfiguration';
 
+  // Action configuration from the displayActions API, falling back to the built-in defaults.
+  actions: DetailActionSet = new DetailActionSet(DetailActionSection.Cart, DEFAULT_DETAIL_ACTIONS, () => ({
+    stage: get(this.cart, 'Status'),
+    isLoggedIn: true
+  }));
+
+  // Placement buckets exposed to the template.
+  readonly actionArea = DetailActionArea;
+
+  // Stable header cart actions; a fixed array reference avoids a price-summary change-detection loop.
+  cartMainActions: Array<DetailAction> = [];
+
   constructor(private cartService: CartService,
     private quoteService: QuoteService,
     private orderService: OrderService,
@@ -69,10 +88,17 @@ export class CartDetailComponent implements OnInit {
     public batchSelectionService: BatchSelectionService,
     private dsrService: DsrService,
     private integrationService: IntegrationService,
+    private accountService: AccountService,
+    private storefrontService: StorefrontService,
+    private userViewMappingService: UserViewMappingService,
     private accountLocationService: AccountLocationManagementService,
     private cdr: ChangeDetectorRef,
+    private displayColumnService: DisplayColumnService,
   ) { }
   ngOnInit() {
+    this.loadDisplayActions();
+    this.refreshCartActions();
+
     // Subscribe to DSR mode state
     this.subscription.push(
       this.dsrService.getDsrState().pipe(
@@ -96,6 +122,49 @@ export class CartDetailComponent implements OnInit {
       this.isTaxEnabled = isTaxEnabled;
       this.autoTriggerTaxIfNeeded();
     }));
+  }
+
+  // Loads the storefront column and action overrides for this page in a single pass.
+  private loadDisplayActions(): void {
+    this.subscription.push(
+      this.storefrontService.getStorefront().pipe(
+        take(1),
+        switchMap((storefront) => {
+          const flow = get(storefront, 'DefaultFlow') || 'system';
+          return combineLatest([
+            this.storefrontService.getStorefrontDisplayColumns(flow, get(storefront, 'Id')).pipe(catchError(() => of([]))),
+            this.storefrontService.getStorefrontDisplayActions(flow, get(storefront, 'Id')).pipe(catchError(() => of([])))
+          ]);
+        }),
+        catchError(() => of<[Array<DisplayColumn>, Array<DetailAction>]>([[], []]))
+      ).subscribe(([columnsResponse, actionsResponse]) => {
+        const lineItemCols = this.displayColumnService.columnsForSection(columnsResponse, DisplayColumnSection.CartLineItem);
+        // Feed the shared view so the Edit Layout chooser offers exactly the fields being rendered;
+        // an empty set clears any configuration a previous cart applied.
+        this.userViewMappingService.applyConfiguredColumns(lineItemCols.map((column: DisplayColumn) => ({
+          fieldName: get(column, 'FieldName'),
+          label: get(column, 'Label'),
+          sequence: get(column, 'Sequence', 0),
+          isSelected: true,
+          isEditable: get(column, 'IsEditable', false)
+        })));
+
+        const priceCols = this.displayColumnService.columnsForSection(columnsResponse, DisplayColumnSection.LineItemPrice);
+        if (priceCols.length > 0) this.priceColumns = priceCols;
+
+        const cartCols = this.displayColumnService.columnsForSection(columnsResponse, DisplayColumnSection.CartSummary);
+        if (cartCols.length > 0) this.cartColumns = cartCols;
+
+        this.actions.applyOverrides(actionsResponse);
+        this.refreshCartActions();
+        this.cdr.detectChanges();
+      })
+    );
+  }
+
+  // Recomputes the header cart actions so the price-summary input holds a stable array reference.
+  private refreshCartActions(): void {
+    this.cartMainActions = this.actions.inArea(this.actionArea.Main);
   }
 
   getCart() {
@@ -200,6 +269,21 @@ export class CartDetailComponent implements OnInit {
     return get(record, 'MainLine.Id');
   }
 
+  // Resolves the record a configured summary column binds to.
+  recordForColumn(record: Cart, fieldName: string) {
+    return this.displayColumnService.recordForColumn(record, fieldName);
+  }
+
+  // Returns the leaf field name for a possibly dotted configured FieldName.
+  fieldForColumn(fieldName: string): string {
+    return this.displayColumnService.fieldForColumn(fieldName);
+  }
+
+  /** @ignore */
+  trackByFieldName(_index: number, column: DisplayColumn): string {
+    return get(column, 'FieldName');
+  }
+
   refreshCart(fieldValue, cart, fieldName) {
     set(cart, fieldName, fieldValue);
     const payload = {
@@ -264,7 +348,7 @@ export class CartDetailComponent implements OnInit {
     if (this.cartName) {
       this.cart.Name = this.cartName
     }
-    this.cartService.cloneCart(this.cart.Id, pick(this.cart, ['Name']) as Cart, true, true).pipe(take(1)).subscribe(
+    this.cartService.cloneCart(this.cart.Id, pick(this.cart, ['Name']) as Cart, false, true).pipe(take(1)).subscribe(
       res => {
         this.loading = false;
         this.modalRef.hide();
