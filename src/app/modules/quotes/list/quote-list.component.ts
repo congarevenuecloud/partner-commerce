@@ -4,8 +4,8 @@ import { switchMap, take, catchError, map } from 'rxjs/operators';
 import moment from 'moment';
 import { get, sumBy, mapValues, groupBy, omit } from 'lodash';
 import { Operator, FilterOperator, PlatformConstants } from '@congarevenuecloud/core';
-import { Quote, QuoteService, LocalCurrencyPipe, AccountService, FieldFilter, DateFormatPipe, GroupByAggregateResponse, AggregateFields } from '@congarevenuecloud/ecommerce';
-import { TableOptions, CustomFilterView, FilterOptions, ExceptionService, QuickAddField } from '@congarevenuecloud/elements';
+import { Quote, QuoteService, LocalCurrencyPipe, AccountService, FieldFilter, DateFormatPipe, GroupByAggregateResponse, AggregateFields, StorefrontService, DisplayColumn, DisplayColumnSection } from '@congarevenuecloud/ecommerce';
+import { TableOptions, TableColumn, CustomFilterView, FilterOptions, ExceptionService, QuickAddField, DisplayColumnService } from '@congarevenuecloud/elements';
 
 @Component({
     selector: 'app-quote-list',
@@ -73,10 +73,74 @@ export class QuoteListComponent implements OnInit {
   ];
   quoteFields: Array<string | QuickAddField>;
 
-  constructor(private quoteService: QuoteService, private currencyPipe: LocalCurrencyPipe, private dateFormatPipe: DateFormatPipe, private accountService: AccountService, private exceptionService: ExceptionService) { }
+  // Columns rendered in the quote list, from the 'Quote List' section of the displayColumns API;
+  // empty means the storefront has no configuration, so the built-in columns are used.
+  private configuredColumns: Array<DisplayColumn> = [];
+
+  constructor(private quoteService: QuoteService, private currencyPipe: LocalCurrencyPipe, private dateFormatPipe: DateFormatPipe, private accountService: AccountService, private storefrontService: StorefrontService, private exceptionService: ExceptionService, private displayColumnService: DisplayColumnService) { }
 
   ngOnInit() {
-    this.loadView();
+    this.loadColumnConfig();
+  }
+
+  /**
+   * Loads the configured quote list columns, then renders the view. The view is built either way,
+   * so a storefront without configuration still gets the built-in columns.
+   */
+  private loadColumnConfig(): void {
+    this.storefrontService.getStorefront().pipe(
+      take(1),
+      switchMap((storefront) => {
+        const flow = get(storefront, 'DefaultFlow') || 'system';
+        return this.storefrontService.getStorefrontDisplayColumns(flow, get(storefront, 'Id'));
+      }),
+      catchError(() => of<Array<DisplayColumn>>([]))
+    ).subscribe((response) => {
+      this.configuredColumns = this.displayColumnService.columnsForSection(response, DisplayColumnSection.QuoteList);
+      this.loadView();
+    });
+  }
+
+  // The built-in quote list columns, used when the storefront has no configuration.
+  private getDefaultColumns(): Array<TableColumn> {
+    return [
+      {
+        prop: 'ProposalNumber',
+        enableRouteLink: true
+      },
+      {
+        prop: 'Name',
+        label: 'COMMON.NAME'
+      },
+      {
+        prop: 'ApprovalStage'
+      },
+      {
+        prop: 'RFPResponseDueDate',
+        value: (record: Quote) => this.getDateFormat(record, 'RFPResponseDueDate')
+      },
+      {
+        prop: 'PriceList',
+        sortable: false
+      },
+      {
+        prop: 'GrandTotal',
+        label: 'CUSTOM_LABELS.TOTAL_AMOUNT',
+        value: (record) => {
+          return this.currencyPipe.transform(get(get(record, 'Amount'), 'DisplayValue'));
+        }
+      },
+      {
+        prop: 'Account',
+        label: 'CUSTOM_LABELS.ACCOUNT',
+        sortable: false
+      },
+      {
+        prop: 'ModifiedDate',
+        label: 'CUSTOM_LABELS.LAST_MODIFIED_DATE',
+        value: (record: Quote) => this.getDateFormat(record, 'ModifiedDate')
+      }
+    ];
   }
 
   loadView() {
@@ -90,51 +154,13 @@ export class QuoteListComponent implements OnInit {
             { field: 'PartnerAccount', required: true, lookupOptions: { primaryTextField: 'Name', fieldList: ['Id', 'Name'], filters: [{ field: 'IsPartner', value: true, filterOperator: FilterOperator.EQUAL }] } },
             { field: 'PrimaryContact', required: true, lookupOptions: { primaryTextField: 'Name', filters: [{ field: 'Account.Id', value: get(account, 'Id'), filterOperator: FilterOperator.EQUAL }] } }
           ];
+          const columns = this.displayColumnService.toTableColumns(this.configuredColumns, this.getDefaultColumns(), (column) => this.displayColumnService.formatColumnValue(column));
           tableOptions = {
             tableOptions: {
               stickyColumnCount: 1,
-              stickyColumns: [{
-                prop: 'ProposalNumber',
-                enableRouteLink: true
-              }],
-              columns: [
-                {
-                  prop: 'ProposalNumber',
-                  enableRouteLink: true
-                },
-                {
-                  prop: 'Name',
-                  label: 'COMMON.NAME'
-                },
-                {
-                  prop: 'ApprovalStage'
-                },
-                {
-                  prop: 'RFPResponseDueDate',
-                  value: (record: Quote) => this.getDateFormat(record, 'RFPResponseDueDate')
-                },
-                {
-                  prop: 'PriceList',
-                  sortable: false
-                },
-                {
-                  prop: 'GrandTotal',
-                  label: 'CUSTOM_LABELS.TOTAL_AMOUNT',
-                  value: (record) => {
-                    return this.currencyPipe.transform(get(get(record, 'Amount'), 'DisplayValue'));
-                  }
-                },
-                {
-                  prop: 'Account',
-                  label: 'CUSTOM_LABELS.ACCOUNT',
-                  sortable: false
-                },
-                {
-                  prop: 'ModifiedDate',
-                  label: 'CUSTOM_LABELS.LAST_MODIFIED_DATE',
-                  value: (record: Quote) => this.getDateFormat(record, 'ModifiedDate')
-                }
-              ],
+              // The first column stays pinned, so it follows whatever the configuration puts first.
+              stickyColumns: columns.slice(0, 1),
+              columns: columns,
               filters: this.filterList$.value.concat(this.getFilters()),
               routingLabel: 'proposals',
               callback: (recordList?: Array<Quote>) => {
@@ -210,15 +236,24 @@ export class QuoteListComponent implements OnInit {
 
   updateQuoteValue(quote: Quote): Observable<Quote> {
     return this.quoteService.updateQuoteValue(quote, {
-      fetchContact: false,
-      fetchBillToAccount: false,
-      fetchShipToAccount: false
+      fetchContact: this.isColumnConfigured('PrimaryContact'),
+      fetchBillToAccount: this.isColumnConfigured('BillToAccount'),
+      fetchShipToAccount: this.isColumnConfigured('ShipToAccount'),
+      fetchLocation: false
     }).pipe(
       take(1),
       map((updatedQuote: Quote) => {
         return updatedQuote;
       })
     );
+  }
+
+  // A configured lookup column needs its related record fetched so its quick-view popover populates.
+  private isColumnConfigured(fieldName: string): boolean {
+    return this.configuredColumns.some(column => {
+      const configuredField = get(column, 'FieldName', '');
+      return configuredField === fieldName || configuredField.startsWith(`${fieldName}.`);
+    });
   }
 }
 

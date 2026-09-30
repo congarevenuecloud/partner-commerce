@@ -27,41 +27,68 @@
 
       <!-- Desktop Button Layout -->
       @if (!showPresentTemplate && !showSendForSignatureTemplate) {
-      <div class="align-items-center d-lg-flex d-md-flex d-sm-none d-none">
-        <!-- Draft Stage: Show Generate Button (normal mode only, no collaboration) -->
-        @if (quote.ApprovalStage === 'Draft' && !isDsrMode && !collaborationRequest) {
-        <apt-generate-document
-          [record]="quote" class="ms-auto" (onStatusUpdate)="onGenerateQuote()">
-        </apt-generate-document>
-        }
+      <div class="align-items-center ms-auto d-lg-flex d-md-flex d-sm-none d-none">
+        <!-- Actions are driven by the storefront displayActions configuration, ordered by Sequence. -->
+        @for (action of actions.inArea(actionArea.Main); track action.Name) {
+          @switch (action.ActionName) {
 
-        <!-- Generated Stage: Show Send for Signature and Present (normal mode only, no collaboration) -->
-        @if (quote.ApprovalStage === 'Generated' && !isDsrMode && !collaborationRequest) {
-          <button type="button" class="btn btn-outline-primary me-3 ms-auto px-2"
-            (click)="openSendForSignatureModal()" data-style="zoom-in">
-            {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
-          </button>
-          <button type="button" class="btn btn-primary btn-raised px-3" (click)="showPresentTemplateFun()">
-            {{'DETAILS.PRESENT_QUOTE' | translate}}
-          </button>
-        }
+            @case ('Generate') {
+              @if (!isDsrMode && !collaborationRequest) {
+                <apt-generate-document [record]="quote" [label]="action.ActionLabelName" class="ms-2" (onStatusUpdate)="onGenerateQuote()">
+                </apt-generate-document>
+              }
+            }
 
-        <!-- Presented Stage: Show Accept/Reject buttons (visible in DSR mode or collaboration scenarios) -->
-        @if (quote.ApprovalStage === 'Presented' && (isDsrMode || canShowCollaborationActions)) {
-          <button type="button" [ladda]="rejectLoader" class="btn btn-outline-primary me-3 ms-auto" data-style="zoom-in"
-            (click)="rejectQuote(quote?.Id)">
-            {{'COMMON.REJECT' | translate}}
-          </button>
-          @if (quote?.Items?.length > 0) {
-          <button type="button" class="btn btn-primary btn-raised me-3"
-            [ladda]="acceptLoader" data-style="zoom-in" (click)="acceptQuote(quote?.Id, quote?.PrimaryContact?.Id)">
-            {{'COMMON.ACCEPT_QUOTE' | translate}}
-          </button>
+            @case ('SendForSignature') {
+              @if (!isDsrMode && !collaborationRequest) {
+                <button type="button" class="btn px-3 ms-2" data-style="zoom-in"
+                  [ngClass]="action.IsPrimaryAction ? 'btn-primary btn-raised' : 'btn-outline-primary'"
+                  [disabled]="!action.IsEnabled"
+                  (click)="openSendForSignatureModal()">
+                  {{ action.ActionLabelName | translate }}
+                </button>
+              }
+            }
+
+            @case ('Present') {
+              @if (!isDsrMode && !collaborationRequest) {
+                <button type="button" class="btn btn-raised px-3 ms-2"
+                  [ngClass]="action.IsPrimaryAction ? 'btn-primary' : 'btn-outline-primary'"
+                  [disabled]="!action.IsEnabled"
+                  (click)="showPresentTemplateFun()">
+                  {{ action.ActionLabelName | translate }}
+                </button>
+              }
+            }
+
+            @case ('Reject') {
+              @if (isDsrMode || canShowCollaborationActions) {
+                <button type="button" [ladda]="rejectLoader" class="btn px-3 ms-2" data-style="zoom-in"
+                  [ngClass]="action.IsPrimaryAction ? 'btn-primary btn-raised' : 'btn-outline-primary'"
+                  [disabled]="!action.IsEnabled"
+                  (click)="rejectQuote(quote?.Id)">
+                  {{ action.ActionLabelName | translate }}
+                </button>
+              }
+            }
+
+            @case ('AcceptQuote') {
+              @if ((isDsrMode || canShowCollaborationActions) && quote?.Items?.length > 0) {
+                <button type="button" class="btn btn-raised px-3 ms-2"
+                  [ladda]="acceptLoader" data-style="zoom-in"
+                  [ngClass]="action.IsPrimaryAction ? 'btn-primary' : 'btn-outline-primary'"
+                  [disabled]="!action.IsEnabled"
+                  (click)="acceptQuote(quote?.Id, quote?.PrimaryContact?.Id)">
+                  {{ action.ActionLabelName | translate }}
+                </button>
+              }
+            }
+
           }
         }
 
         <!-- Desktop Kebab Menu for Secondary Actions -->
-        @if ((quote?.ApprovalStage === 'Generated') || (quote?.ApprovalStage === 'Presented' && (isDsrMode || canShowCollaborationActions))) {
+        @if (hasVisibleKebabActions) {
         <div class="dropdown ms-3 d-lg-block d-md-block d-sm-none d-none">
           <a class="fa fa-ellipsis-v dropdown-toggle" href="#" role="button" id="desktopDropdownMenuLink"
             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -73,7 +100,7 @@
         }
       </div>
       }
-      @if (['Draft', 'Generated', 'Presented', 'Approved'].includes(quote?.ApprovalStage) && (quote?.ApprovalStage !== 'Presented' || isDsrMode || canShowCollaborationActions)) {
+      @if (!showPresentTemplate && !showSendForSignatureTemplate && hasVisibleMobileActions) {
       <div class="d-sm-block d-block ms-auto d-md-none d-lg-none pt-2">
         <div class="dropdown pe-4">
           <a class="fa fa-ellipsis-v dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
@@ -133,6 +160,30 @@
               <h5>{{'DETAILS.QUOTE_SUMMARY' | translate}}</h5>
             </div>
             <div class="card-body">
+              <!-- Summary fields come from the displayColumns API; the built-in layout is used when it returns none. -->
+              @if (proposalColumns.length) {
+              <div class="row">
+                <ng-container *ngFor="let col of (isExpanded ? proposalColumns : proposalColumns.slice(0, 6)); trackBy: trackByFieldName">
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [record]="recordForColumn(quote, col.FieldName)" [field]="fieldForColumn(col.FieldName)" [label]="col.Label"
+                      [displayValue]="col.DisplayValue" [showQuickView]="col.ShowQuickView"
+                      [editable]="col.IsEditable && (quote?.ApprovalStage === 'Draft' || quote?.ApprovalStage === 'Approved' || quote?.ApprovalStage === 'Generated' || quote?.ApprovalStage === 'Presented') && canEditQuoteFields"
+                      (onChange)="refreshQuote(summaryFieldValue($event, col.FieldName), quote, col.FieldName)">
+                    </apt-output-field>
+                  </div>
+                </ng-container>
+              </div>
+              @if (proposalColumns.length > 6) {
+              <div class="d-flex justify-content-start">
+                <a href="javascript:void(0)" (click)="isExpanded = !isExpanded" class="text-decoration-none">
+                  <span>
+                    {{ isExpanded ? ('COMMON.SHOW_LESS' | translate) : ('COMMON.SHOW_MORE' | translate) }}
+                    <i class="fas" [ngClass]="isExpanded ? 'fa-angle-double-up' : 'fa-angle-double-down'"></i>
+                  </span>
+                </a>
+              </div>
+              }
+              } @else {
               <div class="row">
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="quote" field="ProposalNumber" [editable]="false">
@@ -228,6 +279,7 @@
                   </span>
                 </a>
               </div>
+              }
             </div>
           </div>
         </div>
@@ -261,7 +313,8 @@
               <tbody>
                 @for (item of items; track item.MainLine?.Id ?? $index; let i = $index) {
                   <apt-line-item-table-row [index]="i" [parent]="item.MainLine" [options]="item.Flat"
-                    [cart]="cartRecord" [children]="item.SecondaryLines" [editableFields]="false">
+                    [cart]="cartRecord" [children]="item.SecondaryLines" [editableFields]="false"
+                    [lineItemColumns]="quoteLineItemColumns" [priceColumns]="priceColumns">
                   </apt-line-item-table-row>
                 }
               </tbody>
@@ -465,92 +518,103 @@
 }
 
 <ng-template #desktopKebabButtons>
-  <!-- Generated Stage: Show Generate Document in Desktop Kebab Menu (NOT in DSR mode) -->
-  @if (quote.ApprovalStage === 'Generated' && !showPresentTemplate && !isDsrMode) {
-    <apt-generate-document [record]="quote" [buttonClasses]="'dropdown-item'" (onStatusUpdate)="onGenerateQuote()">
-    </apt-generate-document>
-  }
-  <!-- Presented Stage: DSR mode - show Request Changes button -->
-  @if (quote.ApprovalStage === 'Presented' && !showPresentTemplate && isDsrMode) {
-    <button type="button" class="dropdown-item" (click)="openRequestChangesModal()">
-      {{ 'COMMENTS.REQUEST_CHANGES' | translate }}
-    </button>
-  }
-  <!-- Presented Stage: Normal mode non-collaboration - show Generate/Send/Present/Request Changes buttons -->
-  @if (quote.ApprovalStage === 'Presented' && !showPresentTemplate && !isDsrMode && !collaborationRequest) {
-    <button type="button" class="dropdown-item" (click)="openRequestChangesModal()">
-      {{ 'COMMENTS.REQUEST_CHANGES' | translate }}
-    </button>
-    <button type="button" class="dropdown-item" (click)="openSendForSignatureModal()" data-style="zoom-in">
-      {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
-    </button>
-    <apt-generate-document [record]="quote" [buttonClasses]="'dropdown-item'" (onStatusUpdate)="onGenerateQuote()">
-    </apt-generate-document>
-    <button type="button" class="dropdown-item" (click)="showPresentTemplateFun()">
-      {{'DETAILS.PRESENT_QUOTE' | translate}}
-    </button>
+  @if (!showPresentTemplate) {
+    @for (action of actions.inArea(actionArea.Kebab); track action.Name) {
+      @switch (action.ActionName) {
+
+        @case ('RequestChanges') {
+          @if (isDsrMode || !collaborationRequest) {
+            <button type="button" class="dropdown-item" [disabled]="!action.IsEnabled" (click)="openRequestChangesModal()">
+              {{ action.ActionLabelName | translate }}
+            </button>
+          }
+        }
+
+        @case ('Generate') {
+          @if (!isDsrMode && (quote.ApprovalStage === 'Generated' || !collaborationRequest)) {
+            <apt-generate-document [record]="quote" [label]="action.ActionLabelName" [buttonClasses]="'dropdown-item'" (onStatusUpdate)="onGenerateQuote()">
+            </apt-generate-document>
+          }
+        }
+
+        @case ('SendForSignature') {
+          @if (!isDsrMode && !collaborationRequest) {
+            <button type="button" class="dropdown-item" [disabled]="!action.IsEnabled" (click)="openSendForSignatureModal()" data-style="zoom-in">
+              {{ action.ActionLabelName | translate }}
+            </button>
+          }
+        }
+
+        @case ('Present') {
+          @if (!isDsrMode && !collaborationRequest) {
+            <button type="button" class="dropdown-item" [disabled]="!action.IsEnabled" (click)="showPresentTemplateFun()">
+              {{ action.ActionLabelName | translate }}
+            </button>
+          }
+        }
+
+      }
+    }
   }
 </ng-template>
 
 <ng-template #mobileActionButtons>
-  <!-- Draft Stage: Show Generate Button (normal mode only, no collaboration) -->
-  @if (quote.ApprovalStage === 'Draft' && !showPresentTemplate && !isDsrMode && !collaborationRequest) {
-    <apt-generate-document [record]="quote" (onStatusUpdate)="onGenerateQuote()">
-    </apt-generate-document>
-  }
+  <!-- Mobile collapses every action into the kebab, so Main and Kebab are rendered together. -->
+  @if (!showPresentTemplate) {
+    @for (action of actions.inAreas(actionArea.Main, actionArea.Kebab); track action.Name) {
+      @switch (action.ActionName) {
 
-  <!-- Generated Stage: Show Send for Signature, Present, Generate buttons (normal mode only, no collaboration) -->
-  @if (quote.ApprovalStage === 'Generated' && !showPresentTemplate && !isDsrMode && !collaborationRequest) {
-    <button type="button" class="dropdown-item" (click)="openSendForSignatureModal()" data-style="zoom-in">
-      {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
-    </button>
-    <button type="button" class="dropdown-item" (click)="showPresentTemplateFun()">
-      {{'DETAILS.PRESENT_QUOTE' | translate}}
-    </button>
-    <apt-generate-document [record]="quote" (onStatusUpdate)="onGenerateQuote()">
-    </apt-generate-document>
-  }
+        @case ('SendForSignature') {
+          @if (!isDsrMode && !collaborationRequest) {
+            <button type="button" class="dropdown-item" [disabled]="!action.IsEnabled" (click)="openSendForSignatureModal()" data-style="zoom-in">
+              {{ action.ActionLabelName | translate }}
+            </button>
+          }
+        }
 
-  <!-- Presented Stage: Normal mode, no collaboration - show all owner actions -->
-  @if (quote.ApprovalStage === 'Presented' && !showPresentTemplate && !isDsrMode && !collaborationRequest) {
-    <button type="button" class="dropdown-item" (click)="openSendForSignatureModal()" data-style="zoom-in">
-      {{'SEND_FOR_SIGNATURE.BUTTON_TEXT' | translate}}
-    </button>
-    <apt-generate-document [record]="quote" (onStatusUpdate)="onGenerateQuote()">
-    </apt-generate-document>
-    <button type="button" class="dropdown-item" (click)="showPresentTemplateFun()">
-      {{'DETAILS.PRESENT_QUOTE' | translate}}
-    </button>
-    <button type="button" class="dropdown-item" (click)="openRequestChangesModal()">
-      {{ 'COMMENTS.REQUEST_CHANGES' | translate }}
-    </button>
-    <button type="button" [ladda]="rejectLoader" class="dropdown-item" (click)="rejectQuote(quote?.Id)">
-      {{'COMMON.REJECT' | translate}}
-    </button>
-    @if (quote?.Items?.length > 0) {
-    <button type="button" [ladda]="acceptLoader" class="dropdown-item"
-      (click)="acceptQuote(quote?.Id, quote?.PrimaryContact?.Id)">
-      {{'COMMON.ACCEPT_QUOTE' | translate}}
-    </button>
+        @case ('Generate') {
+          @if (!isDsrMode && !collaborationRequest) {
+            <apt-generate-document [record]="quote" [label]="action.ActionLabelName" (onStatusUpdate)="onGenerateQuote()">
+            </apt-generate-document>
+          }
+        }
+
+        @case ('Present') {
+          @if (!isDsrMode && !collaborationRequest) {
+            <button type="button" class="dropdown-item" [disabled]="!action.IsEnabled" (click)="showPresentTemplateFun()">
+              {{ action.ActionLabelName | translate }}
+            </button>
+          }
+        }
+
+        @case ('RequestChanges') {
+          @if (isDsrMode || !collaborationRequest) {
+            <button type="button" class="dropdown-item" [disabled]="!action.IsEnabled" (click)="openRequestChangesModal()">
+              {{ action.ActionLabelName | translate }}
+            </button>
+          }
+        }
+
+        @case ('Reject') {
+          @if (isDsrMode || canShowCollaborationActions) {
+            <button type="button" [ladda]="rejectLoader" class="dropdown-item" [disabled]="!action.IsEnabled" (click)="rejectQuote(quote?.Id)">
+              {{ action.ActionLabelName | translate }}
+            </button>
+          }
+        }
+
+        @case ('AcceptQuote') {
+          @if ((isDsrMode || canShowCollaborationActions) && quote?.Items?.length > 0) {
+            <button type="button" [ladda]="acceptLoader" class="dropdown-item" [disabled]="!action.IsEnabled"
+              (click)="acceptQuote(quote?.Id, quote?.PrimaryContact?.Id)">
+              {{ action.ActionLabelName | translate }}
+            </button>
+          }
+        }
+
+      }
     }
   }
-
-  <!-- Presented Stage: DSR mode - show Request Changes, Accept, Reject -->
-  @if (quote.ApprovalStage === 'Presented' && !showPresentTemplate && isDsrMode) {
-    <button type="button" class="dropdown-item" (click)="openRequestChangesModal()">
-      {{ 'COMMENTS.REQUEST_CHANGES' | translate }}
-    </button>
-    <button type="button" [ladda]="rejectLoader" class="dropdown-item" (click)="rejectQuote(quote?.Id)">
-      {{'COMMON.REJECT' | translate}}
-    </button>
-    @if (quote?.Items?.length > 0) {
-    <button type="button" [ladda]="acceptLoader" class="dropdown-item"
-      (click)="acceptQuote(quote?.Id, quote?.PrimaryContact?.Id)">
-      {{'COMMON.ACCEPT_QUOTE' | translate}}
-    </button>
-    }
-  }
-
 </ng-template>
 
 <ng-template #noProducts>

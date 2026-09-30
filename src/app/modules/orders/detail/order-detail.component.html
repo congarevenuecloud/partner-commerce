@@ -26,58 +26,54 @@
       <div class="btn-group secondary-actions ms-auto align-self-stretch" role="group"
         [tooltip]="
             order.hasErrors ? ('DETAILS.MISSING_REQ_FIELDS' | translate) : ''">
-        @switch (order?.Status) {
-          @case ('Draft') {
-          <apt-generate-document [record]="order" class="ms-auto px-3 d-lg-block d-md-block d-none d-sm-none"
-            (onStatusUpdate)="onGenerateOrder()">
-          </apt-generate-document>
-          <button type="button" class="btn btn-primary btn-raised rounded d-lg-block d-md-block d-none d-sm-none"
-            (click)="confirmOrder(order?.Id, order?.PrimaryContact?.Id)" [ladda]="isLoading" data-style="zoom-in"
-            [disabled]="order.hasErrors">
-            {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
-          </button>
-          }
+        <!-- Actions are driven by the storefront displayActions configuration, ordered by Sequence. -->
+        @for (action of actions.inArea(actionArea.Main); track action.Name) {
+          @switch (action.ActionName) {
 
-          @case ('Generated') {
-          <button type="button" class="btn btn-outline-primary rounded-end px-2 d-lg-block d-md-block d-none d-sm-none"
-            (click)="openPresentOrderPage()" data-style="zoom-in">
-            {{'DETAILS.PRESENT_ORDER' | translate}}
-          </button>
-          <apt-generate-document [record]="order" class="ms-auto px-3 d-lg-block d-md-block d-none d-sm-none"
-            (onStatusUpdate)="onGenerateOrder()">
-          </apt-generate-document>
-          <button type="button" class="btn btn-primary btn-raised rounded d-lg-block d-md-block d-none d-sm-none"
-            [disabled]="order.hasErrors" (click)="confirmOrder(order?.Id, order?.PrimaryContact?.Id)"
-            [ladda]="isLoading" data-style="zoom-in">
-            {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
-          </button>
-          }
+            @case ('PresentOrder') {
+              <button type="button" class="btn btn-outline-primary rounded-end px-2 d-lg-block d-md-block d-none d-sm-none"
+                [disabled]="!action.IsEnabled"
+                (click)="openPresentOrderPage()" data-style="zoom-in">
+                {{ action.ActionLabelName | translate }}
+              </button>
+            }
 
-          @case ('Presented') {
-          <button type="button" class="btn btn-outline-primary rounded-end text-primary px-2 d-lg-block d-md-block d-none d-sm-none"
-            (click)="openPresentOrderPage()" data-style="zoom-in">
-            {{'DETAILS.PRESENT_ORDER' | translate}}
-          </button>
-          <apt-generate-document [record]="order" class="ms-auto px-3 d-lg-block d-md-block d-none d-sm-none"
-            (onStatusUpdate)="onGenerateOrder()">
-          </apt-generate-document>
-          <button type="button" class="btn btn-primary rounded btn-raised d-lg-block d-md-block d-none d-sm-none"
-            [disabled]="order.hasErrors" (click)="confirmOrder(order.Id, order?.PrimaryContact?.Id)" [ladda]="isLoading"
-            data-style="zoom-in">
-            {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
-          </button>
+            @case ('GenerateOrder') {
+              <apt-generate-document [record]="order" [label]="action.ActionLabelName" class="ms-auto px-3 d-lg-block d-md-block d-none d-sm-none"
+                (onStatusUpdate)="onGenerateOrder()">
+              </apt-generate-document>
+            }
+
+            @case ('ConfirmOrder') {
+              <button type="button" class="btn btn-raised rounded d-lg-block d-md-block d-none d-sm-none"
+                [ngClass]="action.IsPrimaryAction ? 'btn-primary' : 'btn-outline-primary'"
+                (click)="confirmOrder(order?.Id, order?.PrimaryContact?.Id)" [ladda]="isLoading" data-style="zoom-in"
+                [disabled]="order.hasErrors || !action.IsEnabled">
+                {{ action.ActionLabelName | translate }}
+              </button>
+            }
 
           }
         }
       </div>
       }
-      @if (order?.Status === 'Draft' || order?.Status === 'Generated' || order?.Status === 'Presented') {
+      @if (!showPresentTemplate && actions.hasAnyIn(actionArea.Kebab)) {
+      <div class="dropdown secondary-actions align-self-center d-lg-block d-md-block d-none d-sm-none">
+        <a class="fa fa-ellipsis-v dropdown-toggle px-2" href="#" role="button"
+          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        </a>
+        <div class="dropdown-menu dropdown-menu-end">
+          <ng-container *ngTemplateOutlet="orderKebabActions"></ng-container>
+        </div>
+      </div>
+      }
+      @if (!showPresentTemplate && actions.hasAnyIn(actionArea.Main, actionArea.Kebab)) {
       <div class="d-sm-block d-block ms-auto d-md-none d-lg-none pt-2">
         <div class="dropdown">
           <a class="fa fa-ellipsis-v dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           </a>
-          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="orderMobileKebabMenuLink">
             <ng-container *ngTemplateOutlet="orderActions"></ng-container>
           </div>
         </div>
@@ -114,6 +110,30 @@
               </h5>
             </div>
             <div class="card-body">
+              <!-- Summary fields come from the displayColumns API; the built-in layout is used when it returns none. -->
+              @if (orderColumns.length) {
+              <div class="row">
+                <ng-container *ngFor="let col of (isExpanded ? orderColumns : orderColumns.slice(0, 6)); trackBy: trackByFieldName">
+                  <div class="flex-shrink-1 col-md-4 mb-2">
+                    <apt-output-field [record]="recordForColumn(order, col.FieldName)" [field]="fieldForColumn(col.FieldName)" [label]="col.Label"
+                      [displayValue]="col.DisplayValue" [showQuickView]="col.ShowQuickView"
+                      [editable]="col.IsEditable && isOrderEditable()"
+                      (onChange)="refreshOrder(summaryFieldValue($event, col.FieldName), order, col.FieldName)">
+                    </apt-output-field>
+                  </div>
+                </ng-container>
+              </div>
+              @if (orderColumns.length > 6) {
+              <div class="d-flex justify-content-start">
+                <a href="javascript:void(0)" (click)="isExpanded = !isExpanded" class="text-decoration-none">
+                  <span>
+                    {{ isExpanded ? ('COMMON.SHOW_LESS' | translate) : ('COMMON.SHOW_MORE' | translate) }}
+                    <i class="fas" [ngClass]="isExpanded ? 'fa-angle-double-up' : 'fa-angle-double-down'"></i>
+                  </span>
+                </a>
+              </div>
+              }
+              } @else {
               <div class="row">
                 <div class="flex-shrink-1 col-md-4 mb-2">
                   <apt-output-field [record]="order" field="OrderNumber" [editable]="false">
@@ -182,6 +202,7 @@
                   </span>
                 </a>
               </div>
+              }
             </div>
           </div>
         </div>
@@ -213,7 +234,8 @@
             <tbody>
               @for (item of orderLineItems$ | async; track item.MainLine?.Id ?? $index; let i = $index) {
                 <apt-line-item-table-row [cart]="cartRecord" [index]="i" [parent]="item.MainLine" [options]="item.Flat"
-                  [children]="item.SecondaryLines" [editableFields]="false">
+                  [children]="item.SecondaryLines" [editableFields]="false"
+                  [lineItemColumns]="orderLineItemColumns" [priceColumns]="priceColumns">
                 </apt-line-item-table-row>
               }
             </tbody>
@@ -355,38 +377,55 @@
 
 
 <ng-template #orderActions>
-  @switch (order?.Status) {
-    @case ('Draft') {
-      <button type="button" class="btn btn-link text-primary" (click)="confirmOrder(order.Id, order.PrimaryContact.Id)"
-        [ladda]="isLoading" data-style="zoom-in" [disabled]="order.hasErrors">
-        {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
-      </button>
-      <apt-generate-document [record]="order" (onStatusUpdate)="onGenerateOrder()">
-      </apt-generate-document>
-    }
+  @for (action of actions.inAreas(actionArea.Main, actionArea.Kebab); track action.Name) {
+    @switch (action.ActionName) {
 
-    @case ('Generated') {
-      <button type="button" class="btn btn-raised" [disabled]="order.hasErrors"
-        (click)="confirmOrder(order.Id, order.PrimaryContact.Id)" [ladda]="isLoading" data-style="zoom-in">
-        {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
-      </button>
-      <apt-generate-document [record]="order" (onStatusUpdate)="onGenerateOrder()">
-      </apt-generate-document>
-      <button type="button" class="btn btn-raised" (click)="openPresentOrderPage()" data-style="zoom-in">
-        {{'DETAILS.PRESENT_ORDER' | translate}}
-      </button>
-    }
+      @case ('ConfirmOrder') {
+        <button type="button" class="btn btn-raised" [disabled]="order.hasErrors || !action.IsEnabled"
+          (click)="confirmOrder(order.Id, order.PrimaryContact.Id)" [ladda]="isLoading" data-style="zoom-in">
+          {{ action.ActionLabelName | translate }}
+        </button>
+      }
 
-    @case ('Presented') {
-      <button type="button" class="btn btn-raised" [disabled]="order.hasErrors"
-        (click)="confirmOrder(order.Id, order.PrimaryContact.Id)" [ladda]="isLoading" data-style="zoom-in">
-        {{ "MY_ACCOUNT.ORDER_DETAIL.CONFIRM_ORDER" | translate }}
-      </button>
-      <apt-generate-document [record]="order" (onStatusUpdate)="onGenerateOrder()">
-      </apt-generate-document>
-      <button type="button" class="btn btn-raised" (click)="openPresentOrderPage()" data-style="zoom-in">
-        {{'DETAILS.PRESENT_ORDER' | translate}}
-      </button>
+      @case ('GenerateOrder') {
+        <apt-generate-document [record]="order" [label]="action.ActionLabelName" (onStatusUpdate)="onGenerateOrder()">
+        </apt-generate-document>
+      }
+
+      @case ('PresentOrder') {
+        <button type="button" class="btn btn-raised" [disabled]="!action.IsEnabled" (click)="openPresentOrderPage()" data-style="zoom-in">
+          {{ action.ActionLabelName | translate }}
+        </button>
+      }
+
+    }
+  }
+</ng-template>
+
+<!-- Desktop overflow (kebab) menu items, driven by the configured Kebab area. -->
+<ng-template #orderKebabActions>
+  @for (action of actions.inArea(actionArea.Kebab); track action.Name) {
+    @switch (action.ActionName) {
+
+      @case ('ConfirmOrder') {
+        <button type="button" class="dropdown-item" [disabled]="order.hasErrors || !action.IsEnabled"
+          (click)="confirmOrder(order.Id, order.PrimaryContact.Id)" [ladda]="isLoading" data-style="zoom-in">
+          {{ action.ActionLabelName | translate }}
+        </button>
+      }
+
+      @case ('GenerateOrder') {
+        <apt-generate-document [record]="order" [label]="action.ActionLabelName" [buttonClasses]="'dropdown-item'"
+          (onStatusUpdate)="onGenerateOrder()">
+        </apt-generate-document>
+      }
+
+      @case ('PresentOrder') {
+        <button type="button" class="dropdown-item" [disabled]="!action.IsEnabled" (click)="openPresentOrderPage()" data-style="zoom-in">
+          {{ action.ActionLabelName | translate }}
+        </button>
+      }
+
     }
   }
 </ng-template>

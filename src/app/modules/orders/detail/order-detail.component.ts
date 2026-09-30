@@ -3,13 +3,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, BehaviorSubject, combineLatest, of } from 'rxjs';
 import { filter, map, switchMap, mergeMap, take, catchError } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
-import { get, set, indexOf, first, sum, cloneDeep, isNil, map as _map, join, split, trim } from 'lodash';
+import { get, set, indexOf, first, sum, cloneDeep, isNil, map as _map, join, split, trim, values, last } from 'lodash';
+import { AObject } from '@congarevenuecloud/core';
 import {
   Order, OrderLineItem, OrderService, UserService,
-  ItemGroup, LineItemService, EmailService,
-  Contact, Cart, Account, AttachmentDetails, AttachmentService, ProductInformationService, StorefrontService
+  ItemGroup, LineItemService, EmailService, AccountService,
+  Contact, Cart, Account, AttachmentDetails, AttachmentService, ProductInformationService, StorefrontService, DetailActionArea, DetailActionSection, DetailActionSet, DetailAction, DisplayColumn, DisplayColumnSection
 } from '@congarevenuecloud/ecommerce';
-import { ExceptionService, FileOutput } from '@congarevenuecloud/elements';
+import { ExceptionService, LookupOptions, FileOutput, DisplayColumnService, CartItemView } from '@congarevenuecloud/elements';
+import { DEFAULT_DETAIL_ACTIONS } from '../../../services/detail-actions.config';
 @Component({
     selector: 'app-order-detail',
     templateUrl: './order-detail.component.html',
@@ -81,6 +83,24 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
   orderStatusLabelMap: Record<string, string> = {};
   orderStatusStepsLabels: Array<string> = [];
 
+  // Action configuration from the displayActions API, falling back to the built-in defaults.
+  actions: DetailActionSet = new DetailActionSet(DetailActionSection.Order, DEFAULT_DETAIL_ACTIONS, () => ({
+    stage: get(this.order, 'Status'),
+    isLoggedIn: true
+  }));
+
+  // Placement buckets exposed to the template.
+  readonly actionArea = DetailActionArea;
+
+  // Order summary fields from the displayColumns API; empty keeps the built-in summary layout.
+  orderColumns: Array<DisplayColumn> = [];
+
+  // Order line item fields from the displayColumns API; null keeps the user's Edit Layout selection.
+  orderLineItemColumns: Array<CartItemView> = null;
+
+  // Line item price rows from the displayColumns API; null keeps the built-in price rows.
+  priceColumns: Array<DisplayColumn> = null;
+
   constructor(private activatedRoute: ActivatedRoute,
     private orderService: OrderService,
     private userService: UserService,
@@ -92,10 +112,11 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
     private productInformationService: ProductInformationService,
     private ngZone: NgZone,
     private translateService: TranslateService,
-    private storefrontService: StorefrontService) { }
+    private storefrontService: StorefrontService, private displayColumnService: DisplayColumnService) { }
 
   ngOnInit() {
     this.isLoggedIn$ = this.userService.isLoggedIn();
+    this.loadDisplayActions();
     this.subscriptions.push(this.activatedRoute.params.pipe(
       filter(params => get(params, 'id') != null)
     ).subscribe(() => this.getOrder()));
@@ -172,6 +193,78 @@ export class OrderDetailComponent implements OnInit, OnDestroy, AfterViewChecked
       set(r, 'OrderLineItems', orderItems);
       this.updateOrder(r);
     });
+  }
+
+  // Loads the storefront column and action overrides for this page in a single pass.
+  private loadDisplayActions(): void {
+    this.subscriptions.push(
+      this.storefrontService.getStorefront().pipe(
+        take(1),
+        switchMap((storefront) => {
+          const flow = get(storefront, 'DefaultFlow') || 'system';
+          return combineLatest([
+            this.storefrontService.getStorefrontDisplayColumns(flow, get(storefront, 'Id')).pipe(catchError(() => of([]))),
+            this.storefrontService.getStorefrontDisplayActions(flow, get(storefront, 'Id')).pipe(catchError(() => of([])))
+          ]);
+        }),
+        catchError(() => of<[Array<DisplayColumn>, Array<DetailAction>]>([[], []]))
+      ).subscribe(([columnsResponse, actionsResponse]) => {
+        const allCols: Array<DisplayColumn> = columnsResponse ?? [];
+
+        const orderCols = this.columnsInSection(allCols, DisplayColumnSection.OrderSummary);
+        if (orderCols.length > 0) this.orderColumns = orderCols;
+
+        const orderLineCols = this.columnsInSection(allCols, DisplayColumnSection.OrderLineItem);
+        if (orderLineCols.length > 0) {
+          this.orderLineItemColumns = orderLineCols.map((c: DisplayColumn) => ({
+            fieldName: c.FieldName,
+            label: c.Label,
+            sequence: c.Sequence ?? 0,
+            isSelected: true,
+            isEditable: c.IsEditable ?? false
+          }));
+        }
+
+        const priceCols = this.columnsInSection(allCols, DisplayColumnSection.LineItemPrice);
+        if (priceCols.length > 0) this.priceColumns = priceCols;
+
+        this.actions.applyOverrides(actionsResponse);
+        this.cdr.detectChanges();
+      })
+    );
+  }
+
+  // Returns the configured columns for a section, ordered by Sequence.
+  private columnsInSection(allCols: Array<DisplayColumn>, section: string): Array<DisplayColumn> {
+    return allCols
+      .filter((c: DisplayColumn) => c.Section === section)
+      .sort((a, b) => (a.Sequence ?? 0) - (b.Sequence ?? 0));
+  }
+
+  // Template-callable wrapper over DisplayColumnService.recordForColumn.
+  recordForColumn(record: AObject, fieldName: string): AObject {
+    return this.displayColumnService.recordForColumn(record, fieldName);
+  }
+
+  // Returns the leaf field name for a configured column.
+  fieldForColumn(fieldName: string): string {
+    return this.displayColumnService.fieldForColumn(fieldName);
+  }
+
+  summaryFieldValue(emitted: AObject, fieldName: string): any {
+    return this.displayColumnService.summaryFieldValue(emitted, fieldName);
+  }
+
+  // True when order fields may be edited at the current status, matching the stages the built-in
+  // summary allows. Configured columns are only editable when they also set IsEditable.
+  isOrderEditable(): boolean {
+    const key = (get(this.orderStatusMap, [get(this.order, 'Status'), 'Key'], '') as string).toLowerCase();
+    return key === 'draft' || key === 'generated' || key === 'presented';
+  }
+
+  // Tracks configured columns by field name so the summary does not re-render on every change.
+  trackByFieldName(_index: number, col: DisplayColumn): string {
+    return col.FieldName;
   }
 
   updateOrderValue(order: Order): Observable<Order> {
